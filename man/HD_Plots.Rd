@@ -20,7 +20,7 @@ HD_Plots(results, varnames, shocknames = NULL, xlab = NULL,
 
 \item{freq}{Numeric value indicating the frequency of the data.}
 
-\item{start_date}{Numeric vector indicating the starting date.}
+\item{start_date}{Numeric vector indicating the date of the first observation of the endogenous variables included in the model.}
 }
 \value{
 A list containing historical decompositions:
@@ -59,12 +59,12 @@ pA[, , 6] <- c(NA, NA, NA, NA)
 pA[, , 7] <- c(NA, NA, 1, NA)
 pA[, , 8] <- c(2.4, NA, 2.4, NA)
 
-# Position priors for P
+# Position priors for Phi
 pP <- matrix(data = 0, nrow = ((nlags * ncol(pA)) + 1), ncol = ncol(pA))
 pP[1:nrow(pA), 1:ncol(pA)] <-
   diag(x = 1, nrow = nrow(pA), ncol = ncol(pA))
 
-# Confidence in the priors for P
+# Confidence in the priors for Phi
 x1 <- 
   matrix(data = NA, nrow = (nrow(y) - nlags), 
          ncol = (ncol(y) * nlags))
@@ -74,15 +74,12 @@ for (k in 1:nlags) {
 }
 x1 <- cbind(x1, 1)
 colnames(x1) <- 
-  c(
-    paste(
-      rep(colnames(y), nlags), ".L",
-      sort(rep(seq(from = 1, to = nlags, by = 1), times = ncol(y)),
-           decreasing = FALSE),
-      sep = ""
-      ),
-    "cons"
-    )
+  c(paste(rep(colnames(y), nlags),
+          ".L",
+          sort(rep(seq(from = 1, to = nlags, by = 1), times = ncol(y)),
+               decreasing = FALSE),
+          sep = ""),
+    "cons")
 y1 <- y[(nlags + 1):nrow(y),]
 ee <- matrix(data = NA, nrow = nrow(y1), ncol = ncol(y1))
 for (i in 1:ncol(y1)) {
@@ -104,20 +101,19 @@ v3 <- 1 / v3
 pP_sig <- diag(x = 1, nrow = nrow(v3), ncol = nrow(v3))
 diag(pP_sig) <- v3
 
-# Confidence in priors for R (long-run restrictions)
+# Confidence in long-run restriction priors
 pR_sig <-
   array(data = 0,
         dim = c(((nlags * ncol(y)) + 1),
                 ((nlags * ncol(y)) + 1),
                 ncol(y)))
 Ri <-
-  cbind(
-    kronecker(matrix(data = 1, nrow = 1, ncol = nlags),
-              matrix(data = c(1, 0), nrow = 1)),
-    0)
-pR_sig[,,2] <- (t(Ri) \%*\% Ri) / 0.1
+  cbind(kronecker(matrix(data = 1, nrow = 1, ncol = nlags),
+                  matrix(data = c(1, 0), nrow = 1)),
+        0)
+pR_sig[, , 2] <- (t(Ri) \%*\% Ri) / 0.1
 
-# Confidence in priors for structural variances
+# Confidence in priors for D
 kappa1 <- matrix(data = 2, nrow = 1, ncol = ncol(y))
 
 # Set graphical parameters
@@ -132,12 +128,16 @@ results1 <-
            h1_irf = h1_irf, ci = ci)
 
 # Plot historical decompositions
-VarNames <- colnames(USLMData)[2:3]
-ShockNames <- c("Labor Demand","Labor Supply")
+varnames <- colnames(USLMData)[2:3]
+shocknames <- c("Labor Demand","Labor Supply")
+freq <- 4
+start_date <- 
+  c(floor(USLMData[(nlags + 1), 1]),
+    round(((USLMData[(nlags + 1), 1] \%\% 1) * freq), digits = 0))
 hd_results <- 
-  HD_Plots(results  = results1, varnames = VarNames,
-           shocknames = ShockNames,
-           freq = 4, start_date = c(1971, 2))
+  HD_Plots(results  = results1, varnames = varnames,
+           shocknames = shocknames,
+           freq = freq, start_date = start_date)
 }
 \author{
 Paul Richardson

@@ -9,35 +9,35 @@ BH_SBVAR(y, nlags, pA, pdetA = NULL, pH = NULL, pP = NULL,
   burn = 0, thin = 1, acc_irf = TRUE, h1_irf = 12, ci = 0.975)
 }
 \arguments{
-\item{y}{Matrix containing the endogenous variables.}
+\item{y}{\emph{(T x n)} matrix containing the endogenous variables. \emph{T} is the number of observations and \emph{n} is the number of endogenous variables.}
 
 \item{nlags}{Integer specifying the lag order.}
 
-\item{pA}{Array where each slice of the third dimension contains the prior distributions, sign restrictions, distribution positions, distribution scales, distribution degrees of freedom, distribution skew, long-run restriction scale parameters, and random-walk proposal scale parameters for the coefficient matrix 'A', respectively.}
+\item{pA}{\emph{(n x n x 8)} array where \emph{n} is the number of endogenous variables and each slice of the third dimension contains the prior distributions (NA - no prior, 0 - symmetric t-distribution, 1 - non-central t-distribution), sign restrictions (NA - no restriction, 1 - positive restriction, -1 - negative restriction), distribution positions, distribution scales, distribution degrees of freedom, distribution skew, long-run restriction scale parameters, and random-walk proposal scale parameters for the coefficient matrix \emph{A}, respectively.}
 
-\item{pdetA}{Array where each slice of the third dimension contains the prior distributions, sign restrictions, distribution positions, distribution scales, distribution degrees of freedom, and distribution skew parameters for the determinant of 'A', respectively (default=NULL). 'NULL' indicates no priors for the determinant of 'A'.}
+\item{pdetA}{\emph{(1 x 1 x 6)} array where each slice of the third dimension contains the prior distributions (NA - no prior, 0 - symmetric t-distribution, 1 - non-central t-distribution), sign restrictions (NA - no restriction, 1 - positive restriction, -1 - negative restriction), distribution positions, distribution scales, distribution degrees of freedom, and distribution skew parameters for the determinant of \emph{A}, respectively (default = NULL). NULL indicates no priors for the determinant of \emph{A}.}
 
-\item{pH}{Array where each slice of the third dimension contains the prior distributions, sign restrictions, distribution positions, distribution scales, distribution degrees of freedom, distribution skew parameters for the inverse of 'A', respectively (default=NULL). 'NULL' indicates no priors for the inverse of 'A'.}
+\item{pH}{\emph{(n x n x 6)} array where \emph{n} is the number of endogenous variables and each slice of the third dimension contains the prior distributions (NA - no prior, 0 - symmetric t-distribution, 1 - non-central t-distribution), sign restrictions (NA - no restriction, 1 - positive restriction, -1 - negative restriction), distribution positions, distribution scales, distribution degrees of freedom, distribution skew parameters for \emph{H}, the inverse of \emph{A}, respectively (default = NULL). NULL indicates no priors for the inverse of \emph{A}.}
 
-\item{pP}{Matrix containing the prior position parameters for the reduced form lagged coefficient matrix '\eqn{\Phi}' (default=NULL). 'NULL' indicates no priors for '\eqn{\Phi}'.}
+\item{pP}{\emph{(k x n)} matrix containing the prior position parameters for the reduced form lagged coefficient matrix \emph{\eqn{\Phi}} (default = NULL). \emph{\eqn{k = n L + 1}}, \emph{n} is the number of endogenous variables, and \emph{L} is the lag length. NULL indicates no priors for \emph{\eqn{\Phi}}.}
 
-\item{pP_sig}{Matrix containing values indicating confidence in 'pP' (default=NULL). 'NULL' indicates no priors for '\eqn{\Phi}'.}
+\item{pP_sig}{\emph{(k x k)} matrix containing values indicating confidence in the priors for \emph{\eqn{\Phi}} (default = NULL). \emph{\eqn{k = n L + 1}}, \emph{n} is the number of endogenous variables, and \emph{L} is the lag length. NULL indicates no priors for \emph{\eqn{\Phi}}.}
 
-\item{pR_sig}{Array containing values indicating confidence in long-run restrictions on the reduced form lagged coefficient matrix '\eqn{\Phi}' (default=NULL). 'Null' indicates no long-run restrictions.}
+\item{pR_sig}{\emph{(k x k x n)} array containing values indicating confidence in long-run restrictions on the reduced form lagged coefficient matrix \emph{\eqn{\Phi}} (default = NULL). \emph{\eqn{k = n L + 1}}, \emph{n} is the number of endogenous variables, and \emph{L} is the lag length. NULL indicates no long-run restrictions.}
 
-\item{kappa1}{Matrix containing values indicating confidence in priors for the structural variances (default=NULL). 'NULL' indicates no priors for structural variances. 'kappa1' should have a number of columns equal to the number of endogenous variables in, or columns of, 'y'. 'kappa1' should have 1 row.}
+\item{kappa1}{\emph{(1 x n)} matrix containing values indicating confidence in priors for the structural variances (default = NULL). \emph{n} is the number of endogenous variables. NULL indicates no priors for structural variances.}
 
-\item{itr}{Integer specifying the total number of iterations for the algorithm (default=5000).}
+\item{itr}{Integer specifying the total number of iterations for the algorithm (default = 5000).}
 
-\item{burn}{Integer specifying the number of draws to through out at the beginning of the algorithm (default=0).}
+\item{burn}{Integer specifying the number of draws to throw out at the beginning of the algorithm (default = 0).}
 
-\item{thin}{Integer specifying the thinning parameter (default=1). All draws beyond burn are kept when thin = 1. Draw 1, draw 3, etc. beyond burn are kept when thin = 2.}
+\item{thin}{Integer specifying the thinning parameter (default = 1). All draws beyond burn are kept when thin = 1. Draw 1, draw 3, etc. beyond burn are kept when thin = 2.}
 
-\item{acc_irf}{Boolean indicating whether or not accumulated impulse responses are to be returned (default=TRUE).}
+\item{acc_irf}{Boolean indicating whether accumulated impulse responses are to be returned (default = TRUE).}
 
-\item{h1_irf}{Integer specifying the time horizon for computing impulse responses (default=12).}
+\item{h1_irf}{Integer specifying the time horizon for computing impulse responses (default = 12).}
 
-\item{ci}{Numeric value indicating credibility intervals for the estimates to be returned (default=0.975).}
+\item{ci}{Numeric value indicating credibility intervals for the estimates to be returned (default = 0.975).}
 }
 \value{
 A list containing the following:
@@ -46,23 +46,23 @@ accept_rate: Acceptance rate of the algorithm.
 
 y and x: Matrices containing the endogenous variables and their lags.
 
-pA, pdetA, pH, pP, pP_sig, pR, pR_sig: Matrices and arrays containing prior information.
+pA, pdetA, pH, pP, pP_sig, pR, pR_sig, tau1, and kappa1: Matrices and arrays containing prior information.
 
-A_max: Matrix containing estimates of the parameters in 'A' from the optimization routine.
+A_start: Matrix containing estimates of the parameters in \emph{A} from the optimization routine.
 
-A, detA, H, B, Phi: Arrays containing estimates of the model parameters. The first, second, and third slices of the third dimension are lower, median, and upper bounds of the estimates.
+A, detA, H, B, and Phi: Arrays containing estimates of the model parameters. The first, second, and third slices of the third dimension are lower, median, and upper bounds of the estimates.
 
-HD and IRF: Arrays containing historical decomposition of structural shocks and impulse response functions. The first, second, and thrird slices of the third dimension are lower, median, and upper bounds of the estimates.
+HD and IRF: Arrays containing historical decomposition of structural shocks and impulse response functions. The first, second, and third slices of the third dimension are lower, median, and upper bounds of the estimates.
 
-A_den, detA_den, and H_den: Lists containing the horizontal and vertical axis coordinates of posterior densities of A, detA, and H.
+A_den, detA_den, and H_den: Lists containing the horizontal and vertical axis coordinates of posterior densities of \emph{A}, \emph{det(A)}, and \emph{H}.
 
-Line and ACF plots of the estimates for A, det(A), and H.
+Line and ACF plots of the estimates for \emph{A}, \emph{det(A)}, and \emph{H}.
 }
 \description{
-Runs a Structural Bayesian Vector Autoregression model with the method developed by Baumeister and Hamilton (2015,2017,and 2018).
+Runs a Structural Bayesian Vector Autoregression model with the method developed by Baumeister and Hamilton (2015, 2017, and 2018).
 }
 \details{
-Runs a Structural Bayesian Vector Autoregression model with the method developed in Baumeister and Hamilton (2015,2017,and 2018). The function returns a list containing the results.
+Runs a Structural Bayesian Vector Autoregression model with the method developed in Baumeister and Hamilton (2015, 2017, and 2018). The function returns a list containing the results.
 }
 \examples{
 # Import data
@@ -92,12 +92,12 @@ pA[, , 6] <- c(NA, NA, NA, NA)
 pA[, , 7] <- c(NA, NA, 1, NA)
 pA[, , 8] <- c(2.4, NA, 2.4, NA)
 
-# Position priors for P
+# Position priors for Phi
 pP <- matrix(data = 0, nrow = ((nlags * ncol(pA)) + 1), ncol = ncol(pA))
 pP[1:nrow(pA), 1:ncol(pA)] <-
   diag(x = 1, nrow = nrow(pA), ncol = ncol(pA))
 
-# Confidence in the priors for P
+# Confidence in the priors for Phi
 x1 <- 
   matrix(data = NA, nrow = (nrow(y) - nlags), 
          ncol = (ncol(y) * nlags))
@@ -107,15 +107,12 @@ for (k in 1:nlags) {
 }
 x1 <- cbind(x1, 1)
 colnames(x1) <- 
-  c(
-    paste(
-      rep(colnames(y), nlags), ".L",
-      sort(rep(seq(from = 1, to = nlags, by = 1), times = ncol(y)),
-           decreasing = FALSE),
-      sep = ""
-      ),
-    "cons"
-    )
+  c(paste(rep(colnames(y), nlags),
+          ".L",
+          sort(rep(seq(from = 1, to = nlags, by = 1), times = ncol(y)),
+               decreasing = FALSE),
+          sep = ""),
+    "cons")
 y1 <- y[(nlags + 1):nrow(y),]
 ee <- matrix(data = NA, nrow = nrow(y1), ncol = ncol(y1))
 for (i in 1:ncol(y1)) {
@@ -137,20 +134,19 @@ v3 <- 1 / v3
 pP_sig <- diag(x = 1, nrow = nrow(v3), ncol = nrow(v3))
 diag(pP_sig) <- v3
 
-# Confidence in priors for R (long-run restrictions)
+# Confidence in long-run restriction priors
 pR_sig <-
   array(data = 0,
         dim = c(((nlags * ncol(y)) + 1),
                 ((nlags * ncol(y)) + 1),
                 ncol(y)))
 Ri <-
-  cbind(
-    kronecker(matrix(data = 1, nrow = 1, ncol = nlags),
-              matrix(data = c(1, 0), nrow = 1)),
-    0)
-pR_sig[,,2] <- (t(Ri) \%*\% Ri) / 0.1
+  cbind(kronecker(matrix(data = 1, nrow = 1, ncol = nlags),
+                  matrix(data = c(1, 0), nrow = 1)),
+        0)
+pR_sig[, , 2] <- (t(Ri) \%*\% Ri) / 0.1
 
-# Confidence in priors for structural variances
+# Confidence in priors for D
 kappa1 <- matrix(data = 2, nrow = 1, ncol = ncol(y))
 
 # Set graphical parameters

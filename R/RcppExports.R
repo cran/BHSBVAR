@@ -3,37 +3,37 @@
 
 #' @useDynLib BHSBVAR, .registration = TRUE
 #' @keywords internal
-prior_nonc_t <- function(x1, c1, sigma, nu, lam1) {
-    .Call(`_BHSBVAR_prior_nonc_t`, x1, c1, sigma, nu, lam1)
+prior_nonc_t <- function(x1, c1, sigma1, nu, lam1) {
+    .Call(`_BHSBVAR_prior_nonc_t`, x1, c1, sigma1, nu, lam1)
 }
 
 #' @useDynLib BHSBVAR, .registration = TRUE
 #' @keywords internal
-prior_t_n <- function(x1, c1, sigma, nu) {
-    .Call(`_BHSBVAR_prior_t_n`, x1, c1, sigma, nu)
+prior_t_n <- function(x1, c1, sigma1, nu) {
+    .Call(`_BHSBVAR_prior_t_n`, x1, c1, sigma1, nu)
 }
 
 #' @useDynLib BHSBVAR, .registration = TRUE
 #' @keywords internal
-prior_t_p <- function(x1, c1, sigma, nu) {
-    .Call(`_BHSBVAR_prior_t_p`, x1, c1, sigma, nu)
+prior_t_p <- function(x1, c1, sigma1, nu) {
+    .Call(`_BHSBVAR_prior_t_p`, x1, c1, sigma1, nu)
 }
 
 #' @useDynLib BHSBVAR, .registration = TRUE
 #' @keywords internal
-prior_t <- function(x1, c1, sigma, nu) {
-    .Call(`_BHSBVAR_prior_t`, x1, c1, sigma, nu)
+prior_t <- function(x1, c1, sigma1, nu) {
+    .Call(`_BHSBVAR_prior_t`, x1, c1, sigma1, nu)
 }
 
 #' @useDynLib BHSBVAR, .registration = TRUE
 #' @keywords internal
-post_A_max <- function(par, pA, pdetA, pH, pP, pP_sig, pR_sig, kappa1, y1, x1, omega, somega, nlags) {
-    .Call(`_BHSBVAR_post_A_max`, par, pA, pdetA, pH, pP, pP_sig, pR_sig, kappa1, y1, x1, omega, somega, nlags)
+post_A_optim <- function(par, pA, pdetA, pH, pP, pP_sig, pR_sig, kappa1, y1, x1, omega, somega, nlags) {
+    .Call(`_BHSBVAR_post_A_optim`, par, pA, pdetA, pH, pP, pP_sig, pR_sig, kappa1, y1, x1, omega, somega, nlags)
 }
 
 #' @useDynLib BHSBVAR, .registration = TRUE
 #' @keywords internal
-MAIN <- function(y1, x1, omega, somega, nlags, pA, pdetA, pH, pP, pP_sig, pR_sig, kappa1, A_max, itr, burn, thin, scale1, h1_irf, acc_irf, ci, VarNames, line_plot, acf_plot) {
-    .Call(`_BHSBVAR_MAIN`, y1, x1, omega, somega, nlags, pA, pdetA, pH, pP, pP_sig, pR_sig, kappa1, A_max, itr, burn, thin, scale1, h1_irf, acc_irf, ci, VarNames, line_plot, acf_plot)
+MAIN <- function(y1, x1, omega, somega, nlags, pA, pdetA, pH, pP, pP_sig, pR_sig, kappa1, A_start, itr, burn, thin, scale1, h1_irf, acc_irf, ci, varnames, line_plot, acf_plot) {
+    .Call(`_BHSBVAR_MAIN`, y1, x1, omega, somega, nlags, pA, pdetA, pH, pP, pP_sig, pR_sig, kappa1, A_start, itr, burn, thin, scale1, h1_irf, acc_irf, ci, varnames, line_plot, acf_plot)
 }
 

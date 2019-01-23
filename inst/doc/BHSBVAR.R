@@ -4,9 +4,9 @@
 ###################################################
 ### code chunk number 1: Setup
 ###################################################
-library(knitr)
-opts_knit$set(self.contained = TRUE, concordance = FALSE)
-opts_chunk$set(fig.path = "fig/")
+#library(knitr)
+knitr::opts_knit$set(self.contained = TRUE, concordance = FALSE)
+knitr::opts_chunk$set(fig.path = "fig/")
 
 
 ###################################################
@@ -61,15 +61,12 @@ for (k in 1:nlags) {
 }
 x1 <- cbind(x1, 1)
 colnames(x1) <- 
-  c(
-    paste(
-      rep(colnames(y), nlags), ".L",
-      sort(rep(seq(from = 1, to = nlags, by = 1), times = ncol(y)),
-           decreasing = FALSE),
-      sep = ""
-      ),
-    "cons"
-    )
+  c(paste(rep(colnames(y), nlags),
+          ".L",
+          sort(rep(seq(from = 1, to = nlags, by = 1), times = ncol(y)),
+               decreasing = FALSE),
+          sep = ""),
+    "cons")
 y1 <- y[(nlags + 1):nrow(y),]
 ee <- matrix(data = NA, nrow = nrow(y1), ncol = ncol(y1))
 for (i in 1:ncol(y1)) {
@@ -88,8 +85,7 @@ v2 <- matrix(data = diag(solve(diag(diag(somega)))), ncol = 1)
 v3 <- kronecker(v1, v2)
 v3 <- (lambda0^2) * rbind(v3, (lambda3^2))
 v3 <- 1 / v3
-pP_sig <- diag(x = 1, nrow = nrow(v3), ncol = nrow(v3))
-diag(pP_sig) <- v3
+pP_sig <- diag(x = c(v3), nrow = nrow(v3), ncol = nrow(v3))
 
 
 ###################################################
@@ -101,11 +97,10 @@ pR_sig <-
                 ((nlags * ncol(y)) + 1),
                 ncol(y)))
 Ri <-
-  cbind(
-    kronecker(matrix(data = 1, nrow = 1, ncol = nlags),
-              matrix(data = c(1, 0), nrow = 1)),
-    0)
-pR_sig[,,2] <- (t(Ri) %*% Ri) / 0.1
+  cbind(kronecker(matrix(data = 1, nrow = 1, ncol = nlags),
+                  matrix(data = c(1, 0), nrow = 1)),
+        0)
+pR_sig[, , 2] <- (t(Ri) %*% Ri) / 0.1
 kappa1 <- matrix(data = 2, nrow = 1, ncol = ncol(y))
 
 
@@ -124,24 +119,28 @@ results1 <-
 ###################################################
 ### code chunk number 8: IRF_plots
 ###################################################
-VarNames <- colnames(USLMData)[2:3]
-ShockNames <- c("Labor Demand","Labor Supply")
+varnames <- colnames(USLMData)[2:3]
+shocknames <- c("Labor Demand","Labor Supply")
 par(cex.axis = 0.8, cex.main = 1, font.main = 1, family = "serif",
     mfrow = c(2, 2), mar = c(2, 2.2, 2, 1), las = 1)
 irf_results <- 
-  IRF_Plots(results = results1, varnames = VarNames,
-            shocknames = ShockNames)
+  IRF_Plots(results = results1, varnames = varnames,
+            shocknames = shocknames)
 
 
 ###################################################
 ### code chunk number 9: HD_plots
 ###################################################
+freq <- 4
+start_date <- 
+  c(floor(USLMData[(nlags + 1), 1]),
+    round(((USLMData[(nlags + 1), 1] %% 1) * freq), digits = 0))
 par(cex.axis = 0.8, cex.main = 1, font.main = 1, family = "serif",
     mfrow = c(2, 2), mar = c(2, 2.2, 2, 1), las = 1)
 hd_results <- 
-  HD_Plots(results  = results1, varnames = VarNames,
-           shocknames = ShockNames,
-           freq = 4, start_date = c(1971, 2))
+  HD_Plots(results  = results1, varnames = varnames,
+           shocknames = shocknames,
+           freq = freq, start_date = start_date)
 
 
 ###################################################
@@ -160,37 +159,33 @@ Dist_Plots(results = results1, A_titles = A_titles)
 ### code chunk number 11: Density1 (eval = FALSE)
 ###################################################
 ## density <-
-##   dt(x = ((x1 - c1) / sigma), df = nu, ncp = 0, log = FALSE) / sigma
+##   dt(x = ((x1 - c1) / sigma1), df = nu, ncp = 0, log = FALSE) / sigma1
 
 
 ###################################################
 ### code chunk number 12: Density2 (eval = FALSE)
 ###################################################
 ## density <-
-##   dt(x = ((x1 - c1) / sigma), df = nu, ncp = lam, log = FALSE) / sigma
+##   dt(x = ((x1 - c1) / sigma1), df = nu, ncp = lam, log = FALSE) / sigma1
 
 
 ###################################################
 ### code chunk number 13: Density3 (eval = FALSE)
 ###################################################
 ## density <-
-##   dt(x = ((x1 - c1) / sigma), df = nu, ncp = 0, log = FALSE) / 
-##   (sigma * 
-##      (1 - pt(q = ((-c1) / sigma), df = nu, ncp = 0,
-##              lower.tail = TRUE, log.p = FALSE)
-##       )
-##    )
+##   dt(x = ((x1 - c1) / sigma1), df = nu, ncp = 0, log = FALSE) / 
+##   (sigma1 * 
+##      (1 - pt(q = ((-c1) / sigma1), df = nu, ncp = 0,
+##              lower.tail = TRUE, log.p = FALSE)))
 
 
 ###################################################
 ### code chunk number 14: Density4 (eval = FALSE)
 ###################################################
 ## density <-
-##   dt(x = ((x1 - c1) / sigma), df = nu, ncp = 0, log = FALSE) / 
-##   (sigma * 
-##      (pt(q = ((-c1) / sigma), df = nu, ncp = 0,
-##          lower.tail = TRUE, log.p = FALSE)
-##       )
-##    )
+##   dt(x = ((x1 - c1) / sigma1), df = nu, ncp = 0, log = FALSE) / 
+##   (sigma1 * 
+##      (pt(q = ((-c1) / sigma1), df = nu, ncp = 0,
+##          lower.tail = TRUE, log.p = FALSE)))
 
 

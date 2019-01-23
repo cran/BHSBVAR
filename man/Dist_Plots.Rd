@@ -10,9 +10,9 @@ Dist_Plots(results, A_titles, H_titles = NULL, xlab = NULL,
 \arguments{
 \item{results}{List containing the results from running BH_SBVAR().}
 
-\item{A_titles}{Matrix containing the titles for the plots of the elements in the coefficient matrix A.}
+\item{A_titles}{\emph{(n x n)} matrix containing the titles for the plots of the estimated parameters in the coefficient matrix \emph{A}. \emph{n} is the number of endogenous variables.}
 
-\item{H_titles}{Matrix containing the titles for the plots of the elements in the coefficient matrix H (default = NULL).}
+\item{H_titles}{\emph{(n x n)} matrix containing the titles for the plots of the estimated parameters in the coefficient matrix \emph{H} (default = NULL). \emph{n} is the number of endogenous variables.}
 
 \item{xlab}{Character label for the horizontal axis of historical decomposition plots (default = NULL). Default produces plots without a label for the horizontal axis.}
 
@@ -52,12 +52,12 @@ pA[, , 6] <- c(NA, NA, NA, NA)
 pA[, , 7] <- c(NA, NA, 1, NA)
 pA[, , 8] <- c(2.4, NA, 2.4, NA)
 
-# Position priors for P
+# Position priors for Phi
 pP <- matrix(data = 0, nrow = ((nlags * ncol(pA)) + 1), ncol = ncol(pA))
 pP[1:nrow(pA), 1:ncol(pA)] <-
   diag(x = 1, nrow = nrow(pA), ncol = ncol(pA))
 
-# Confidence in the priors for P
+# Confidence in the priors for Phi
 x1 <- 
   matrix(data = NA, nrow = (nrow(y) - nlags), 
          ncol = (ncol(y) * nlags))
@@ -67,15 +67,12 @@ for (k in 1:nlags) {
 }
 x1 <- cbind(x1, 1)
 colnames(x1) <- 
-  c(
-    paste(
-      rep(colnames(y), nlags), ".L",
-      sort(rep(seq(from = 1, to = nlags, by = 1), times = ncol(y)),
-           decreasing = FALSE),
-      sep = ""
-      ),
-    "cons"
-    )
+  c(paste(rep(colnames(y), nlags),
+          ".L",
+          sort(rep(seq(from = 1, to = nlags, by = 1), times = ncol(y)),
+               decreasing = FALSE),
+          sep = ""),
+    "cons")
 y1 <- y[(nlags + 1):nrow(y),]
 ee <- matrix(data = NA, nrow = nrow(y1), ncol = ncol(y1))
 for (i in 1:ncol(y1)) {
@@ -97,20 +94,19 @@ v3 <- 1 / v3
 pP_sig <- diag(x = 1, nrow = nrow(v3), ncol = nrow(v3))
 diag(pP_sig) <- v3
 
-# Confidence in priors for R (long-run restrictions)
+# Confidence in long-run restriction priors
 pR_sig <-
   array(data = 0,
         dim = c(((nlags * ncol(y)) + 1),
                 ((nlags * ncol(y)) + 1),
                 ncol(y)))
 Ri <-
-  cbind(
-    kronecker(matrix(data = 1, nrow = 1, ncol = nlags),
-              matrix(data = c(1, 0), nrow = 1)),
-    0)
-pR_sig[,,2] <- (t(Ri) \%*\% Ri) / 0.1
+  cbind(kronecker(matrix(data = 1, nrow = 1, ncol = nlags),
+                  matrix(data = c(1, 0), nrow = 1)),
+        0)
+pR_sig[, , 2] <- (t(Ri) \%*\% Ri) / 0.1
 
-# Confidence in priors for structural variances
+# Confidence in priors for D
 kappa1 <- matrix(data = 2, nrow = 1, ncol = ncol(y))
 
 # Set graphical parameters

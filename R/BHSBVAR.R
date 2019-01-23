@@ -1,15 +1,17 @@
 
 # Create matrices containing dependent and independet variables.
 #' @keywords internal
-getXY <- function(data,nlags) {
-  data <- data - (matrix(data = 1, nrow = nrow(data), ncol = ncol(data)) %*% diag(x = colMeans(x = data, na.rm = FALSE, dims = 1), names = TRUE))
-  X <- matrix(data = NA_real_, nrow = (nrow(data) - nlags), ncol = (ncol(data) * nlags))
+getXY <- function(data1, nlags) {
+  varnames <- colnames(data1)
+  data1 <- data1 - (matrix(data = 1, nrow = nrow(data1), ncol = ncol(data1)) %*% diag(x = colMeans(x = data1, na.rm = FALSE, dims = 1)))
+  colnames(data1) <- varnames
+  X <- matrix(data = NA_real_, nrow = (nrow(data1) - nlags), ncol = (ncol(data1) * nlags))
   for (k in 1:nlags) {
-    X[, (ncol(data) * (k - 1) + 1):(ncol(data) * k)] <- data[(nlags - k + 1):(nrow(data) - k), ]
+    X[, (ncol(data1) * (k - 1) + 1):(ncol(data1) * k)] <- data1[(nlags - k + 1):(nrow(data1) - k), ]
   }
   X <- cbind(X, 1)
-  colnames(X) <- c(paste(rep(colnames(data), nlags), ".L", sort(rep(seq(from = 1, to = nlags, by = 1), times = ncol(data)), decreasing = FALSE), sep = ""), "cons")
-  Y <- data[(nlags + 1):nrow(data), ]
+  colnames(X) <- c(paste(rep(colnames(data1), nlags), ".L", sort(rep(seq(from = 1, to = nlags, by = 1), times = ncol(data1)), decreasing = FALSE), sep = ""), "cons")
+  Y <- data1[(nlags + 1):nrow(data1), ]
   list1 <- list(X, Y)
   return(list1)
 }
@@ -120,8 +122,8 @@ check_arrays <- function(list1, y) {
     if (!is.numeric(list1[[i]])) {
       return(paste(names(list1[i]), ": Should contain 'numeric' elements for arrays specifying prior distributions. Use 'NA_real_' for elements in arrays that contain all NAs.", sep = ""))
     }
-    if ((names(list1[i]) == "pA") && (all(is.na(list1[[i]][,,1])))) {
-      return(paste(names(list1[i]), "[,,1]: Should indicate at least one parameter to be estimated.", sep = ""))
+    if ((names(list1[i]) == "pA") && (all(is.na(list1[[i]][, , 1])))) {
+      return(paste(names(list1[i]), "[, , 1]: Should indicate at least one parameter to be estimated.", sep = ""))
     }
     if ((names(list1[i]) == "pA") && ((dim(list1[[i]])[1] != ncol(y)) | (dim(list1[[i]])[2] != ncol(y)) | (dim(list1[[i]])[3] != 8))) {
       return(paste(names(list1[i]), ": Should be an (", ncol(y), ", ", ncol(y), ", 8) array.", sep = ""))
@@ -261,53 +263,96 @@ arguments_check <- function(y, nlags, pA, pdetA, pH, pP, pP_sig, pR_sig, kappa1,
           }
         }
       }
-      if ((any(pR_sig[(dim(pR_sig)[1]),, i] != 0)) | (any(pR_sig[, (dim(pR_sig)[2]), i] != 0))) {
-        return(paste("pR_sig: The values at pR_sig[", (dim(pR_sig)[1]), ", ,", i, "] and pR_sig[,",(dim(pR_sig)[2]), ", ", i, "] should be 0.", sep = ""))
+      if ((any(pR_sig[(dim(pR_sig)[1]), , i] != 0)) | (any(pR_sig[, (dim(pR_sig)[2]), i] != 0))) {
+        return(paste("pR_sig: The values at pR_sig[", (dim(pR_sig)[1]), ", , ", i, "] and pR_sig[,",(dim(pR_sig)[2]), ", ", i, "] should be 0.", sep = ""))
       }
     } else {
-      if (any(pR_sig[,, i] != 0)) {
-        return(paste("pR_sig: Each element in pR_sig[,,", i,"] should be 0 since there were no long-run restrictions indicated for equation ", i, ".", sep = ""))
+      if (any(pR_sig[, , i] != 0)) {
+        return(paste("pR_sig: Each element in pR_sig[, , ", i, "] should be 0 since there were no long-run restrictions indicated for equation ", i, ".", sep = ""))
       }
     }
-    if (!isSymmetric(pR_sig[,,i])) {
-      return(paste("pR_sig[,,",i,"]: Must be symmetric.", sep = ""))
+    if (!isSymmetric(pR_sig[, , i])) {
+      return(paste("pR_sig[, , ", i, "]: Must be symmetric.", sep = ""))
     }
   }
   return("pass")
 }
 
+# Line Plots
+#' @keywords internal
+line_plot <- function(data1, prior_name, i, j) {
+  if (prior_name == "pA") {
+    elast = -1
+  } else {
+    elast = 1
+  }
+  graphics::plot(x = (elast * data1), type = "l", col = "black", yaxs = "r", xaxs = "i", xlab = "Iteration", ylab = "Estimate")
+  if (prior_name == "pA") {
+    graphics::title(main = paste("-A(", i, "," , j, ")", sep = ""), col.main = "black")
+  } else if (prior_name == "pH") {
+    graphics::title(main = paste("H(", i, "," , j, ")", sep = ""), col.main = "black")
+  } else if (prior_name == "pdetA") {
+    graphics::title(main = paste("Determinant of A"), col.main = "black")
+  }
+  Sys.sleep(0.25)
+}
+
+# Autocorrelation Plots
+#' @keywords internal
+acf_plot <- function(data1, prior_name, i, j) {
+  if (any(data1 != data1[1])) {
+    stats::acf(x = stats::ts(data1), lag.max = NULL, plot = TRUE, type = c("correlation"), demean = TRUE, main = "", xlab = "Lag Length", ylab = "Correlation", ci = 0)
+    if (prior_name == "pA") {
+      graphics::title(main = paste("-A(", i, "," , j, ")", sep = ""), col.main = "black")
+    } else if (prior_name == "pH") {
+      graphics::title(main = paste("H(", i, "," , j, ")", sep = ""), col.main = "black")
+    } else if (prior_name == "pdetA") {
+      graphics::title(main = paste("Determinant of A"), col.main = "black")
+    }
+    Sys.sleep(0.25)
+  } else {
+    if (prior_name == "pA") {
+      warning(paste("No variation in -A(", i, "," , j, ")", sep = ""), immediate. = TRUE)
+    } else if (prior_name == "pH") {
+      warning(paste("No variation in H(", i, "," , j, ")", sep = ""), immediate. = TRUE)
+    } else if (prior_name == "pdetA") {
+      warning(paste("No variation in det(A)", sep = ""), immediate. = TRUE)
+    }
+  }
+}
+
 #' Structural Bayesian Vector Autoregression
 #' 
-#' Runs a Structural Bayesian Vector Autoregression model with the method developed by Baumeister and Hamilton (2015,2017,and 2018).
+#' Runs a Structural Bayesian Vector Autoregression model with the method developed by Baumeister and Hamilton (2015, 2017, and 2018).
 #' @author Paul Richardson
 #' @export
 #' @import Rcpp
 #' @name BH_SBVAR
-#' @param y Matrix containing the endogenous variables.
+#' @param y \emph{(T x n)} matrix containing the endogenous variables. \emph{T} is the number of observations and \emph{n} is the number of endogenous variables.
 #' @param nlags Integer specifying the lag order.
-#' @param pA Array where each slice of the third dimension contains the prior distributions, sign restrictions, distribution positions, distribution scales, distribution degrees of freedom, distribution skew, long-run restriction scale parameters, and random-walk proposal scale parameters for the coefficient matrix 'A', respectively.
-#' @param pdetA Array where each slice of the third dimension contains the prior distributions, sign restrictions, distribution positions, distribution scales, distribution degrees of freedom, and distribution skew parameters for the determinant of 'A', respectively (default=NULL). 'NULL' indicates no priors for the determinant of 'A'.
-#' @param pH Array where each slice of the third dimension contains the prior distributions, sign restrictions, distribution positions, distribution scales, distribution degrees of freedom, distribution skew parameters for the inverse of 'A', respectively (default=NULL). 'NULL' indicates no priors for the inverse of 'A'.
-#' @param pP Matrix containing the prior position parameters for the reduced form lagged coefficient matrix '\eqn{\Phi}' (default=NULL). 'NULL' indicates no priors for '\eqn{\Phi}'.
-#' @param pP_sig Matrix containing values indicating confidence in 'pP' (default=NULL). 'NULL' indicates no priors for '\eqn{\Phi}'.
-#' @param pR_sig Array containing values indicating confidence in long-run restrictions on the reduced form lagged coefficient matrix '\eqn{\Phi}' (default=NULL). 'Null' indicates no long-run restrictions.
-#' @param kappa1 Matrix containing values indicating confidence in priors for the structural variances (default=NULL). 'NULL' indicates no priors for structural variances. 'kappa1' should have a number of columns equal to the number of endogenous variables in, or columns of, 'y'. 'kappa1' should have 1 row.
-#' @param itr Integer specifying the total number of iterations for the algorithm (default=5000).
-#' @param burn Integer specifying the number of draws to through out at the beginning of the algorithm (default=0).
-#' @param thin Integer specifying the thinning parameter (default=1). All draws beyond burn are kept when thin = 1. Draw 1, draw 3, etc. beyond burn are kept when thin = 2.
-#' @param acc_irf Boolean indicating whether or not accumulated impulse responses are to be returned (default=TRUE).
-#' @param h1_irf Integer specifying the time horizon for computing impulse responses (default=12).
-#' @param ci Numeric value indicating credibility intervals for the estimates to be returned (default=0.975).
-#' @details Runs a Structural Bayesian Vector Autoregression model with the method developed in Baumeister and Hamilton (2015,2017,and 2018). The function returns a list containing the results.
+#' @param pA \emph{(n x n x 8)} array where \emph{n} is the number of endogenous variables and each slice of the third dimension contains the prior distributions (NA - no prior, 0 - symmetric t-distribution, 1 - non-central t-distribution), sign restrictions (NA - no restriction, 1 - positive restriction, -1 - negative restriction), distribution positions, distribution scales, distribution degrees of freedom, distribution skew, long-run restriction scale parameters, and random-walk proposal scale parameters for the coefficient matrix \emph{A}, respectively.
+#' @param pdetA \emph{(1 x 1 x 6)} array where each slice of the third dimension contains the prior distributions (NA - no prior, 0 - symmetric t-distribution, 1 - non-central t-distribution), sign restrictions (NA - no restriction, 1 - positive restriction, -1 - negative restriction), distribution positions, distribution scales, distribution degrees of freedom, and distribution skew parameters for the determinant of \emph{A}, respectively (default = NULL). NULL indicates no priors for the determinant of \emph{A}.
+#' @param pH \emph{(n x n x 6)} array where \emph{n} is the number of endogenous variables and each slice of the third dimension contains the prior distributions (NA - no prior, 0 - symmetric t-distribution, 1 - non-central t-distribution), sign restrictions (NA - no restriction, 1 - positive restriction, -1 - negative restriction), distribution positions, distribution scales, distribution degrees of freedom, distribution skew parameters for \emph{H}, the inverse of \emph{A}, respectively (default = NULL). NULL indicates no priors for the inverse of \emph{A}.
+#' @param pP \emph{(k x n)} matrix containing the prior position parameters for the reduced form lagged coefficient matrix \emph{\eqn{\Phi}} (default = NULL). \emph{\eqn{k = n L + 1}}, \emph{n} is the number of endogenous variables, and \emph{L} is the lag length. NULL indicates no priors for \emph{\eqn{\Phi}}.
+#' @param pP_sig \emph{(k x k)} matrix containing values indicating confidence in the priors for \emph{\eqn{\Phi}} (default = NULL). \emph{\eqn{k = n L + 1}}, \emph{n} is the number of endogenous variables, and \emph{L} is the lag length. NULL indicates no priors for \emph{\eqn{\Phi}}.
+#' @param pR_sig \emph{(k x k x n)} array containing values indicating confidence in long-run restrictions on the reduced form lagged coefficient matrix \emph{\eqn{\Phi}} (default = NULL). \emph{\eqn{k = n L + 1}}, \emph{n} is the number of endogenous variables, and \emph{L} is the lag length. NULL indicates no long-run restrictions.
+#' @param kappa1 \emph{(1 x n)} matrix containing values indicating confidence in priors for the structural variances (default = NULL). \emph{n} is the number of endogenous variables. NULL indicates no priors for structural variances.
+#' @param itr Integer specifying the total number of iterations for the algorithm (default = 5000).
+#' @param burn Integer specifying the number of draws to throw out at the beginning of the algorithm (default = 0).
+#' @param thin Integer specifying the thinning parameter (default = 1). All draws beyond burn are kept when thin = 1. Draw 1, draw 3, etc. beyond burn are kept when thin = 2.
+#' @param acc_irf Boolean indicating whether accumulated impulse responses are to be returned (default = TRUE).
+#' @param h1_irf Integer specifying the time horizon for computing impulse responses (default = 12).
+#' @param ci Numeric value indicating credibility intervals for the estimates to be returned (default = 0.975).
+#' @details Runs a Structural Bayesian Vector Autoregression model with the method developed in Baumeister and Hamilton (2015, 2017, and 2018). The function returns a list containing the results.
 #' @return A list containing the following:
 #' @return accept_rate: Acceptance rate of the algorithm.
 #' @return y and x: Matrices containing the endogenous variables and their lags.
-#' @return pA, pdetA, pH, pP, pP_sig, pR, pR_sig: Matrices and arrays containing prior information.
-#' @return A_max: Matrix containing estimates of the parameters in 'A' from the optimization routine.
-#' @return A, detA, H, B, Phi: Arrays containing estimates of the model parameters. The first, second, and third slices of the third dimension are lower, median, and upper bounds of the estimates.
-#' @return HD and IRF: Arrays containing historical decomposition of structural shocks and impulse response functions. The first, second, and thrird slices of the third dimension are lower, median, and upper bounds of the estimates.
-#' @return A_den, detA_den, and H_den: Lists containing the horizontal and vertical axis coordinates of posterior densities of A, detA, and H.
-#' @return Line and ACF plots of the estimates for A, det(A), and H.
+#' @return pA, pdetA, pH, pP, pP_sig, pR, pR_sig, tau1, and kappa1: Matrices and arrays containing prior information.
+#' @return A_start: Matrix containing estimates of the parameters in \emph{A} from the optimization routine.
+#' @return A, detA, H, B, and Phi: Arrays containing estimates of the model parameters. The first, second, and third slices of the third dimension are lower, median, and upper bounds of the estimates.
+#' @return HD and IRF: Arrays containing historical decomposition of structural shocks and impulse response functions. The first, second, and third slices of the third dimension are lower, median, and upper bounds of the estimates.
+#' @return A_den, detA_den, and H_den: Lists containing the horizontal and vertical axis coordinates of posterior densities of \emph{A}, \emph{det(A)}, and \emph{H}.
+#' @return Line and ACF plots of the estimates for \emph{A}, \emph{det(A)}, and \emph{H}.
 #' @references Baumeister, C., and Hamilton, J.D. (2015). Sign restrictions, structural vector autoregressions, and useful prior information. \emph{Econometrica}, 83(5), 1963-1999.
 #' @references Baumeister, C., and Hamilton, J.D. (2017). Structural interpretation of vector autoregressions with incomplete identification: Revisiting the role of oil supply and demand shocks (No. w24167). National Bureau of Economic Research.
 #' @references Baumeister, C., and Hamilton, J.D. (2018). Inference in structural vector autoregressions when the identifying assumptions are not fully believed: Re-evaluating the role of monetary policy in economic fluctuations. \emph{Journal of Monetary Economics},
@@ -339,12 +384,12 @@ arguments_check <- function(y, nlags, pA, pdetA, pH, pP, pP_sig, pR_sig, kappa1,
 #' pA[, , 7] <- c(NA, NA, 1, NA)
 #' pA[, , 8] <- c(2.4, NA, 2.4, NA)
 #' 
-#' # Position priors for P
+#' # Position priors for Phi
 #' pP <- matrix(data = 0, nrow = ((nlags * ncol(pA)) + 1), ncol = ncol(pA))
 #' pP[1:nrow(pA), 1:ncol(pA)] <-
 #'   diag(x = 1, nrow = nrow(pA), ncol = ncol(pA))
 #' 
-#' # Confidence in the priors for P
+#' # Confidence in the priors for Phi
 #' x1 <- 
 #'   matrix(data = NA, nrow = (nrow(y) - nlags), 
 #'          ncol = (ncol(y) * nlags))
@@ -354,15 +399,12 @@ arguments_check <- function(y, nlags, pA, pdetA, pH, pP, pP_sig, pR_sig, kappa1,
 #' }
 #' x1 <- cbind(x1, 1)
 #' colnames(x1) <- 
-#'   c(
-#'     paste(
-#'       rep(colnames(y), nlags), ".L",
-#'       sort(rep(seq(from = 1, to = nlags, by = 1), times = ncol(y)),
-#'            decreasing = FALSE),
-#'       sep = ""
-#'       ),
-#'     "cons"
-#'     )
+#'   c(paste(rep(colnames(y), nlags),
+#'           ".L",
+#'           sort(rep(seq(from = 1, to = nlags, by = 1), times = ncol(y)),
+#'                decreasing = FALSE),
+#'           sep = ""),
+#'     "cons")
 #' y1 <- y[(nlags + 1):nrow(y),]
 #' ee <- matrix(data = NA, nrow = nrow(y1), ncol = ncol(y1))
 #' for (i in 1:ncol(y1)) {
@@ -384,20 +426,19 @@ arguments_check <- function(y, nlags, pA, pdetA, pH, pP, pP_sig, pR_sig, kappa1,
 #' pP_sig <- diag(x = 1, nrow = nrow(v3), ncol = nrow(v3))
 #' diag(pP_sig) <- v3
 #' 
-#' # Confidence in priors for R (long-run restrictions)
+#' # Confidence in long-run restriction priors
 #' pR_sig <-
 #'   array(data = 0,
 #'         dim = c(((nlags * ncol(y)) + 1),
 #'                 ((nlags * ncol(y)) + 1),
 #'                 ncol(y)))
 #' Ri <-
-#'   cbind(
-#'     kronecker(matrix(data = 1, nrow = 1, ncol = nlags),
-#'               matrix(data = c(1, 0), nrow = 1)),
-#'     0)
-#' pR_sig[,,2] <- (t(Ri) %*% Ri) / 0.1
+#'   cbind(kronecker(matrix(data = 1, nrow = 1, ncol = nlags),
+#'                   matrix(data = c(1, 0), nrow = 1)),
+#'         0)
+#' pR_sig[, , 2] <- (t(Ri) %*% Ri) / 0.1
 #' 
-#' # Confidence in priors for structural variances
+#' # Confidence in priors for D
 #' kappa1 <- matrix(data = 2, nrow = 1, ncol = ncol(y))
 #' 
 #' # Set graphical parameters
@@ -440,7 +481,7 @@ BH_SBVAR <- function(y, nlags, pA, pdetA = NULL, pH = NULL, pP = NULL, pP_sig = 
   scale_ar <-  diag(x = c(pA[, , 8])[which(!is.na(pA[, , 1]))], nrow = length(which(!is.na(pA[, , 1]))), ncol = length(which(!is.na(pA[, , 1]))))
   
   #trim pA
-  pA <- pA[,, 1:7]
+  pA <- pA[, , 1:7]
   
   #check for variable names
   if (is.null(colnames(y))) {
@@ -451,7 +492,7 @@ BH_SBVAR <- function(y, nlags, pA, pdetA = NULL, pH = NULL, pP = NULL, pP_sig = 
   rownames(y) <- NULL
   
   #get variable names
-  VarNames <- colnames(y)
+  varnames <- colnames(y)
   
   #get x and y data matrices
   list1 <- getXY(y, nlags)
@@ -473,27 +514,47 @@ BH_SBVAR <- function(y, nlags, pA, pdetA = NULL, pH = NULL, pP = NULL, pP_sig = 
   
   #optimization
   startvalues <- matrix(data = c(pA[, , 3])[c(which(!is.na(pA[, , 1])))], ncol = 1)
-  A_optim <- stats::optim(par = c(startvalues), fn = post_A_max, pA = pA, pdetA = pdetA, pH = pH, pP = pP, pP_sig = pP_sig, pR_sig = pR_sig, kappa1 = kappa1, y1 = y1, x1 = x1, omega = omega, somega = somega, nlags = nlags, method = "BFGS", hessian = TRUE)
-  #optimum values in A
-  A_max <- matrix(data = NA_real_, nrow = (nrow(pA) * ncol(pA)), ncol = 1)
-  A_max[c(which(!is.na(pA[, , 1]))), 1] <- A_optim[[1]]
-  A_max[c(which(is.na(pA[, , 1]))), 1] <- c(pA[, , 3])[c(which(is.na(pA[, , 1])))]
-  A_max <- matrix(data = A_max, nrow = nrow(pA), ncol = ncol(pA), dimnames = list(colnames(y1), colnames(y1)))
+  lower <- matrix(data = c(pA[, , 2])[c(which(!is.na(pA[, , 1])))], ncol = 1)
+  upper <- matrix(data = c(pA[, , 2])[c(which(!is.na(pA[, , 1])))], ncol = 1)
+  for (i in 1:nrow(lower)) {
+    if (is.na(lower[i, 1])) {
+      lower[i, 1] <- -Inf
+      upper[i, 1] <- Inf
+    } else if (lower[i, 1] == 1) {
+      lower[i, 1] <- 0.0001
+      upper[i, 1] <- Inf
+    } else if (lower[i, 1] == -1) {
+      lower[i, 1] <- -Inf
+      upper[i, 1] <- -0.0001
+    }
+  }
+  A_optim <- stats::optim(par = c(startvalues), fn = post_A_optim, pA = pA, pdetA = pdetA, pH = pH, pP = pP, pP_sig = pP_sig, pR_sig = pR_sig, kappa1 = kappa1, y1 = y1, x1 = x1, omega = omega, somega = somega, nlags = nlags, method = "L-BFGS-B", lower = c(lower), upper = c(upper), hessian = TRUE, control = list(maxit = 2500))
   
-  #test possible sign restrictions for optimized starting values
-  H_max <- solve(A_max)
+  #test convergence
+  if (A_optim$convergence != 0) {
+    stop("Optimization routine convergence was not successful.")
+  }
+  
+  #optimum values in A
+  A_start <- matrix(data = NA_real_, nrow = (nrow(pA) * ncol(pA)), ncol = 1)
+  A_start[c(which(!is.na(pA[, , 1]))), 1] <- A_optim[[1]]
+  A_start[c(which(is.na(pA[, , 1]))), 1] <- c(pA[, , 3])[c(which(is.na(pA[, , 1])))]
+  A_start <- matrix(data = A_start, nrow = nrow(pA), ncol = ncol(pA), dimnames = list(colnames(y1), colnames(y1)))
+  
+  #test that optimized starting values are consistent with sign restrictions
+  H_max <- solve(A_start)
   for (i in 1:nrow(pA)) {
     for (j in 1:ncol(pA)) {
-      if ((pA[i, j, 1] == 0) & (!is.na(pA[i, j, 2])) & (pA[i, j, 2] != (A_max[i, j] / abs(A_max[i, j])))) {
-        stop("Optimization routine produces values for the elements in A that are not cosistent with sign restrictions. Reconsider your priors.")
+      if ((!is.na(pA[i, j, 1])) && (pA[i, j, 1] == 0) && (!is.na(pA[i, j, 2])) && (pA[i, j, 2] != (A_start[i, j] / abs(A_start[i, j])))) {
+        stop("Optimization routine produces values for the elements in A that are not cosistent with sign restrictions.")
       }
-      if ((pH[i, j, 1] == 0) & (!is.na(pH[i, j, 2])) & (pH[i, j, 2] != (H_max[i, j] / abs(H_max[i, j])))) {
-        stop("Optimization routine produces values for the elements in H that are not cosistent with sign restrictions. Reconsider your priors.")
+      if ((!is.na(pH[i, j, 1])) && (pH[i, j, 1] == 0) && (!is.na(pH[i, j, 2])) && (pH[i, j, 2] != (H_max[i, j] / abs(H_max[i, j])))) {
+        warning("Optimization routine produces values for the elements in H that are not cosistent with sign restrictions.", immediate. = TRUE)
       }
     }
   }
-  if ((pdetA[1, 1, 1] == 0) & (!is.na(pdetA[1, 1, 2])) & (pdetA[1, 1, 2] != (det(A_max) / abs(det(A_max))))) {
-    stop("Optimization routine produces values for the determinant of A that are not consistent with sign restrictions. Reconsider your priors.")
+  if ((!is.na(pdetA[1, 1, 1])) && (pdetA[1, 1, 1] == 0) && (!is.na(pdetA[1, 1, 2])) && (pdetA[1, 1, 2] != (det(A_start) / abs(det(A_start))))) {
+    warning("Optimization routine produces values for the determinant of A that are not consistent with sign restrictions.", immediate. = TRUE)
   }
   
   #scale
@@ -506,7 +567,7 @@ BH_SBVAR <- function(y, nlags, pA, pdetA = NULL, pH = NULL, pP = NULL, pP_sig = 
   scale1 <- PH * scale_ar
   
   #Metropolis-Hastings Algorithm
-  results <- MAIN(y1, x1, omega, somega, nlags, pA, pdetA, pH, pP, pP_sig, pR_sig, kappa1, A_max, itr, burn, thin, scale1, h1_irf, acc_irf, ci, VarNames, line_plot, acf_plot)
+  results <- MAIN(y1, x1, omega, somega, nlags, pA, pdetA, pH, pP, pP_sig, pR_sig, kappa1, A_start, itr, burn, thin, scale1, h1_irf, acc_irf, ci, varnames, line_plot, acf_plot)
 
   return(results)
 }
@@ -579,12 +640,12 @@ check_results <- function(results, xlab, ylab) {
 #' pA[, , 7] <- c(NA, NA, 1, NA)
 #' pA[, , 8] <- c(2.4, NA, 2.4, NA)
 #' 
-#' # Position priors for P
+#' # Position priors for Phi
 #' pP <- matrix(data = 0, nrow = ((nlags * ncol(pA)) + 1), ncol = ncol(pA))
 #' pP[1:nrow(pA), 1:ncol(pA)] <-
 #'   diag(x = 1, nrow = nrow(pA), ncol = ncol(pA))
 #' 
-#' # Confidence in the priors for P
+#' # Confidence in the priors for Phi
 #' x1 <- 
 #'   matrix(data = NA, nrow = (nrow(y) - nlags), 
 #'          ncol = (ncol(y) * nlags))
@@ -594,15 +655,12 @@ check_results <- function(results, xlab, ylab) {
 #' }
 #' x1 <- cbind(x1, 1)
 #' colnames(x1) <- 
-#'   c(
-#'     paste(
-#'       rep(colnames(y), nlags), ".L",
-#'       sort(rep(seq(from = 1, to = nlags, by = 1), times = ncol(y)),
-#'            decreasing = FALSE),
-#'       sep = ""
-#'       ),
-#'     "cons"
-#'     )
+#'   c(paste(rep(colnames(y), nlags),
+#'           ".L",
+#'           sort(rep(seq(from = 1, to = nlags, by = 1), times = ncol(y)),
+#'                decreasing = FALSE),
+#'           sep = ""),
+#'     "cons")
 #' y1 <- y[(nlags + 1):nrow(y),]
 #' ee <- matrix(data = NA, nrow = nrow(y1), ncol = ncol(y1))
 #' for (i in 1:ncol(y1)) {
@@ -624,20 +682,19 @@ check_results <- function(results, xlab, ylab) {
 #' pP_sig <- diag(x = 1, nrow = nrow(v3), ncol = nrow(v3))
 #' diag(pP_sig) <- v3
 #' 
-#' # Confidence in priors for R (long-run restrictions)
+#' # Confidence in long-run restriction priors
 #' pR_sig <-
 #'   array(data = 0,
 #'         dim = c(((nlags * ncol(y)) + 1),
 #'                 ((nlags * ncol(y)) + 1),
 #'                 ncol(y)))
 #' Ri <-
-#'   cbind(
-#'     kronecker(matrix(data = 1, nrow = 1, ncol = nlags),
-#'               matrix(data = c(1, 0), nrow = 1)),
-#'     0)
-#' pR_sig[,,2] <- (t(Ri) %*% Ri) / 0.1
+#'   cbind(kronecker(matrix(data = 1, nrow = 1, ncol = nlags),
+#'                   matrix(data = c(1, 0), nrow = 1)),
+#'         0)
+#' pR_sig[, , 2] <- (t(Ri) %*% Ri) / 0.1
 #' 
-#' # Confidence in priors for structural variances
+#' # Confidence in priors for D
 #' kappa1 <- matrix(data = 2, nrow = 1, ncol = ncol(y))
 #' 
 #' # Set graphical parameters
@@ -652,11 +709,11 @@ check_results <- function(results, xlab, ylab) {
 #'            h1_irf = h1_irf, ci = ci)
 #' 
 #' # Plot impulse responses
-#' VarNames <- colnames(USLMData)[2:3]
-#' ShockNames <- c("Labor Demand","Labor Supply")
+#' varnames <- colnames(USLMData)[2:3]
+#' shocknames <- c("Labor Demand","Labor Supply")
 #' irf_results <- 
-#'   IRF_Plots(results = results1, varnames = VarNames,
-#'             shocknames = ShockNames)
+#'   IRF_Plots(results = results1, varnames = varnames,
+#'             shocknames = shocknames)
 IRF_Plots <- function(results, varnames, shocknames = NULL, xlab = NULL, ylab = NULL) {
   
   #test arguments
@@ -696,9 +753,9 @@ IRF_Plots <- function(results, varnames, shocknames = NULL, xlab = NULL, ylab = 
       #impulse response plots
       mat_ts <- stats::ts(cbind(0, irf_results[[length(irf_results)]]))
       colnames(mat_ts) <- c("Series1", "Series2", "Series3", "Series4")
-      stats::ts.plot(mat_ts, col = c("black", "red", "black", "red"), gpars = list(xlab = xlab, ylab = ylab, xaxs = "i", yaxs = "r", xaxt = "n", lty = c(1, 2, 1, 2))) + 
-        graphics::title(main = paste("Response of ", varnames[i], " to ", shocknames[j], sep = ""), col.main = "black") +
-        graphics::axis(side = 1, at = seq(from = 1, to = nrow(mat_ts), by = xticks), labels = seq(from = 0, to = (nrow(mat_ts) - 1),by = xticks))
+      stats::ts.plot(mat_ts, col = c("black", "red", "black", "red"), gpars = list(xlab = xlab, ylab = ylab, xaxs = "i", yaxs = "r", xaxt = "n", lty = c(1, 2, 1, 2)))
+      graphics::title(main = paste("Response of ", varnames[i], " to ", shocknames[j], sep = ""), col.main = "black")
+      graphics::axis(side = 1, at = seq(from = 1, to = nrow(mat_ts), by = xticks), labels = seq(from = 0, to = (nrow(mat_ts) - 1),by = xticks))
     }
   }
   return(irf_results)
@@ -716,7 +773,7 @@ IRF_Plots <- function(results, varnames, shocknames = NULL, xlab = NULL, ylab = 
 #' @param xlab Character label for the horizontal axis of historical decomposition plots (default = NULL). Default produces plots without a label for the horizontal axis.
 #' @param ylab Character label for the vertical axis of historical decomposition plots (default = NULL). Default produces plots without a label for the vertical axis.
 #' @param freq Numeric value indicating the frequency of the data.
-#' @param start_date Numeric vector indicating the starting date.
+#' @param start_date Numeric vector indicating the date of the first observation of the endogenous variables included in the model.
 #' @details Plots historical decompositions and returns a list containing the actual processed data used to create the plots.
 #' @return A list containing historical decompositions:
 #' @examples
@@ -747,12 +804,12 @@ IRF_Plots <- function(results, varnames, shocknames = NULL, xlab = NULL, ylab = 
 #' pA[, , 7] <- c(NA, NA, 1, NA)
 #' pA[, , 8] <- c(2.4, NA, 2.4, NA)
 #' 
-#' # Position priors for P
+#' # Position priors for Phi
 #' pP <- matrix(data = 0, nrow = ((nlags * ncol(pA)) + 1), ncol = ncol(pA))
 #' pP[1:nrow(pA), 1:ncol(pA)] <-
 #'   diag(x = 1, nrow = nrow(pA), ncol = ncol(pA))
 #' 
-#' # Confidence in the priors for P
+#' # Confidence in the priors for Phi
 #' x1 <- 
 #'   matrix(data = NA, nrow = (nrow(y) - nlags), 
 #'          ncol = (ncol(y) * nlags))
@@ -762,15 +819,12 @@ IRF_Plots <- function(results, varnames, shocknames = NULL, xlab = NULL, ylab = 
 #' }
 #' x1 <- cbind(x1, 1)
 #' colnames(x1) <- 
-#'   c(
-#'     paste(
-#'       rep(colnames(y), nlags), ".L",
-#'       sort(rep(seq(from = 1, to = nlags, by = 1), times = ncol(y)),
-#'            decreasing = FALSE),
-#'       sep = ""
-#'       ),
-#'     "cons"
-#'     )
+#'   c(paste(rep(colnames(y), nlags),
+#'           ".L",
+#'           sort(rep(seq(from = 1, to = nlags, by = 1), times = ncol(y)),
+#'                decreasing = FALSE),
+#'           sep = ""),
+#'     "cons")
 #' y1 <- y[(nlags + 1):nrow(y),]
 #' ee <- matrix(data = NA, nrow = nrow(y1), ncol = ncol(y1))
 #' for (i in 1:ncol(y1)) {
@@ -792,20 +846,19 @@ IRF_Plots <- function(results, varnames, shocknames = NULL, xlab = NULL, ylab = 
 #' pP_sig <- diag(x = 1, nrow = nrow(v3), ncol = nrow(v3))
 #' diag(pP_sig) <- v3
 #' 
-#' # Confidence in priors for R (long-run restrictions)
+#' # Confidence in long-run restriction priors
 #' pR_sig <-
 #'   array(data = 0,
 #'         dim = c(((nlags * ncol(y)) + 1),
 #'                 ((nlags * ncol(y)) + 1),
 #'                 ncol(y)))
 #' Ri <-
-#'   cbind(
-#'     kronecker(matrix(data = 1, nrow = 1, ncol = nlags),
-#'               matrix(data = c(1, 0), nrow = 1)),
-#'     0)
-#' pR_sig[,,2] <- (t(Ri) %*% Ri) / 0.1
+#'   cbind(kronecker(matrix(data = 1, nrow = 1, ncol = nlags),
+#'                   matrix(data = c(1, 0), nrow = 1)),
+#'         0)
+#' pR_sig[, , 2] <- (t(Ri) %*% Ri) / 0.1
 #' 
-#' # Confidence in priors for structural variances
+#' # Confidence in priors for D
 #' kappa1 <- matrix(data = 2, nrow = 1, ncol = ncol(y))
 #' 
 #' # Set graphical parameters
@@ -820,12 +873,16 @@ IRF_Plots <- function(results, varnames, shocknames = NULL, xlab = NULL, ylab = 
 #'            h1_irf = h1_irf, ci = ci)
 #' 
 #' # Plot historical decompositions
-#' VarNames <- colnames(USLMData)[2:3]
-#' ShockNames <- c("Labor Demand","Labor Supply")
+#' varnames <- colnames(USLMData)[2:3]
+#' shocknames <- c("Labor Demand","Labor Supply")
+#' freq <- 4
+#' start_date <- 
+#'   c(floor(USLMData[(nlags + 1), 1]),
+#'     round(((USLMData[(nlags + 1), 1] %% 1) * freq), digits = 0))
 #' hd_results <- 
-#'   HD_Plots(results  = results1, varnames = VarNames,
-#'            shocknames = ShockNames,
-#'            freq = 4, start_date = c(1971, 2))
+#'   HD_Plots(results  = results1, varnames = varnames,
+#'            shocknames = shocknames,
+#'            freq = freq, start_date = start_date)
 HD_Plots <- function(results, varnames, shocknames = NULL, xlab = NULL, ylab = NULL, freq, start_date) {
   
   #test arguments
@@ -845,7 +902,7 @@ HD_Plots <- function(results, varnames, shocknames = NULL, xlab = NULL, ylab = N
   if ((class(freq) != "numeric") || (!is.finite(freq)) || (length(freq) != 1) || ((freq %% 1) != 0) || (freq < 1)) {
     stop("freq: Must be a finite whole number grater than 0.")
   }
-  if ((class(start_date) != "numeric") || (!is.finite(start_date)) || (length(start_date) != 2) || ((start_date %% 1) != 0) || (any(start_date < 0))) {
+  if ((class(start_date) != "numeric") || (any(!is.finite(start_date))) || (length(start_date) != 2) || (any((start_date %% 1) != 0)) || (any(start_date < 0))) {
     stop("start_date: Must be a numeric vector containing finite whole numbers greater than or equal to 0.")
   }
   
@@ -869,46 +926,13 @@ HD_Plots <- function(results, varnames, shocknames = NULL, xlab = NULL, ylab = N
       hd_results[[(length(hd_results) + 1)]] <- HD[, ((nvar * (j - 1)) + i), ]
       names(hd_results)[length(hd_results)] <- hd_name[1]
       #historical decomposition plots
-      mat_ts <- stats::ts(cbind(0, y[,i], hd_results[[length(hd_results)]]),frequency = freq, start = start_date)
+      mat_ts <- stats::ts(cbind(0, y[,i], hd_results[[length(hd_results)]]), frequency = freq, start = start_date)
       colnames(mat_ts) <- c("Series1", "Series2", "Series3", "Series4", "Series5")
-      stats::ts.plot(mat_ts, col = c("black", "black", "red", "red", "red"), gpars = list(xlab = xlab, ylab = ylab, xaxs = "i", yaxs = "r", lty = c(1, 1, 2, 1, 2))) + 
-        graphics::title(main = paste("Contribution of ", shocknames[j], " Shocks on ", varnames[i], sep = ""), col.main = "black")
+      stats::ts.plot(mat_ts, col = c("black", "black", "red", "red", "red"), gpars = list(xlab = xlab, ylab = ylab, xaxs = "i", yaxs = "r", lty = c(1, 1, 2, 1, 2)))
+      graphics::title(main = paste("Contribution of ", shocknames[j], " Shocks on ", varnames[i], sep = ""), col.main = "black")
     }
   }
   return(hd_results)
-}
-
-# Line Plots
-#' @keywords internal
-line_plot <- function(data, prior_name, i, j) {
-  if (prior_name == "pA") {
-    elast = -1
-  } else {
-    elast = 1
-  }
-  graphics::plot(x = (elast * data), type = "l", col = "black", yaxs = "r", xaxs = "i", xlab = "Iteration", ylab = "Estimate")
-  if (prior_name == "pA") {
-    graphics::title(main = paste("-A(", i, ",", j, ")", sep = ""), col.main = "black")
-  } else if (prior_name == "pH") {
-    graphics::title(main = paste("H(", i, ",", j, ")", sep = ""), col.main = "black")
-  } else if (prior_name == "pdetA") {
-    graphics::title(main = paste("Determinant of A"), col.main = "black")
-  }
-  Sys.sleep(0.25)
-}
-
-# ACF Plots
-#' @keywords internal
-acf_plot <- function(data, prior_name, i, j) {
-  stats::acf(stats::ts(data), lag.max = NULL, plot = TRUE, type = c("correlation"), demean = TRUE, main = "", xlab = "Lag Length", ylab = "Correlation")
-  if (prior_name == "pA") {
-    graphics::title(main = paste("-A(", i, ",", j, ")", sep = ""), col.main = "black")
-  } else if (prior_name == "pH") {
-    graphics::title(main = paste("H(", i, ",", j, ")", sep = ""), col.main = "black")
-  } else if (prior_name == "pdetA") {
-    graphics::title(main = paste("Determinant of A"), col.main = "black")
-  }
-  Sys.sleep(0.25)
 }
 
 # Density Plots
@@ -935,8 +959,8 @@ den_plot <- function(list2, den1, elast, lb, ub, nticks0, A_titles, H_titles, xl
 #' @import Rcpp
 #' @name Dist_Plots
 #' @param results List containing the results from running BH_SBVAR().
-#' @param A_titles Matrix containing the titles for the plots of the elements in the coefficient matrix A.
-#' @param H_titles Matrix containing the titles for the plots of the elements in the coefficient matrix H (default = NULL).
+#' @param A_titles \emph{(n x n)} matrix containing the titles for the plots of the estimated parameters in the coefficient matrix \emph{A}. \emph{n} is the number of endogenous variables.
+#' @param H_titles \emph{(n x n)} matrix containing the titles for the plots of the estimated parameters in the coefficient matrix \emph{H} (default = NULL). \emph{n} is the number of endogenous variables.
 #' @param xlab Character label for the horizontal axis of historical decomposition plots (default = NULL). Default produces plots without a label for the horizontal axis.
 #' @param ylab Character label for the vertical axis of historical decomposition plots (default = NULL). Default produces plots without a label for the vertical axis.
 #' @details Plots posterior distributions against prior distributions.
@@ -968,12 +992,12 @@ den_plot <- function(list2, den1, elast, lb, ub, nticks0, A_titles, H_titles, xl
 #' pA[, , 7] <- c(NA, NA, 1, NA)
 #' pA[, , 8] <- c(2.4, NA, 2.4, NA)
 #' 
-#' # Position priors for P
+#' # Position priors for Phi
 #' pP <- matrix(data = 0, nrow = ((nlags * ncol(pA)) + 1), ncol = ncol(pA))
 #' pP[1:nrow(pA), 1:ncol(pA)] <-
 #'   diag(x = 1, nrow = nrow(pA), ncol = ncol(pA))
 #' 
-#' # Confidence in the priors for P
+#' # Confidence in the priors for Phi
 #' x1 <- 
 #'   matrix(data = NA, nrow = (nrow(y) - nlags), 
 #'          ncol = (ncol(y) * nlags))
@@ -983,15 +1007,12 @@ den_plot <- function(list2, den1, elast, lb, ub, nticks0, A_titles, H_titles, xl
 #' }
 #' x1 <- cbind(x1, 1)
 #' colnames(x1) <- 
-#'   c(
-#'     paste(
-#'       rep(colnames(y), nlags), ".L",
-#'       sort(rep(seq(from = 1, to = nlags, by = 1), times = ncol(y)),
-#'            decreasing = FALSE),
-#'       sep = ""
-#'       ),
-#'     "cons"
-#'     )
+#'   c(paste(rep(colnames(y), nlags),
+#'           ".L",
+#'           sort(rep(seq(from = 1, to = nlags, by = 1), times = ncol(y)),
+#'                decreasing = FALSE),
+#'           sep = ""),
+#'     "cons")
 #' y1 <- y[(nlags + 1):nrow(y),]
 #' ee <- matrix(data = NA, nrow = nrow(y1), ncol = ncol(y1))
 #' for (i in 1:ncol(y1)) {
@@ -1013,20 +1034,19 @@ den_plot <- function(list2, den1, elast, lb, ub, nticks0, A_titles, H_titles, xl
 #' pP_sig <- diag(x = 1, nrow = nrow(v3), ncol = nrow(v3))
 #' diag(pP_sig) <- v3
 #' 
-#' # Confidence in priors for R (long-run restrictions)
+#' # Confidence in long-run restriction priors
 #' pR_sig <-
 #'   array(data = 0,
 #'         dim = c(((nlags * ncol(y)) + 1),
 #'                 ((nlags * ncol(y)) + 1),
 #'                 ncol(y)))
 #' Ri <-
-#'   cbind(
-#'     kronecker(matrix(data = 1, nrow = 1, ncol = nlags),
-#'               matrix(data = c(1, 0), nrow = 1)),
-#'     0)
-#' pR_sig[,,2] <- (t(Ri) %*% Ri) / 0.1
+#'   cbind(kronecker(matrix(data = 1, nrow = 1, ncol = nlags),
+#'                   matrix(data = c(1, 0), nrow = 1)),
+#'         0)
+#' pR_sig[, , 2] <- (t(Ri) %*% Ri) / 0.1
 #' 
-#' # Confidence in priors for structural variances
+#' # Confidence in priors for D
 #' kappa1 <- matrix(data = 2, nrow = 1, ncol = ncol(y))
 #' 
 #' # Set graphical parameters
