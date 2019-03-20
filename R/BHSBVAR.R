@@ -1,5 +1,5 @@
 
-# Create matrices containing dependent and independet variables.
+# Create matrices containing dependent and independent variables.
 #' @keywords internal
 getXY <- function(data1, nlags) {
   varnames <- colnames(data1)
@@ -12,9 +12,73 @@ getXY <- function(data1, nlags) {
   X <- cbind(X, 1)
   colnames(X) <- c(paste(rep(colnames(data1), nlags), ".L", sort(rep(seq(from = 1, to = nlags, by = 1), times = ncol(data1)), decreasing = FALSE), sep = ""), "cons")
   Y <- data1[(nlags + 1):nrow(data1), ]
-  list1 <- list(X, Y)
+  list1 <- list("X" = X, "Y" = Y)
   return(list1)
 }
+
+# Posterior Density Function used to Determine Starting Values for A.
+#' @keywords  internal
+#' @import Rcpp
+post_A_optim <- function(par, pA, pdetA, pH, pP, pP_sig, pR_sig, kappa1, y1, x1, omega, somega, nlags) {
+  
+  nrow1 <- dim(pA)[1]
+  ncol1 <- dim(pA)[2]
+  
+  A_temp <- c(pA[, , 3])
+  A_temp[which(c(!is.na(pA[, , 1])))] <- par
+  A_test <- matrix(data = A_temp, nrow = nrow1, ncol = ncol1)
+  
+  Phi1 <- matrix(data = NA_real_, nrow = ((ncol1 * nlags) + 1), ncol = ncol1)
+  B_test <- matrix(data = NA_real_, nrow = ((ncol1 * nlags) + 1), ncol = ncol1)
+  zeta_test <- matrix(data = 0, nrow = nrow1, ncol = ncol1)
+  
+  pR <- array(data = 0, dim = c(((ncol1 * nlags) + 1), ncol1, ncol1))
+  
+  temp0 = t(x1) %*% x1 + pP_sig
+  temp1 = t(x1) %*% y1 + pP_sig %*% pP
+  temp2 = t(y1) %*% y1 + t(pP) %*% pP_sig %*% pP
+  Phi0 = solve(temp0, temp1)
+  temp4 = temp2 - t(Phi0) %*% temp1
+  temp5 <- matrix(data = NA_real_, nrow = ((ncol1 * nlags) + 1), ncol = ncol1)
+  
+  nR <- matrix(data = 0, nrow = ncol1, ncol = 1)
+  for (i in 1:ncol1) {
+    if (any(pR_sig[, , i] > 0)) {
+      nR[i, 1] <- 1;
+    }
+  }
+  
+  if (all(nR == 0)) {
+    B_test <- Phi0 %*% A_test
+    diag(zeta_test) <- diag(t(A_test) %*% temp4 %*% A_test)
+  } else {
+    for (i in 1:ncol1) {
+      if (nR[i, 1] == 0) {
+        B_test[, i] <- Phi0 %*% A_test[, i]
+        zeta_test[i, i] <- c(t(A_test[, i]) %*% temp4 %*% A_test[, i])
+      } else {
+        for (j in 1:nrow1) {
+          if (is.finite(pA[j, i, 7])) {
+            pR[j, i, i] <- A_test[j, i]
+          }
+        }
+        temp5 <- pR_sig[, , i] %*% pR[, , i]
+        Phi1 <- solve((temp0 + pR_sig[, , i]), (temp1 + temp5))
+        B_test[, i] <- Phi1 %*% A_test[, i]
+        zeta_test[i, i] <- c(t(A_test[, i]) %*% ((temp2 + t(pR[, , i]) %*% temp5) - (t(Phi1) %*% (temp1 + temp5))) %*% A_test[, i])
+      }
+    }
+  }
+  
+  #compute posterior density
+  priors <- sum_log_prior_densities(A_test, pA, pdetA, pH)
+  likelihood <- likelihood_function(A_test, kappa1, y1, omega, zeta_test, somega)
+  posterior <- -(priors + likelihood)
+  
+  return(posterior)
+  
+}
+
 
 # Check arguments from the BH_SBVAR function that should be integers.
 #' @keywords internal
@@ -248,7 +312,7 @@ arguments_check <- function(y, nlags, pA, pdetA, pH, pP, pP_sig, pR_sig, kappa1,
       n <- which(is.finite(pA[, i, 7]))
       for (j in n) {
         if (pR_sig[j, j, i] <= 0) {
-          return(paste("pR_sig: The value at pR_sig[", j, ", ", j, ", ", i, "] should be a finite value greater than 0 since pA[",j,", ", i,", "," 7] indicates a long-run restriction.", sep = ""))
+          return(paste("pR_sig: The value at pR_sig[", j, ", ", j, ", ", i, "] should be a finite value greater than 0 since pA[", j, ", ", i, ", 7] indicates a long-run restriction.", sep = ""))
         }
       }
       if (any(!is.finite(pA[, i, 7]))) {
@@ -310,14 +374,6 @@ acf_plot <- function(data1, prior_name, i, j) {
       graphics::title(main = paste("Determinant of A"), col.main = "black")
     }
     Sys.sleep(0.25)
-  } else {
-    if (prior_name == "pA") {
-      warning(paste("No variation in -A(", i, "," , j, ")", sep = ""), immediate. = TRUE)
-    } else if (prior_name == "pH") {
-      warning(paste("No variation in H(", i, "," , j, ")", sep = ""), immediate. = TRUE)
-    } else if (prior_name == "pdetA") {
-      warning(paste("No variation in det(A)", sep = ""), immediate. = TRUE)
-    }
   }
 }
 
@@ -326,7 +382,6 @@ acf_plot <- function(data1, prior_name, i, j) {
 #' Runs a Structural Bayesian Vector Autoregression model with the method developed by Baumeister and Hamilton (2015, 2017, and 2018).
 #' @author Paul Richardson
 #' @export
-#' @import Rcpp
 #' @name BH_SBVAR
 #' @param y \emph{(T x n)} matrix containing the endogenous variables. \emph{T} is the number of observations and \emph{n} is the number of endogenous variables.
 #' @param nlags Integer specifying the lag order.
@@ -356,6 +411,8 @@ acf_plot <- function(data1, prior_name, i, j) {
 #' @references Baumeister, C., and Hamilton, J.D. (2015). Sign restrictions, structural vector autoregressions, and useful prior information. \emph{Econometrica}, 83(5), 1963-1999.
 #' @references Baumeister, C., and Hamilton, J.D. (2017). Structural interpretation of vector autoregressions with incomplete identification: Revisiting the role of oil supply and demand shocks (No. w24167). National Bureau of Economic Research.
 #' @references Baumeister, C., and Hamilton, J.D. (2018). Inference in structural vector autoregressions when the identifying assumptions are not fully believed: Re-evaluating the role of monetary policy in economic fluctuations. \emph{Journal of Monetary Economics},
+#' @seealso \href{https://sites.google.com/site/cjsbaumeister/}{Professor Christiane Baumeister's website}.
+#' @seealso \href{https://econweb.ucsd.edu/~jhamilton/}{Professor James D. Hamilton's website}.
 #' @examples
 #' # Import data
 #' library(BHSBVAR)
@@ -478,7 +535,7 @@ BH_SBVAR <- function(y, nlags, pA, pdetA = NULL, pH = NULL, pP = NULL, pP_sig = 
   }
   
   #create proposal scale matrix
-  scale_ar <-  diag(x = c(pA[, , 8])[which(!is.na(pA[, , 1]))], nrow = length(which(!is.na(pA[, , 1]))), ncol = length(which(!is.na(pA[, , 1]))))
+  scale_ar <-  diag(x = c(pA[, , 8])[which(!is.na(c(pA[, , 1])))], nrow = length(which(!is.na(c(pA[, , 1])))), ncol = length(which(!is.na(c(pA[, , 1])))))
   
   #trim pA
   pA <- pA[, , 1:7]
@@ -496,14 +553,14 @@ BH_SBVAR <- function(y, nlags, pA, pdetA = NULL, pH = NULL, pP = NULL, pP_sig = 
   
   #get x and y data matrices
   list1 <- getXY(y, nlags)
-  x1 <- list1[[1]]
-  y1 <- list1[[2]]
+  x1 <- list1$X
+  y1 <- list1$Y
   
   #omega
   omega <- ((t(y1) %*% y1) - (t(y1) %*% x1) %*% solve(t(x1) %*% x1) %*% t(t(y1) %*% x1)) / nrow(y1)
   
   #somega
-  ee <- matrix(data = NA_real_, nrow = nrow(y1), ncol = ncol(y1), dimnames = list(rownames(y1), colnames(y1)))
+  ee <- matrix(data = NA_real_, nrow = nrow(y1), ncol = ncol(y1), dimnames = list(rownames(y1), varnames))
   for (i in 1:ncol(y1)) {
     xx <- cbind(x1[, seq(from = i, to = (ncol(x1) - 1), by = ncol(y1))], 1)
     yy <- matrix(data = y1[, i], ncol = 1)
@@ -513,22 +570,23 @@ BH_SBVAR <- function(y, nlags, pA, pdetA = NULL, pH = NULL, pP = NULL, pP_sig = 
   somega <- (t(ee) %*% ee) / nrow(ee)
   
   #optimization
-  startvalues <- matrix(data = c(pA[, , 3])[c(which(!is.na(pA[, , 1])))], ncol = 1)
-  lower <- matrix(data = c(pA[, , 2])[c(which(!is.na(pA[, , 1])))], ncol = 1)
-  upper <- matrix(data = c(pA[, , 2])[c(which(!is.na(pA[, , 1])))], ncol = 1)
-  for (i in 1:nrow(lower)) {
-    if (is.na(lower[i, 1])) {
-      lower[i, 1] <- -Inf
-      upper[i, 1] <- Inf
-    } else if (lower[i, 1] == 1) {
-      lower[i, 1] <- 0.0001
-      upper[i, 1] <- Inf
-    } else if (lower[i, 1] == -1) {
-      lower[i, 1] <- -Inf
-      upper[i, 1] <- -0.0001
+  startvalues <- c(pA[, , 3])[which(!is.na(c(pA[, , 1])))]
+  lower <- c(pA[, , 2])[which(!is.na(c(pA[, , 1])))]
+  upper <- c(pA[, , 2])[which(!is.na(c(pA[, , 1])))]
+  for (i in 1:length(lower)) {
+    if (is.na(lower[i])) {
+      lower[i] <- -Inf
+      upper[i] <- Inf
+    } else if (lower[i] == 1) {
+      lower[i] <- 0.0001
+      upper[i] <- Inf
+    } else if (lower[i] == -1) {
+      lower[i] <- -Inf
+      upper[i] <- -0.0001
     }
   }
-  A_optim <- stats::optim(par = c(startvalues), fn = post_A_optim, pA = pA, pdetA = pdetA, pH = pH, pP = pP, pP_sig = pP_sig, pR_sig = pR_sig, kappa1 = kappa1, y1 = y1, x1 = x1, omega = omega, somega = somega, nlags = nlags, method = "L-BFGS-B", lower = c(lower), upper = c(upper), hessian = TRUE, control = list(maxit = 2500))
+  
+  A_optim <- stats::optim(par = startvalues, fn = post_A_optim, pA = pA, pdetA = pdetA, pH = pH, pP = pP, pP_sig = pP_sig, pR_sig = pR_sig, kappa1 = kappa1, y1 = y1, x1 = x1, omega = omega, somega = somega, nlags = nlags, method = "L-BFGS-B", lower = lower, upper = upper, hessian = TRUE, control = list(maxit = 2500))
   
   #test convergence
   if (A_optim$convergence != 0) {
@@ -536,25 +594,24 @@ BH_SBVAR <- function(y, nlags, pA, pdetA = NULL, pH = NULL, pP = NULL, pP_sig = 
   }
   
   #optimum values in A
-  A_start <- matrix(data = NA_real_, nrow = (nrow(pA) * ncol(pA)), ncol = 1)
-  A_start[c(which(!is.na(pA[, , 1]))), 1] <- A_optim[[1]]
-  A_start[c(which(is.na(pA[, , 1]))), 1] <- c(pA[, , 3])[c(which(is.na(pA[, , 1])))]
-  A_start <- matrix(data = A_start, nrow = nrow(pA), ncol = ncol(pA), dimnames = list(colnames(y1), colnames(y1)))
+  A_temp <- c(pA[, , 3])
+  A_temp[which(!is.na(c(pA[, , 1])))] <- A_optim$par
+  A_start <- matrix(data = A_temp, nrow = dim(pA)[1], ncol = dim(pA)[2], dimnames = list(varnames, varnames))
   
   #test that optimized starting values are consistent with sign restrictions
   H_max <- solve(A_start)
   for (i in 1:nrow(pA)) {
     for (j in 1:ncol(pA)) {
       if ((!is.na(pA[i, j, 1])) && (pA[i, j, 1] == 0) && (!is.na(pA[i, j, 2])) && (pA[i, j, 2] != (A_start[i, j] / abs(A_start[i, j])))) {
-        stop("Optimization routine produces values for the elements in A that are not cosistent with sign restrictions.")
+        stop("Optimization routine produced values for the elements in A that are not consistent with sign restrictions.")
       }
       if ((!is.na(pH[i, j, 1])) && (pH[i, j, 1] == 0) && (!is.na(pH[i, j, 2])) && (pH[i, j, 2] != (H_max[i, j] / abs(H_max[i, j])))) {
-        warning("Optimization routine produces values for the elements in H that are not cosistent with sign restrictions.", immediate. = TRUE)
+        warning("Optimization routine produced values for the elements in H that are not consistent with sign restrictions.", immediate. = TRUE)
       }
     }
   }
   if ((!is.na(pdetA[1, 1, 1])) && (pdetA[1, 1, 1] == 0) && (!is.na(pdetA[1, 1, 2])) && (pdetA[1, 1, 2] != (det(A_start) / abs(det(A_start))))) {
-    warning("Optimization routine produces values for the determinant of A that are not consistent with sign restrictions.", immediate. = TRUE)
+    warning("Optimization routine produced values for the determinant of A that are not consistent with sign restrictions.", immediate. = TRUE)
   }
   
   #scale
@@ -926,7 +983,7 @@ HD_Plots <- function(results, varnames, shocknames = NULL, xlab = NULL, ylab = N
       hd_results[[(length(hd_results) + 1)]] <- HD[, ((nvar * (j - 1)) + i), ]
       names(hd_results)[length(hd_results)] <- hd_name[1]
       #historical decomposition plots
-      mat_ts <- stats::ts(cbind(0, y[,i], hd_results[[length(hd_results)]]), frequency = freq, start = start_date)
+      mat_ts <- stats::ts(cbind(0, y[, i], hd_results[[length(hd_results)]]), frequency = freq, start = start_date)
       colnames(mat_ts) <- c("Series1", "Series2", "Series3", "Series4", "Series5")
       stats::ts.plot(mat_ts, col = c("black", "black", "red", "red", "red"), gpars = list(xlab = xlab, ylab = ylab, xaxs = "i", yaxs = "r", lty = c(1, 1, 2, 1, 2)))
       graphics::title(main = paste("Contribution of ", shocknames[j], " Shocks on ", varnames[i], sep = ""), col.main = "black")
@@ -1102,16 +1159,16 @@ Dist_Plots <- function(results, A_titles, H_titles = NULL, xlab = NULL, ylab = N
   }
   for (i in 1:dim(pA)[1]) {
     for (j in 1:dim(pA)[2]) {
-      if ((is.na(pA[i,j,1])) && (!is.na(A_titles[i,j]))) {
+      if ((is.na(pA[i, j, 1])) && (!is.na(A_titles[i, j]))) {
         stop(paste("A_titles: A_titles[", i, ", ", j, "] should be empty since pA[", i, ", ", j, ", ", 1, "] is empty.", sep = ""))
       }
-      if ((!is.na(pA[i,j,1])) && (is.na(A_titles[i,j]))) {
+      if ((!is.na(pA[i, j, 1])) && (is.na(A_titles[i, j]))) {
         stop(paste("A_titles: A_titles[", i, ", ", j, "] is missing.", sep = ""))
       }
-      if ((is.na(pH[i,j,1])) && (!is.na(H_titles[i,j]))) {
+      if ((is.na(pH[i, j, 1])) && (!is.na(H_titles[i, j]))) {
         stop(paste("H_titles: H_titles[", i, ", ", j, "] should be empty since pH[", i, ", ", j, ", ", 1, "] is empty.", sep = ""))
       }
-      if ((!is.na(pH[i,j,1])) && (is.na(H_titles[i,j]))) {
+      if ((!is.na(pH[i, j, 1])) && (is.na(H_titles[i, j]))) {
         stop(paste("H_titles: H_titles[", i, ", ", j, "] is missing.", sep = ""))
       }
     }
@@ -1127,42 +1184,54 @@ Dist_Plots <- function(results, A_titles, H_titles = NULL, xlab = NULL, ylab = N
     } else {
       elast <- 1
     }
-    max_distance <- 0
+    max_distance <- matrix(data = 0, nrow = dim(list2[[k]])[1], ncol = 1)
     distance <- 0
-    for (j in 1:(dim(list2[[k]])[2])) { #equations are by column
-      for (i in 1:(dim(list2[[k]])[1])) {
-        if (any(!is.na(list1[[k]]$hori[i, j,]))) {
-          distance <- ceiling(max(list1[[k]]$hori[i, j,], na.rm = TRUE) - min(list1[[k]]$hori[i, j,], na.rm = TRUE))
+    for (i in 1:(dim(list2[[k]])[1])) { #equations are by column
+      for (j in 1:(dim(list2[[k]])[2])) {
+        if (any(!is.na(list1[[k]]$hori[i, j, ]))) {
+          distance <- ceiling(max(list1[[k]]$hori[i, j, ], na.rm = TRUE) - min(list1[[k]]$hori[i, j, ], na.rm = TRUE))
+        } else {
+          distance <- 0
         }
-        if (distance > max_distance) {
-          max_distance <- distance
+        if (distance > max_distance[i, 1]) {
+          max_distance[i, 1] <- distance
         }
       }
     }
-    for (j in 1:(dim(list2[[k]])[2])) { #equations are by column
-      for (i in 1:(dim(list2[[k]])[1])) {
+    for (i in 1:(dim(list2[[k]])[1])) { #equations are by column
+      for (j in 1:(dim(list2[[k]])[2])) {
         if (!is.na(list2[[k]][i, j, 1])) {
-          if (is.na(list2[[k]][i,j,2])) {
-            ub <- (elast * stats::median(list1[[k]]$hori[i,j,])) + (max_distance * 0.5)
-            lb <- (elast * stats::median(list1[[k]]$hori[i,j,])) - (max_distance * 0.5)
-          } else if (list2[[k]][i,j,2] == 1) {
-            if (names(list2[k]) == "pA") {
-              ub <- 0
-              lb <- (-1) * max_distance
+          if (is.na(list2[[k]][i, j, 2])) {
+            ub <- (elast * round(x = mean(list1[[k]]$hori[i, j, ]), digits = 0)) + (max_distance[i, 1] * 0.5)
+            lb <- (elast * round(x = mean(list1[[k]]$hori[i, j, ]), digits = 0)) - (max_distance[i, 1] * 0.5)
+          } else if (list2[[k]][i, j, 2] == 1) {
+            if ((round(x = mean(list1[[k]]$hori[i, j, ]), digits = 0) - (max_distance[i, 1] * 0.5)) < 1) {
+              if (names(list2[k]) == "pA") {
+                ub <- 0
+                lb <- (-1) * max_distance[i, 1]
+              } else {
+                ub <- max_distance[i, 1]
+                lb <- 0
+              }
             } else {
-              ub <- max_distance
-              lb <- 0
+              ub <- (elast * round(x = mean(list1[[k]]$hori[i, j, ]), digits = 0)) + (max_distance[i, 1] * 0.5)
+              lb <- (elast * round(x = mean(list1[[k]]$hori[i, j, ]), digits = 0)) - (max_distance[i, 1] * 0.5)
             }
           } else if (list2[[k]][i,j,2] == (-1)) {
-            if (names(list2[k]) == "pA") {
-              ub <- max_distance
-              lb <- 0
+            if ((round(x = mean(list1[[k]]$hori[i, j, ]), digits = 0) + (max_distance[i, 1] * 0.5)) > (-1)) {
+              if (names(list2[k]) == "pA") {
+                ub <- max_distance[i, 1]
+                lb <- 0
+              } else {
+                ub <- 0
+                lb <- (-1) * max_distance[i, 1]
+              }
             } else {
-              ub <- 0
-              lb <- (-1) * max_distance
+              ub <- (elast * round(x = mean(list1[[k]]$hori[i, j, ]), digits = 0)) + (max_distance[i, 1] * 0.5)
+              lb <- (elast * round(x = mean(list1[[k]]$hori[i, j, ]), digits = 0)) - (max_distance[i, 1] * 0.5)
             }
           }
-          den1 <- cbind(list1[[k]]$hori[i,j,],list1[[k]]$vert[i,j,])
+          den1 <- cbind(list1[[k]]$hori[i, j, ], list1[[k]]$vert[i, j, ])
           den_plot(list2, den1, elast, lb, ub, nticks0, A_titles, H_titles, xlab, ylab, k, j, i)
           if (list2[[k]][i, j, 1] == 0) {
             if (is.na(list2[[k]][i, j, 2])) {
@@ -1207,20 +1276,30 @@ Dist_Plots <- function(results, A_titles, H_titles = NULL, xlab = NULL, ylab = N
   list2 <- list(pdetA = pdetA)
   elast <- 1
   if (!is.na(pdetA[1, 1, 1])) {
-    max_distance <- ceiling(max(detA_den$hori[1, 1,], na.rm = TRUE) - min(detA_den$hori[1, 1,], na.rm = TRUE))
+    max_distance <- ceiling(max(detA_den$hori[1, 1, ], na.rm = TRUE) - min(detA_den$hori[1, 1, ], na.rm = TRUE))
     
-    if (list2[[1]][1,1,2] == 1) {
-      ub <- max_distance
-      lb <- 0
-    } else if (list2[[1]][1,1,2] == (-1)) {
-      ub <- 0
-      lb <- (-1) * max_distance
-    } else {
-      ub <- (elast * stats::median(detA_den$hori[1,1,])) + (max_distance * 0.5)
-      lb <- (elast * stats::median(detA_den$hori[1,1,])) - (max_distance * 0.5)
+    if (is.na(list2[[1]][1, 1, 2])) {
+      ub <- (elast * round(x = mean(detA_den$hori[1, 1, ]), digits = 0)) + (max_distance * 0.5)
+      lb <- (elast * round(x = mean(detA_den$hori[1, 1, ]), digits = 0)) - (max_distance * 0.5)
+    } else if (list2[[1]][1, 1, 2] == 1) {
+      if ((round(x = mean(detA_den$hori[1, 1, ]), digits = 0) - (max_distance * 0.5)) < 0) {
+        ub <- max_distance
+        lb <- 0
+      } else {
+        ub <- (elast * round(x = mean(detA_den$hori[1, 1, ]), digits = 0)) + (max_distance * 0.5)
+        lb <- (elast * round(x = mean(detA_den$hori[1, 1, ]), digits = 0)) - (max_distance * 0.5)
+      }
+    } else if (list2[[1]][1, 1, 2] == (-1)) {
+      if ((round(x = mean(detA_den$hori[1, 1, ]), digits = 0) + (max_distance * 0.5)) > 0) {
+        ub <- 0
+        lb <- (-1) * max_distance
+      } else {
+        ub <- (elast * round(x = mean(detA_den$hori[1, 1, ]), digits = 0)) + (max_distance * 0.5)
+        lb <- (elast * round(x = mean(detA_den$hori[1, 1, ]), digits = 0)) - (max_distance * 0.5)
+      }
     }
     
-    den1 <- cbind(detA_den$hori[1,1,],detA_den$vert[1,1,])
+    den1 <- cbind(detA_den$hori[1, 1, ],detA_den$vert[1, 1, ])
     den_plot(list2, den1, elast, lb, ub, nticks0, A_titles, H_titles, xlab, ylab, 1, 1, 1)
     if (pdetA[1, 1, 1] == 0) {
       if (is.na(pdetA[1, 1, 2])) {

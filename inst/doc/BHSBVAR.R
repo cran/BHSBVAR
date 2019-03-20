@@ -4,9 +4,8 @@
 ###################################################
 ### code chunk number 1: Setup
 ###################################################
-#library(knitr)
 knitr::opts_knit$set(self.contained = TRUE, concordance = FALSE)
-knitr::opts_chunk$set(fig.path = "fig/")
+knitr::opts_chunk$set(fig.path = "fig/", prompt = TRUE)
 
 
 ###################################################
@@ -35,7 +34,7 @@ ci <- 0.975
 ###################################################
 ### code chunk number 4: pA
 ###################################################
-pA <- array(data = NA, dim = c(2, 2, 8))
+pA <- array(data = NA, dim = c(ncol(y), ncol(y), 8))
 pA[, , 1] <- c(0, NA, 0, NA)
 pA[, , 2] <- c(1, NA, -1, NA)
 pA[, , 3] <- c(0.6, 1, -0.6, 1)
@@ -43,7 +42,7 @@ pA[, , 4] <- c(0.6, NA, 0.6, NA)
 pA[, , 5] <- c(3, NA, 3, NA)
 pA[, , 6] <- c(NA, NA, NA, NA)
 pA[, , 7] <- c(NA, NA, 1, NA)
-pA[, , 8] <- c(2.4, NA, 2.4, NA)
+pA[, , 8] <- c(2, NA, 2, NA)
 
 
 ###################################################
@@ -159,23 +158,23 @@ Dist_Plots(results = results1, A_titles = A_titles)
 ### code chunk number 11: Density1 (eval = FALSE)
 ###################################################
 ## density <-
-##   dt(x = ((x1 - c1) / sigma1), df = nu, ncp = 0, log = FALSE) / sigma1
+##   dt(x = ((a1 - p1) / sigma1), df = nu, ncp = 0, log = FALSE) / sigma1
 
 
 ###################################################
 ### code chunk number 12: Density2 (eval = FALSE)
 ###################################################
 ## density <-
-##   dt(x = ((x1 - c1) / sigma1), df = nu, ncp = lam, log = FALSE) / sigma1
+##   dt(x = ((a1 - p1) / sigma1), df = nu, ncp = lam, log = FALSE) / sigma1
 
 
 ###################################################
 ### code chunk number 13: Density3 (eval = FALSE)
 ###################################################
 ## density <-
-##   dt(x = ((x1 - c1) / sigma1), df = nu, ncp = 0, log = FALSE) / 
+##   dt(x = ((a1 - p1) / sigma1), df = nu, ncp = 0, log = FALSE) / 
 ##   (sigma1 * 
-##      (1 - pt(q = ((-c1) / sigma1), df = nu, ncp = 0,
+##      (1 - pt(q = ((-p1) / sigma1), df = nu, ncp = 0,
 ##              lower.tail = TRUE, log.p = FALSE)))
 
 
@@ -183,9 +182,9 @@ Dist_Plots(results = results1, A_titles = A_titles)
 ### code chunk number 14: Density4 (eval = FALSE)
 ###################################################
 ## density <-
-##   dt(x = ((x1 - c1) / sigma1), df = nu, ncp = 0, log = FALSE) / 
+##   dt(x = ((a1 - p1) / sigma1), df = nu, ncp = 0, log = FALSE) / 
 ##   (sigma1 * 
-##      (pt(q = ((-c1) / sigma1), df = nu, ncp = 0,
+##      (pt(q = ((-p1) / sigma1), df = nu, ncp = 0,
 ##          lower.tail = TRUE, log.p = FALSE)))
 
 

@@ -3,32 +3,38 @@
 
 #' @useDynLib BHSBVAR, .registration = TRUE
 #' @keywords internal
-prior_nonc_t <- function(x1, c1, sigma1, nu, lam1) {
-    .Call(`_BHSBVAR_prior_nonc_t`, x1, c1, sigma1, nu, lam1)
+prior_nonc_t <- function(a1, p1, sigma1, nu, lam1) {
+    .Call(`_BHSBVAR_prior_nonc_t`, a1, p1, sigma1, nu, lam1)
 }
 
 #' @useDynLib BHSBVAR, .registration = TRUE
 #' @keywords internal
-prior_t_n <- function(x1, c1, sigma1, nu) {
-    .Call(`_BHSBVAR_prior_t_n`, x1, c1, sigma1, nu)
+prior_t_n <- function(a1, p1, sigma1, nu) {
+    .Call(`_BHSBVAR_prior_t_n`, a1, p1, sigma1, nu)
 }
 
 #' @useDynLib BHSBVAR, .registration = TRUE
 #' @keywords internal
-prior_t_p <- function(x1, c1, sigma1, nu) {
-    .Call(`_BHSBVAR_prior_t_p`, x1, c1, sigma1, nu)
+prior_t_p <- function(a1, p1, sigma1, nu) {
+    .Call(`_BHSBVAR_prior_t_p`, a1, p1, sigma1, nu)
 }
 
 #' @useDynLib BHSBVAR, .registration = TRUE
 #' @keywords internal
-prior_t <- function(x1, c1, sigma1, nu) {
-    .Call(`_BHSBVAR_prior_t`, x1, c1, sigma1, nu)
+prior_t <- function(a1, p1, sigma1, nu) {
+    .Call(`_BHSBVAR_prior_t`, a1, p1, sigma1, nu)
 }
 
 #' @useDynLib BHSBVAR, .registration = TRUE
 #' @keywords internal
-post_A_optim <- function(par, pA, pdetA, pH, pP, pP_sig, pR_sig, kappa1, y1, x1, omega, somega, nlags) {
-    .Call(`_BHSBVAR_post_A_optim`, par, pA, pdetA, pH, pP, pP_sig, pR_sig, kappa1, y1, x1, omega, somega, nlags)
+sum_log_prior_densities <- function(A_test, pA, pdetA, pH) {
+    .Call(`_BHSBVAR_sum_log_prior_densities`, A_test, pA, pdetA, pH)
+}
+
+#' @useDynLib BHSBVAR, .registration = TRUE
+#' @keywords internal
+likelihood_function <- function(A_test, kappa1, y1, omega, zeta, somega) {
+    .Call(`_BHSBVAR_likelihood_function`, A_test, kappa1, y1, omega, zeta, somega)
 }
 
 #' @useDynLib BHSBVAR, .registration = TRUE

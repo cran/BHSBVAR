@@ -7,114 +7,121 @@
 using namespace Rcpp;
 
 // prior_nonc_t
-double prior_nonc_t(double x1, double c1, double sigma1, double nu, double lam1);
-RcppExport SEXP _BHSBVAR_prior_nonc_t(SEXP x1SEXP, SEXP c1SEXP, SEXP sigma1SEXP, SEXP nuSEXP, SEXP lam1SEXP) {
+double prior_nonc_t(const double a1, const double p1, const double sigma1, const double nu, const double lam1);
+RcppExport SEXP _BHSBVAR_prior_nonc_t(SEXP a1SEXP, SEXP p1SEXP, SEXP sigma1SEXP, SEXP nuSEXP, SEXP lam1SEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< double >::type x1(x1SEXP);
-    Rcpp::traits::input_parameter< double >::type c1(c1SEXP);
-    Rcpp::traits::input_parameter< double >::type sigma1(sigma1SEXP);
-    Rcpp::traits::input_parameter< double >::type nu(nuSEXP);
-    Rcpp::traits::input_parameter< double >::type lam1(lam1SEXP);
-    rcpp_result_gen = Rcpp::wrap(prior_nonc_t(x1, c1, sigma1, nu, lam1));
+    Rcpp::traits::input_parameter< const double >::type a1(a1SEXP);
+    Rcpp::traits::input_parameter< const double >::type p1(p1SEXP);
+    Rcpp::traits::input_parameter< const double >::type sigma1(sigma1SEXP);
+    Rcpp::traits::input_parameter< const double >::type nu(nuSEXP);
+    Rcpp::traits::input_parameter< const double >::type lam1(lam1SEXP);
+    rcpp_result_gen = Rcpp::wrap(prior_nonc_t(a1, p1, sigma1, nu, lam1));
     return rcpp_result_gen;
 END_RCPP
 }
 // prior_t_n
-double prior_t_n(double x1, double c1, double sigma1, double nu);
-RcppExport SEXP _BHSBVAR_prior_t_n(SEXP x1SEXP, SEXP c1SEXP, SEXP sigma1SEXP, SEXP nuSEXP) {
+double prior_t_n(const double a1, const double p1, const double sigma1, const double nu);
+RcppExport SEXP _BHSBVAR_prior_t_n(SEXP a1SEXP, SEXP p1SEXP, SEXP sigma1SEXP, SEXP nuSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< double >::type x1(x1SEXP);
-    Rcpp::traits::input_parameter< double >::type c1(c1SEXP);
-    Rcpp::traits::input_parameter< double >::type sigma1(sigma1SEXP);
-    Rcpp::traits::input_parameter< double >::type nu(nuSEXP);
-    rcpp_result_gen = Rcpp::wrap(prior_t_n(x1, c1, sigma1, nu));
+    Rcpp::traits::input_parameter< const double >::type a1(a1SEXP);
+    Rcpp::traits::input_parameter< const double >::type p1(p1SEXP);
+    Rcpp::traits::input_parameter< const double >::type sigma1(sigma1SEXP);
+    Rcpp::traits::input_parameter< const double >::type nu(nuSEXP);
+    rcpp_result_gen = Rcpp::wrap(prior_t_n(a1, p1, sigma1, nu));
     return rcpp_result_gen;
 END_RCPP
 }
 // prior_t_p
-double prior_t_p(double x1, double c1, double sigma1, double nu);
-RcppExport SEXP _BHSBVAR_prior_t_p(SEXP x1SEXP, SEXP c1SEXP, SEXP sigma1SEXP, SEXP nuSEXP) {
+double prior_t_p(const double a1, const double p1, const double sigma1, const double nu);
+RcppExport SEXP _BHSBVAR_prior_t_p(SEXP a1SEXP, SEXP p1SEXP, SEXP sigma1SEXP, SEXP nuSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< double >::type x1(x1SEXP);
-    Rcpp::traits::input_parameter< double >::type c1(c1SEXP);
-    Rcpp::traits::input_parameter< double >::type sigma1(sigma1SEXP);
-    Rcpp::traits::input_parameter< double >::type nu(nuSEXP);
-    rcpp_result_gen = Rcpp::wrap(prior_t_p(x1, c1, sigma1, nu));
+    Rcpp::traits::input_parameter< const double >::type a1(a1SEXP);
+    Rcpp::traits::input_parameter< const double >::type p1(p1SEXP);
+    Rcpp::traits::input_parameter< const double >::type sigma1(sigma1SEXP);
+    Rcpp::traits::input_parameter< const double >::type nu(nuSEXP);
+    rcpp_result_gen = Rcpp::wrap(prior_t_p(a1, p1, sigma1, nu));
     return rcpp_result_gen;
 END_RCPP
 }
 // prior_t
-double prior_t(double x1, double c1, double sigma1, double nu);
-RcppExport SEXP _BHSBVAR_prior_t(SEXP x1SEXP, SEXP c1SEXP, SEXP sigma1SEXP, SEXP nuSEXP) {
+double prior_t(const double a1, const double p1, const double sigma1, const double nu);
+RcppExport SEXP _BHSBVAR_prior_t(SEXP a1SEXP, SEXP p1SEXP, SEXP sigma1SEXP, SEXP nuSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< double >::type x1(x1SEXP);
-    Rcpp::traits::input_parameter< double >::type c1(c1SEXP);
-    Rcpp::traits::input_parameter< double >::type sigma1(sigma1SEXP);
-    Rcpp::traits::input_parameter< double >::type nu(nuSEXP);
-    rcpp_result_gen = Rcpp::wrap(prior_t(x1, c1, sigma1, nu));
+    Rcpp::traits::input_parameter< const double >::type a1(a1SEXP);
+    Rcpp::traits::input_parameter< const double >::type p1(p1SEXP);
+    Rcpp::traits::input_parameter< const double >::type sigma1(sigma1SEXP);
+    Rcpp::traits::input_parameter< const double >::type nu(nuSEXP);
+    rcpp_result_gen = Rcpp::wrap(prior_t(a1, p1, sigma1, nu));
     return rcpp_result_gen;
 END_RCPP
 }
-// post_A_optim
-double post_A_optim(Rcpp::NumericVector par, arma::cube pA, arma::cube pdetA, arma::cube pH, arma::mat pP, arma::mat pP_sig, arma::cube pR_sig, arma::mat kappa1, arma::mat y1, arma::mat x1, arma::mat omega, arma::mat somega, int nlags);
-RcppExport SEXP _BHSBVAR_post_A_optim(SEXP parSEXP, SEXP pASEXP, SEXP pdetASEXP, SEXP pHSEXP, SEXP pPSEXP, SEXP pP_sigSEXP, SEXP pR_sigSEXP, SEXP kappa1SEXP, SEXP y1SEXP, SEXP x1SEXP, SEXP omegaSEXP, SEXP somegaSEXP, SEXP nlagsSEXP) {
+// sum_log_prior_densities
+double sum_log_prior_densities(const arma::mat& A_test, const arma::cube& pA, const arma::cube& pdetA, const arma::cube& pH);
+RcppExport SEXP _BHSBVAR_sum_log_prior_densities(SEXP A_testSEXP, SEXP pASEXP, SEXP pdetASEXP, SEXP pHSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< Rcpp::NumericVector >::type par(parSEXP);
-    Rcpp::traits::input_parameter< arma::cube >::type pA(pASEXP);
-    Rcpp::traits::input_parameter< arma::cube >::type pdetA(pdetASEXP);
-    Rcpp::traits::input_parameter< arma::cube >::type pH(pHSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type pP(pPSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type pP_sig(pP_sigSEXP);
-    Rcpp::traits::input_parameter< arma::cube >::type pR_sig(pR_sigSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type kappa1(kappa1SEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type y1(y1SEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type x1(x1SEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type omega(omegaSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type somega(somegaSEXP);
-    Rcpp::traits::input_parameter< int >::type nlags(nlagsSEXP);
-    rcpp_result_gen = Rcpp::wrap(post_A_optim(par, pA, pdetA, pH, pP, pP_sig, pR_sig, kappa1, y1, x1, omega, somega, nlags));
+    Rcpp::traits::input_parameter< const arma::mat& >::type A_test(A_testSEXP);
+    Rcpp::traits::input_parameter< const arma::cube& >::type pA(pASEXP);
+    Rcpp::traits::input_parameter< const arma::cube& >::type pdetA(pdetASEXP);
+    Rcpp::traits::input_parameter< const arma::cube& >::type pH(pHSEXP);
+    rcpp_result_gen = Rcpp::wrap(sum_log_prior_densities(A_test, pA, pdetA, pH));
+    return rcpp_result_gen;
+END_RCPP
+}
+// likelihood_function
+double likelihood_function(const arma::mat& A_test, const arma::mat& kappa1, const arma::mat& y1, const arma::mat& omega, const arma::mat& zeta, const arma::mat& somega);
+RcppExport SEXP _BHSBVAR_likelihood_function(SEXP A_testSEXP, SEXP kappa1SEXP, SEXP y1SEXP, SEXP omegaSEXP, SEXP zetaSEXP, SEXP somegaSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const arma::mat& >::type A_test(A_testSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type kappa1(kappa1SEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type y1(y1SEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type omega(omegaSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type zeta(zetaSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type somega(somegaSEXP);
+    rcpp_result_gen = Rcpp::wrap(likelihood_function(A_test, kappa1, y1, omega, zeta, somega));
     return rcpp_result_gen;
 END_RCPP
 }
 // MAIN
-Rcpp::List MAIN(arma::mat y1, arma::mat x1, arma::mat omega, arma::mat somega, int nlags, arma::cube pA, arma::cube pdetA, arma::cube pH, arma::mat pP, arma::mat pP_sig, arma::cube pR_sig, arma::mat kappa1, arma::mat A_start, int itr, int burn, int thin, arma::mat scale1, int h1_irf, bool acc_irf, double ci, Rcpp::StringVector varnames, Rcpp::Function line_plot, Rcpp::Function acf_plot);
+Rcpp::List MAIN(const arma::mat& y1, const arma::mat& x1, const arma::mat& omega, const arma::mat& somega, const int nlags, const arma::cube& pA, const arma::cube& pdetA, const arma::cube& pH, const arma::mat& pP, const arma::mat& pP_sig, const arma::cube& pR_sig, const arma::mat& kappa1, const arma::mat& A_start, const int itr, const int burn, const int thin, const arma::mat& scale1, const int h1_irf, const bool acc_irf, const double ci, const Rcpp::StringVector& varnames, const Rcpp::Function& line_plot, const Rcpp::Function& acf_plot);
 RcppExport SEXP _BHSBVAR_MAIN(SEXP y1SEXP, SEXP x1SEXP, SEXP omegaSEXP, SEXP somegaSEXP, SEXP nlagsSEXP, SEXP pASEXP, SEXP pdetASEXP, SEXP pHSEXP, SEXP pPSEXP, SEXP pP_sigSEXP, SEXP pR_sigSEXP, SEXP kappa1SEXP, SEXP A_startSEXP, SEXP itrSEXP, SEXP burnSEXP, SEXP thinSEXP, SEXP scale1SEXP, SEXP h1_irfSEXP, SEXP acc_irfSEXP, SEXP ciSEXP, SEXP varnamesSEXP, SEXP line_plotSEXP, SEXP acf_plotSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
-    Rcpp::traits::input_parameter< arma::mat >::type y1(y1SEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type x1(x1SEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type omega(omegaSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type somega(somegaSEXP);
-    Rcpp::traits::input_parameter< int >::type nlags(nlagsSEXP);
-    Rcpp::traits::input_parameter< arma::cube >::type pA(pASEXP);
-    Rcpp::traits::input_parameter< arma::cube >::type pdetA(pdetASEXP);
-    Rcpp::traits::input_parameter< arma::cube >::type pH(pHSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type pP(pPSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type pP_sig(pP_sigSEXP);
-    Rcpp::traits::input_parameter< arma::cube >::type pR_sig(pR_sigSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type kappa1(kappa1SEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type A_start(A_startSEXP);
-    Rcpp::traits::input_parameter< int >::type itr(itrSEXP);
-    Rcpp::traits::input_parameter< int >::type burn(burnSEXP);
-    Rcpp::traits::input_parameter< int >::type thin(thinSEXP);
-    Rcpp::traits::input_parameter< arma::mat >::type scale1(scale1SEXP);
-    Rcpp::traits::input_parameter< int >::type h1_irf(h1_irfSEXP);
-    Rcpp::traits::input_parameter< bool >::type acc_irf(acc_irfSEXP);
-    Rcpp::traits::input_parameter< double >::type ci(ciSEXP);
-    Rcpp::traits::input_parameter< Rcpp::StringVector >::type varnames(varnamesSEXP);
-    Rcpp::traits::input_parameter< Rcpp::Function >::type line_plot(line_plotSEXP);
-    Rcpp::traits::input_parameter< Rcpp::Function >::type acf_plot(acf_plotSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type y1(y1SEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type x1(x1SEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type omega(omegaSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type somega(somegaSEXP);
+    Rcpp::traits::input_parameter< const int >::type nlags(nlagsSEXP);
+    Rcpp::traits::input_parameter< const arma::cube& >::type pA(pASEXP);
+    Rcpp::traits::input_parameter< const arma::cube& >::type pdetA(pdetASEXP);
+    Rcpp::traits::input_parameter< const arma::cube& >::type pH(pHSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type pP(pPSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type pP_sig(pP_sigSEXP);
+    Rcpp::traits::input_parameter< const arma::cube& >::type pR_sig(pR_sigSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type kappa1(kappa1SEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type A_start(A_startSEXP);
+    Rcpp::traits::input_parameter< const int >::type itr(itrSEXP);
+    Rcpp::traits::input_parameter< const int >::type burn(burnSEXP);
+    Rcpp::traits::input_parameter< const int >::type thin(thinSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type scale1(scale1SEXP);
+    Rcpp::traits::input_parameter< const int >::type h1_irf(h1_irfSEXP);
+    Rcpp::traits::input_parameter< const bool >::type acc_irf(acc_irfSEXP);
+    Rcpp::traits::input_parameter< const double >::type ci(ciSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::StringVector& >::type varnames(varnamesSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::Function& >::type line_plot(line_plotSEXP);
+    Rcpp::traits::input_parameter< const Rcpp::Function& >::type acf_plot(acf_plotSEXP);
     rcpp_result_gen = Rcpp::wrap(MAIN(y1, x1, omega, somega, nlags, pA, pdetA, pH, pP, pP_sig, pR_sig, kappa1, A_start, itr, burn, thin, scale1, h1_irf, acc_irf, ci, varnames, line_plot, acf_plot));
     return rcpp_result_gen;
 END_RCPP

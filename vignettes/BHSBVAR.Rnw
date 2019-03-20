@@ -1,7 +1,7 @@
 \documentclass[12pt]{article}
 
 \usepackage{amsmath}
-\setlength{\multlinegap}{0pt} % set multilinegap length
+\setlength{\multlinegap}{0pt} % set multilinegap length for math equations
 
 \setlength{\parindent}{0pt} % set paragraph indentation length
 
@@ -13,28 +13,51 @@
 \usepackage[letterpaper,margin=1in]{geometry} % document margins and layout
 
 \usepackage[colorlinks=false]{hyperref} % for hyperlinks in the .pdf file
-\hypersetup{hidelinks}
+\hypersetup{
+colorlinks=true,
+linkcolor=black,
+urlcolor=blue
+}
 \urlstyle{same}
 
 \newcommand{\sectiontitle}[1]{ % function that adds vertical space and centers section titles.
-\begin{center}
-\vspace{0.5\baselineskip}
-\uppercase{#1}
-\vspace{0.5\baselineskip}
-\end{center}
+\vspace{\baselineskip}
+\centerline{\uppercase{#1}}
+\vspace{\baselineskip}
 }
 
 \usepackage{caption} % required for customizing captions
-\def\tablename{\textrm{TABLE}}
+\def\tablename{\textrm{Table}}
 \captionsetup[table]{labelfont={},labelsep=newline,justification=raggedright,singlelinecheck=off,textfont={it}}{} % table caption setup
-\def\figurename{\textrm{FIGURE}}
+\def\figurename{\textrm{Figure}}
 \captionsetup[figure]{labelfont={},labelsep=newline,justification=raggedright,singlelinecheck=off,textfont={it}} % specify the figure caption style
+
 \setlength{\abovecaptionskip}{0pt} % whitespace above captions
+\setlength{\belowcaptionskip}{0pt} % whitespace below captions
+\setlength{\floatsep}{\baselineskip} % whitespace between floats
+\setlength{\textfloatsep}{\baselineskip} % whitespace between last top float or first bottom float and the text
+\setlength{\intextsep}{\baselineskip} % whitespace on top and bottom of in-text floats
+
+\ifx\knitrout\undefined
+\newenvironment{knitrout}{
+\topsep=0pt
+\parsep=0pt
+\labelsep=0pt
+\itemsep=0pt
+\partopsep=0pt
+}
+\else
+\renewenvironment{knitrout}{
+\topsep=0pt
+\parsep=0pt
+\labelsep=0pt
+\itemsep=0pt
+\partopsep=0pt
+}
 
 <<Setup, include=FALSE, echo=FALSE>>=
-#library(knitr)
 knitr::opts_knit$set(self.contained = TRUE, concordance = FALSE)
-knitr::opts_chunk$set(fig.path = "fig/")
+knitr::opts_chunk$set(fig.path = "fig/", prompt = TRUE)
 @
 
 \begin{document}
@@ -45,21 +68,19 @@ knitr::opts_chunk$set(fig.path = "fig/")
 
 \sectiontitle{\textbf{R Package BHSBVAR}}
 
-\begin{center}
-Paul Richardson
+\centerline{Paul Richardson}
 
-p.richardson.54391@gmail.com
+\centerline{p.richardson.54391@gmail.com}
 
-\Sexpr{months(x = Sys.Date(), abbreviate = FALSE)}, \Sexpr{strsplit(x = as.character(Sys.Date()), split = "-", fixed = TRUE)[[1]][1]}
-\end{center}
+\centerline{March, 2019}
 
 \sectiontitle{Acknowledgement}
 
-The \verb$BHSBVAR$ package is based on the MATLAB programs created by \hyperlink{BH2015}{Baumeister and Hamilton (2015}, \hyperlink{BH2017}{2017}, \hyperlink{BH2018}{2018)}. I thank them for sharing their MATLAB programs online.
+The \verb$BHSBVAR$ package is based on the MATLAB programs created by \href{https://sites.google.com/site/cjsbaumeister/}{Baumeister} and \href{https://econweb.ucsd.edu/~jhamilton/}{Hamilton} (\hyperlink{BH2015}{2015}/\hyperlink{BH2017}{2017}/\hyperlink{BH2018}{2018)}. I thank them for sharing their MATLAB programs online.
 
 \sectiontitle{Introduction}
 
-Identifying structural innovations from Structural Vector Autoregression (SVAR) models requires the researcher to make assumptions about the structural parameters in the model. Recursively identifying structural innovations with the Cholesky decomposition of the residual covariance matrix requires the researcher to assume a recursive order of the endogenous variables in the model and exclusion or information lag restrictions for structural parameters. Identifying structural innovations with sign restrictions prevents the researcher from having to make zero restrictions for structural parameters but this method implicitly requires the researcher to assume a particular prior distribution for structural parameters they may not agree with. The method developed by \hyperlink{BH2015}{Baumeister and Hamilton (2015}, \hyperlink{BH2017}{2017}, \hyperlink{BH2018}{2018)} for estimating the parameters of a Structural Bayesian Vector Autoregression (SBVAR) model is an alternative methods that allows the researcher to explicitly include prior information about the parameters of the model. Their method does not require the researcher to assume a recursive order of the endogenous variables in the model or a prior distribution about structural parameters the researcher does not agree with. For detailed information about their method see \hyperlink{BH2015}{Baumeister and Hamilton (2015}, \hyperlink{BH2017}{2017}, \hyperlink{BH2018}{2018)}.
+Identifying structural innovations from Structural Vector Autoregression (SVAR) models requires the researcher to make assumptions about the structural parameters in the model. Recursively identifying structural innovations with the Cholesky decomposition of the residual covariance matrix requires the researcher to assume a recursive order of the endogenous variables in the model and exclusion or information lag restrictions for structural parameters. Identifying structural innovations with sign restrictions prevents researchers from having to make zero restrictions for structural parameters but it does implicitly require researchers to assume a prior distribution for structural parameters they may not agree with. The method developed by \hyperlink{BH2015}{Baumeister and Hamilton (2015}/\hyperlink{BH2017}{2017}/\hyperlink{BH2018}{2018)} for estimating the parameters of a Structural Bayesian Vector Autoregression (SBVAR) model is an alternative methods that allows the researcher to explicitly include prior information about the parameters of the model. Their method does not require the researcher to assume a recursive order of the endogenous variables in the model or a prior distribution about structural parameters the researcher does not agree with. For detailed information about their method see \hyperlink{BH2015}{Baumeister and Hamilton (2015}/\hyperlink{BH2017}{2017}/\hyperlink{BH2018}{2018)}.
 
 \sectiontitle{Model}
 
@@ -138,7 +159,7 @@ Reduced Form Univariate Autoregression Model:
 \hspace*{\fill}
 \end{multline}
 
-Let $P$ be an $(n \times k)$ matrix containing the prior position values for the reduced form lagged coefficient matrix, $\Phi$. $M^{-1}$ is a $(k \times k)$ symmetric matrix indicating confidence in $P$. $R$ is an $(n \times k)$ matrix containing the prior position values for the reduced form lagged coefficient matrix ($\Phi$) representing a belief that specific shocks have no long-run affect. $V_{i}^{-1}$ is a $(k \times k)$ symmetric matrix indicating confidence in $R$ for $i = 1, 2, ..., n$. $\beta_{i}$ is an $(n \times k)$ lagged structural coefficient matrix for $i = 1, 2, ..., n$. $\beta_{i}(i,)$ is an $(1 \times k)$ matrix of lagged structural coefficients from $\beta_{i}$ for $i = 1, 2, ..., n$. $B(i,)$ is an $(1 \times k)$ matrix of the lagged structural coefficients from $B$ for $i = 1, 2, ..., n$. $\zeta_{i}$ is an $(n \times n)$ matrix for $i = 1, 2, ..., n$. $Z$ is an $(n \times n)$ diagonal matrix. $\zeta_{i}(i, i)$ is the $(i,i)$ element of the symmetric matrix $\zeta_{i}$ for $i = 1, 2, ..., n$. $Z(i, i)$ is the $(i,i)$ element of the the diagonal matrix $Z$ for $i = 1, 2, ..., n$. $diag(A \Sigma A^{\top})$ is an $(n \times n)$ diagonal matrix whose main diagonal elements are the main diagonal elements from the matrix $A \Sigma A^{\top}$. $\kappa$ is an $(n \times n)$ diagonal matrix whose elements along the main diagonal represent confidence in the priors for the structural variances in $D$. $\kappa_{i}$ and $\tau_{i}$ refers to element $(i,i)$ of $\kappa$ and $\tau$, respectively for $i = 1, 2, ..., n$. The prior for $D_{i} \sim \frac{1}{\Gamma(\kappa_{i},\tau_{i})}$ where $D_{i}$ refers to element $(i,i)$ of $D$ for $i = 1, 2, ..., n$.
+Let $P$ be an $(n \times k)$ matrix containing the prior position values for the reduced form lagged coefficient matrix, $\Phi$. $M^{-1}$ is a $(k \times k)$ symmetric matrix indicating confidence in $P$. $R$ is an $(n \times k)$ matrix containing the prior position values for the reduced form lagged coefficient matrix ($\Phi$) representing a belief that specific shocks have no long-run affect. $V_{i}^{-1}$ is a $(k \times k)$ symmetric matrix indicating confidence in $R$ for $i = 1, 2, ..., n$. $\beta_{i}$ is an $(n \times k)$ lagged structural coefficient matrix for $i = 1, 2, ..., n$. $\beta_{i}(i,)$ is an $(1 \times k)$ matrix of lagged structural coefficients from $\beta_{i}$ for $i = 1, 2, ..., n$. $B(i,)$ is an $(1 \times k)$ matrix of the lagged structural coefficients from $B$ for $i = 1, 2, ..., n$. $\zeta_{i}$ is an $(n \times n)$ matrix for $i = 1, 2, ..., n$. $Z$ is an $(n \times n)$ diagonal matrix. $\zeta_{i}(i, i)$ is the $(i,i)$ element of the symmetric matrix $\zeta_{i}$ for $i = 1, 2, ..., n$. $Z(i, i)$ is the $(i,i)$ element of the diagonal matrix $Z$ for $i = 1, 2, ..., n$. $diag(A \Sigma A^{\top})$ is an $(n \times n)$ diagonal matrix whose main diagonal elements are the main diagonal elements from the matrix $A \Sigma A^{\top}$. $\kappa$ is an $(n \times n)$ diagonal matrix whose elements along the main diagonal represent confidence in the priors for the structural variances in $D$. $\kappa_{i}$ and $\tau_{i}$ refers to element $(i,i)$ of $\kappa$ and $\tau$, respectively for $i = 1, 2, ..., n$. The prior for $D_{i} \sim \frac{1}{\Gamma(\kappa_{i},\tau_{i})}$ where $D_{i}$ refers to element $(i,i)$ of $D$ for $i = 1, 2, ..., n$.
 
 \vspace{\baselineskip}
 Structural Bayesian Vector Autoregression Model:
@@ -180,7 +201,7 @@ Structural Bayesian Vector Autoregression Model:
 \hspace*{\fill}
 \end{multline}
 
-\hyperlink{BH2015}{Baumeister and Hamilton (2015}, \hyperlink{BH2017}{2017}, \hyperlink{BH2018}{2018)} developed an algorithm that estimates the parameters of an SVAR model using Bayesian methods (SBVAR). Their algorithm applies a random-walk Metropolis-Hastings algorithm to seek elasticity values for $A$, considering prior information, that diagonalizes the covariance matrix of the reduced form errors. For detailed information about their algorithm see \hyperlink{BH2015}{Baumeister and Hamilton (2015}, \hyperlink{BH2017}{2017}, \hyperlink{BH2018}{2018)}.
+\hyperlink{BH2015}{Baumeister and Hamilton (2015}/\hyperlink{BH2017}{2017}/\hyperlink{BH2018}{2018)} developed an algorithm that estimates the parameters of an SVAR model using Bayesian methods (SBVAR). Their algorithm applies a random-walk Metropolis-Hastings algorithm to seek elasticity values for $A$, considering prior information, that diagonalizes the covariance matrix of the reduced form errors. For detailed information about their algorithm see \hyperlink{BH2015}{Baumeister and Hamilton (2015}/\hyperlink{BH2017}{2017}/\hyperlink{BH2018}{2018)}.
 
 \vspace{\baselineskip}
 Posterior Distribution:
@@ -217,11 +238,11 @@ Increase $c$ by 1 and repeat Steps 1-4 for $c = 2, 3, ..., C$.
 
 \sectiontitle{Example}
 
-The \verb$BHSBVAR$ package provides a function for running SBVAR models and several functions for plotting results. The \verb$BH_SBVAR()$ function runs an SBVAR model with the methods developed by \hyperlink{BH2015}{Baumeister and Hamilton (2015}, \hyperlink{BH2017}{2017}, \hyperlink{BH2018}{2018)}. The \verb$IRF_Plots()$ function creates plots of impulse responses. The \verb$HD_Plots()$ function creates plots of historical decompositions. The \verb$Dist_Plots()$ function creates posterior density plots of the model parameters in $A$, $det(A)$, and $H$ overlaid with prior densities to illustrate the difference between posterior and prior distributions. The following example illustrates how these functions can be applied to reproduce the results from \hyperlink{BH2015}{Baumeister and Hamilton (2015)}.
+The \verb$BHSBVAR$ package provides a function for running SBVAR models and several functions for plotting results. The \verb$BH_SBVAR()$ function runs an SBVAR model with the methods developed by \hyperlink{BH2015}{Baumeister and Hamilton (2015}/\hyperlink{BH2017}{2017}/\hyperlink{BH2018}{2018)}. The \verb$IRF_Plots()$ function creates plots of impulse responses. The \verb$HD_Plots()$ function creates plots of historical decompositions. The \verb$Dist_Plots()$ function creates posterior density plots of the model parameters in $A$, $det(A)$, and $H$ overlaid with prior densities to illustrate the difference between posterior and prior distributions. The following example illustrates how these functions can be applied to reproduce the results from \hyperlink{BH2015}{Baumeister and Hamilton (2015)}.
 
 \vspace{\baselineskip}
-\hypertarget{chunk1}{CODE CHUNK 1}
-<<Data, include = TRUE, echo = TRUE, background = 'NA', highlight = FALSE>>=
+\hypertarget{chunk1}{Code Chunk 1}
+<<Data, include=TRUE, echo=TRUE, background='NA', highlight=FALSE>>=
 rm(list = ls())
 library(BHSBVAR)
 set.seed(123)
@@ -229,11 +250,12 @@ data(USLMData)
 y <- matrix(data = c(USLMData$Wage, USLMData$Employment), ncol = 2)
 colnames(y) <- c("Wage", "Employment")
 @
+\vspace{0.5\baselineskip}
 
-The first line from \hyperlink{chunk1}{Code Chunk 1} clears memory. The second line loads the \verb$BHSBVAR$ package library. The third line sets the seed for random number generation. The fourth line imports the data used in this example. The fifth line creates a matrix (\verb$y$) containing quarter over quarter percent change of U.S. real wage and employment data use by \hyperlink{BH2015}{Baumeister and Hamilton (2015)}.
+The first line from \hyperlink{chunk1}{Code Chunk 1} clears the workspace. The second line loads the \verb$BHSBVAR$ package namespace. The third line sets the seed for random number generation. The fourth line imports the data used in this example. The fifth line creates a matrix (\verb$y$) containing quarter over quarter percent change of U.S. real wage and employment data use by \hyperlink{BH2015}{Baumeister and Hamilton (2015)}.
 
 \vspace{\baselineskip}
-\hypertarget{chunk2}{CODE CHUNK 2}
+\hypertarget{chunk2}{Code Chunk 2}
 <<Inputs, include = TRUE, echo = TRUE, background = 'NA', highlight = FALSE>>=
 nlags <- 8
 itr <- 200000
@@ -243,13 +265,14 @@ acc_irf <- TRUE
 h1_irf <- 20
 ci <- 0.975
 @
+\vspace{0.5\baselineskip}
 
 \verb$nlags$ from \hyperlink{chunk2}{Code Chunk 2} sets the lag length used in the SBVAR model. \verb$itr$ sets the number of iterations for the algorithm. \verb$burn$ is the number of draws to throw out at the beginning of the algorithm. \verb$thin$ sets the thinning parameter which will thin the Markov chains. \verb$acc_irf$ indicates whether accumulated impulse responses are to be computed and returned. \verb$h1_irf$ indicates the time horizon for computing impulse responses. \verb$ci$ indicates the credibility intervals to be returned.
 
 \vspace{\baselineskip}
-\hypertarget{chunk3}{CODE CHUNK 3}
+\hypertarget{chunk3}{Code Chunk 3}
 <<pA,include = TRUE, echo = TRUE, background = 'NA', highlight = FALSE>>=
-pA <- array(data = NA, dim = c(2, 2, 8))
+pA <- array(data = NA, dim = c(ncol(y), ncol(y), 8))
 pA[, , 1] <- c(0, NA, 0, NA)
 pA[, , 2] <- c(1, NA, -1, NA)
 pA[, , 3] <- c(0.6, 1, -0.6, 1)
@@ -257,13 +280,14 @@ pA[, , 4] <- c(0.6, NA, 0.6, NA)
 pA[, , 5] <- c(3, NA, 3, NA)
 pA[, , 6] <- c(NA, NA, NA, NA)
 pA[, , 7] <- c(NA, NA, 1, NA)
-pA[, , 8] <- c(2.4, NA, 2.4, NA)
+pA[, , 8] <- c(2, NA, 2, NA)
 @
+\vspace{0.5\baselineskip}
 
-The lines from \hyperlink{chunk3}{Code Chunk 3} create an array containing all the information needed to set priors for each element in $A$. Each column contains the prior information for the parameters in each equation. The third dimension of \verb$pA$ should always have a length of \Sexpr{dim(pA)[3]}. The first slice of the third dimension of \verb$pA$ indicates the prior distribution (NA - no prior, 0 - symmetric t-distribution, 1 - non-central t-distribution). The second slice indicates sign restrictions for symmetric t-distributions (NA - no restriction, 1 - positive restriction, -1 - negative restriction). The third slice indicates the position of the prior. The fourth slice indicates the scale or confidence in the prior. The fifth slice indicates the degrees of freedom for the t-distribution prior. The sixth slice indicates skew for non-central t-distribution prior. The seventh slice indicates long-run restriction scale or confidence in the long-run restriction. The eighth slice indicates the random-walk proposal scale parameters which adjust the algorithm's acceptance rate and the ability of the algorithm to adequately cover the model's parameter space. For information about priors for $A$ see \hyperlink{BH2015}{Baumeister and Hamilton (2015}, \hyperlink{BH2017}{2017}, \hyperlink{BH2018}{2018)}. The formulas used to compute the density of the prior distributions for $A$, $det(A)$, and $H (A^{-1})$ are listed in the \hyperlink{appendix}{Appendix}.
+The lines from \hyperlink{chunk3}{Code Chunk 3} create an array containing all the information needed to set priors for each element in $A$. Each column contains the prior information for the parameters in each equation. The third dimension of \verb$pA$ should always have a length of \Sexpr{dim(pA)[3]}. The first slice of the third dimension of \verb$pA$ indicates the prior distribution (NA - no prior, 0 - symmetric t-distribution, 1 - non-central t-distribution). The second slice indicates sign restrictions for symmetric t-distributions (NA - no restriction, 1 - positive restriction, -1 - negative restriction). The third slice indicates the position of the prior. The fourth slice indicates the scale or confidence in the prior. The fifth slice indicates the degrees of freedom for the t-distribution prior. The sixth slice indicates skew for non-central t-distribution prior. The seventh slice indicates long-run restriction scale or confidence in the long-run restriction. The eighth slice indicates the random-walk proposal scale parameters which adjust the algorithm's acceptance rate and the ability of the algorithm to adequately cover the model's parameter space. For information about priors for $A$ see \hyperlink{BH2015}{Baumeister and Hamilton (2015}/\hyperlink{BH2017}{2017}/\hyperlink{BH2018}{2018)}. The functions used to compute the density of the prior distributions for $A$, $det(A)$, and $H (A^{-1})$ are listed in the \hyperlink{appendix}{Appendix}.
 
 \vspace{\baselineskip}
-\hypertarget{chunk4}{CODE CHUNK 4}
+\hypertarget{chunk4}{Code Chunk 4}
 <<pP_pP_sig, include = TRUE, echo = TRUE, background = 'NA', highlight = FALSE>>=
 pP <- matrix(data = 0, nrow = ((nlags * ncol(pA)) + 1), ncol = ncol(pA))
 pP[1:nrow(pA), 1:ncol(pA)] <-
@@ -303,11 +327,12 @@ v3 <- (lambda0^2) * rbind(v3, (lambda3^2))
 v3 <- 1 / v3
 pP_sig <- diag(x = c(v3), nrow = nrow(v3), ncol = nrow(v3))
 @
+\vspace{0.5\baselineskip}
 
-The lines from \hyperlink{chunk4}{Code Chunk 4} create matrices containing prior position (\verb$pP$) and scale or confidence (\verb$pP_sig$) information for the reduced form lagged coefficient matrix $\Phi$. \verb$pP$ and \verb$pP_sig$ correspond to the $P$ and $M^{-1}$ matrices from Equation~\ref{eq:eq14}, respectively. Variance estimates from univariate Autoregression models, \verb$lambda0$, \verb$lambda1$, and \verb$lambda3$ are used to construct \verb$pP_sig$ in this example. \verb$lambda0$ controls the overall confidence in the priors, \verb$lambda1$ controls the confidence in higher order lags, and \verb$lambda3$ controls the confidence in the constant term. For information about priors for $\Phi$ and $B$ see \hyperlink{BH2015}{Baumeister and Hamilton (2015}, \hyperlink{BH2017}{2017}, \hyperlink{BH2018}{2018)}, \hyperlink{DLS1984}{Doan, Sims, and Zha (1984)}, \hyperlink{Doan2018}{Doan (2018)}, \hyperlink{Litterman1986}{Litterman (1986)}, and \hyperlink{SZ1998}{Sims and Zha (1998)}.
+The lines from \hyperlink{chunk4}{Code Chunk 4} create matrices containing prior position (\verb$pP$) and scale or confidence (\verb$pP_sig$) information for the reduced form lagged coefficient matrix $\Phi$. \verb$pP$ and \verb$pP_sig$ correspond to the $P$ and $M^{-1}$ matrices from Equation~\ref{eq:eq14}, respectively. Variance estimates from univariate Autoregression models, \verb$lambda0$, \verb$lambda1$, and \verb$lambda3$ are used to construct \verb$pP_sig$ in this example. \verb$lambda0$ controls the overall confidence in the priors, \verb$lambda1$ controls the confidence in higher order lags, and \verb$lambda3$ controls the confidence in the constant term. For information about priors for $\Phi$ and $B$ see \hyperlink{BH2015}{Baumeister and Hamilton (2015}/\hyperlink{BH2017}{2017}/\hyperlink{BH2018}{2018)}, \hyperlink{DLS1984}{Doan, Sims, and Zha (1984)}, \hyperlink{Doan2018}{Doan (2018)}, \hyperlink{Litterman1986}{Litterman (1986)}, and \hyperlink{SZ1998}{Sims and Zha (1998)}.
 
 \vspace{\baselineskip}
-\hypertarget{chunk5}{CODE CHUNK 5}
+\hypertarget{chunk5}{Code Chunk 5}
 <<pR_pR_sig_kappa1, include = TRUE, echo = TRUE, background = 'NA', highlight = FALSE>>=
 pR_sig <-
   array(data = 0,
@@ -321,12 +346,13 @@ Ri <-
 pR_sig[, , 2] <- (t(Ri) %*% Ri) / 0.1
 kappa1 <- matrix(data = 2, nrow = 1, ncol = ncol(y))
 @
+\vspace{0.5\baselineskip}
 
-The lines from \hyperlink{chunk5}{Code Chunk 5} create an array (\verb$pR_sig$) containing values indicating confidence in long-run restrictions. \verb$pR_sig$ corresponds to the $V_{i}^{-1}$ matrix from Equation~\ref{eq:eq14}. The matrix $R$ from Equation~\ref{eq:eq14} will be created automatically by the \verb$BH_SBVAR()$ function. The length of the third dimension of \verb$pR_sig$ is equal to the number of endogenous variables or the number of equations in the model. The first slice of the third dimension contains all zeros since there are no long-run restrictions in the first equation of the SBVAR model for this example. The second slice contains values indicating the confidence in the long-run restriction assigned to the lagged parameters in the second equation of the SBVAR model for this example. For information about long-run restrictions see \hyperlink{BH2015}{Baumeister and Hamilton (2015}, \hyperlink{BH2018}{2018)} and \hyperlink{BQ1989}{Blanchard and Quah (1989)}. \verb$kappa1$ is an $(1 \times n)$ matrix whose values correspond to the elements along the main diagonal of $\kappa$ from Equation~\ref{eq:eq18} and indicates the confidence in prior information about the structural variances in $D$. Additional information required to set priors for $D$ ($\tau$) will be created automatically by the \verb$BH_SBVAR()$ function following \hyperlink{BH2015}{Baumeister and Hamilton (2015}, \hyperlink{BH2017}{2017}, \hyperlink{BH2018}{2018)}.
+The lines from \hyperlink{chunk5}{Code Chunk 5} create an array (\verb$pR_sig$) containing values indicating confidence in long-run restrictions. \verb$pR_sig$ corresponds to the $V_{i}^{-1}$ matrix from Equation~\ref{eq:eq14}. The matrix $R$ from Equation~\ref{eq:eq14} will be created automatically by the \verb$BH_SBVAR()$ function. The length of the third dimension of \verb$pR_sig$ is equal to the number of endogenous variables or the number of equations in the model. The first slice of the third dimension contains all zeros since there are no long-run restrictions in the first equation of the SBVAR model for this example. The second slice contains values indicating the confidence in the long-run restriction assigned to the lagged parameters in the second equation of the SBVAR model for this example. For information about long-run restrictions see \hyperlink{BH2015}{Baumeister and Hamilton (2015}/\hyperlink{BH2018}{2018)} and \hyperlink{BQ1989}{Blanchard and Quah (1989)}. \verb$kappa1$ is an $(1 \times n)$ matrix whose values correspond to the elements along the main diagonal of $\kappa$ from Equation~\ref{eq:eq18} and indicates the confidence in prior information about the structural variances in $D$. Additional information required to set priors for $D$ ($\tau$) will be created automatically by the \verb$BH_SBVAR()$ function following \hyperlink{BH2015}{Baumeister and Hamilton (2015}/\hyperlink{BH2017}{2017}/\hyperlink{BH2018}{2018)}.
 
 \vspace{\baselineskip}
-\hypertarget{chunk6}{CODE CHUNK 6}
-<<Model, include = TRUE, echo = TRUE, fig.keep = 'all', fig.show = 'hide', fig.align = 'center', fig.asp = 0.5, background = 'NA', highlight = FALSE>>=
+\hypertarget{chunk6}{Code Chunk 6}
+<<Model, include = TRUE, echo = TRUE, fig.keep = 'all', fig.show = 'hide', fig.align = 'center', fig.asp = 0.4, background = 'NA', highlight = FALSE>>=
 par(cex.axis = 0.8, cex.main = 1, font.main = 1, family = "serif",
     mfrow = c(2, 2), mar = c(2, 2.2, 2, 1), las = 1)
 results1 <- 
@@ -335,21 +361,22 @@ results1 <-
            thin = thin, acc_irf = acc_irf,
            h1_irf = h1_irf, ci = ci)
 @
-
-The first line in \hyperlink{chunk6}{Code Chunk 6} sets the parameters used to display plots that will be created by the \verb$BH_SBVAR()$ function. The \verb$BH_SBVAR()$ function allows the user to include prior information for $A$, $det(A)$, $H$ ($A^{-1}$), $\Phi$, and $D$ directly when running a SBVAR model. The \verb$pdetA$ and \verb$pH$ arguments are arrays containing prior information for $det(A)$ and the elements of $H$ but are not included in this example. The \verb$BH_SBVAR()$ function returns a list that includes the acceptance rate (\verb$accept_rate$) of the algorithm, a matrix containing the endogenous variables (\verb$y$), a matrix containing lags of the endogenous variables (\verb$x$), and the prior information provided directly or indirectly to the function (\verb$pA$, \verb$pdetA$, \verb$pH$, \verb$pP$, \verb$pP_sig$, \verb$pR$, \verb$pR_sig$, \verb$tau1$, and \verb$kappa1$). A matrix containing the starting values of the model parameters in $A$ from an optimization routine is returned (\verb$A_start$). Arrays containing estimates of the model parameters, historical decompositions, and impulse responses are returned (\verb$A$, \verb$detA$, \verb$H$, \verb$B$, \verb$Phi$, \verb$HD$, \verb$IRF$). The first, second, and third slices of the third dimension of these arrays are lower, median, and upper bounds of the estimates, respectively. Lists containing horizontal and vertical axis coordinates of posterior densities, for the estimates of the parameters in $A$, $det(A)$, and $H$ with priors, are returned (\verb$A_den$, \verb$detA_den$, and \verb$H_den$). In addition, line and autocorrelation plots of the Markov chains of $A$, $det(A)$, and $H$ are returned for diagnostic purposes. The line and autocorrelation plots provide an indication of how well the algorithm covers the model's parameter space. The line plots in Figure~\ref{fig:Diagnostic_plots} display the Markov chains of the estimates from the algorithm with the estimate values shown on the vertical axis and the iteration number shown on the horizontal axis. The autocorrelation plots in Figure~\ref{fig:Diagnostic_plots} displays the autocorrelation of the Markov chains of the estimates from the algorithm with the correlation estimates on the vertical axis and the lag length shown on the horizontal axis.
+\vspace{0.5\baselineskip}
 
 \begin{figure}[h]
 \renewcommand{\familydefault}{\rmdefault}\normalfont
-\caption{Posterior Line and Autocorrelation Diagnostic Plots}
+\caption{Line and Autocorrelation Diagnostic Plots of the Posterior Estimates}
 \includegraphics[width=\linewidth]{fig/Model-1.pdf}
 \label{fig:Diagnostic_plots}
 \end{figure}
 
+The first line in \hyperlink{chunk6}{Code Chunk 6} sets the parameters used to display plots that will be created by the \verb$BH_SBVAR()$ function. The \verb$BH_SBVAR()$ function allows the user to include prior information for $A$, $det(A)$, $H$ ($A^{-1}$), $\Phi$, and $D$ directly when running a SBVAR model. The \verb$pdetA$ and \verb$pH$ arguments are arrays containing prior information for $det(A)$ and the elements of $H$ but are not included in this example. The \verb$BH_SBVAR()$ function returns a list that includes the acceptance rate (\verb$accept_rate$) of the algorithm, a matrix containing the endogenous variables (\verb$y$), a matrix containing lags of the endogenous variables (\verb$x$), and the prior information provided directly or indirectly to the function (\verb$pA$, \verb$pdetA$, \verb$pH$, \verb$pP$, \verb$pP_sig$, \verb$pR$, \verb$pR_sig$, \verb$tau1$, and \verb$kappa1$). A matrix containing the starting values of the model parameters in $A$ from an optimization routine is returned (\verb$A_start$). Arrays containing estimates of the model parameters, historical decompositions, and impulse responses are returned (\verb$A$, \verb$detA$, \verb$H$, \verb$B$, \verb$Phi$, \verb$HD$, \verb$IRF$). The first, second, and third slices of the third dimension of these arrays are lower, median, and upper bounds of the estimates, respectively. Lists containing horizontal and vertical axis coordinates of posterior densities, for the estimates of the parameters in $A$, $det(A)$, and $H$ with priors, are returned (\verb$A_den$, \verb$detA_den$, and \verb$H_den$). In addition, line and autocorrelation plots of the Markov chains of $A$, $det(A)$, and $H$ are returned for diagnostic purposes. The line and autocorrelation plots provide an indication of how well the algorithm covers the model's parameter space. The line plots in Figure~\ref{fig:Diagnostic_plots} display the Markov chains of the estimates from the algorithm with the estimate values shown on the vertical axis and the iteration number shown on the horizontal axis. The autocorrelation plots in Figure~\ref{fig:Diagnostic_plots} displays the autocorrelation of the Markov chains of the estimates from the algorithm with the correlation estimates on the vertical axis and the lag length shown on the horizontal axis.
+
 The titles of the plots in Figure~\ref{fig:Diagnostic_plots} indicate the element of the coefficient matrix that is plotted. The plots of the estimated parameters in $A$ are automatically multiplied by -1 to illustrate elasticity values and/or isolate the dependent variable for each equation. These elements correspond to those found in the results from running the \verb$BH_SBVAR()$ function and the transpose of those from the mathematical representation from Equation~\ref{eq:eq13}. In other words, each column of the coefficient matrix arrays in the resulting list object from running the \verb$BH_SBVAR()$ function contain coefficient estimates for each equation. However, each row of the coefficient matrices from the mathematical representation described in Equation~\ref{eq:eq13} represent the parameters of each equation.
 
 \vspace{\baselineskip}
-\hypertarget{chunk7}{CODE CHUNK 7}
-<<IRF_plots, include = TRUE, echo = TRUE, fig.keep = 'all', fig.show = 'hide', fig.align = 'center', fig.asp = 0.5, background = 'NA', highlight = FALSE>>=
+\hypertarget{chunk7}{Code Chunk 7}
+<<IRF_plots, include = TRUE, echo = TRUE, fig.keep = 'all', fig.show = 'hide', fig.align = 'center', fig.asp = 0.4, background = 'NA', highlight = FALSE>>=
 varnames <- colnames(USLMData)[2:3]
 shocknames <- c("Labor Demand","Labor Supply")
 par(cex.axis = 0.8, cex.main = 1, font.main = 1, family = "serif",
@@ -358,8 +385,7 @@ irf_results <-
   IRF_Plots(results = results1, varnames = varnames,
             shocknames = shocknames)
 @
-
-The first two lines in \hyperlink{chunk7}{Code Chunk 7} store the names of endogenous variables and structural shocks. The \verb$IRF_Plots()$ function creates plots of impulse responses. This function can be used to display the response of the endogenous variables following a particular structural shock. The \verb$results$ argument is a list object containing the unaltered results from the \verb$BH_SBVAR()$ function. The \verb$varnames$ and \verb$shocknames$ argument are character vectors containing the variable names and shock names, respectively. The \verb$xlab$ and \verb$ylab$ arguments are not included in this example but they allow the user to include labels for the horizontal and vertical axes, respectively. Figure~\ref{fig:IRF_plots} displays the cumulative response of U.S. real wage growth and employment growth to U.S. labor demand and supply shocks. The units along the horizontal axis in the plots from Figure~\ref{fig:IRF_plots} represent time periods following an initial shock. The units along the vertical axis in the plots from Figure~\ref{fig:IRF_plots} represent percent change following an initial shock since the endogenous variables included in the model are mean centered quarter over quarter percent change of U.S. real wage and employment. In addition, this function returns a list containing the data used to produce the plots in Figure~\ref{fig:IRF_plots}.
+\vspace{0.5\baselineskip}
 
 \begin{figure}[h]
 \renewcommand{\familydefault}{\rmdefault}\normalfont
@@ -370,9 +396,11 @@ The first two lines in \hyperlink{chunk7}{Code Chunk 7} store the names of endog
 {Note: Horizontal axis indicates time periods following an initial shock. Vertical axis indicates percent change. Black solid lines indicate the posterior median. Red dashed lines indicate credibility intervals.}
 \end{figure}
 
+The first two lines in \hyperlink{chunk7}{Code Chunk 7} store the names of endogenous variables and structural shocks. The \verb$IRF_Plots()$ function creates plots of impulse responses. This function can be used to display the response of the endogenous variables following a structural shock. The \verb$results$ argument is a list object containing the unaltered results from the \verb$BH_SBVAR()$ function. The \verb$varnames$ and \verb$shocknames$ argument are character vectors containing the variable names and shock names, respectively. The \verb$xlab$ and \verb$ylab$ arguments are not included in this example, but they allow the user to include labels for the horizontal and vertical axes, respectively. Figure~\ref{fig:IRF_plots} displays the cumulative response of U.S. real wage growth and employment growth to U.S. labor demand and supply shocks. The units along the horizontal axis in the plots from Figure~\ref{fig:IRF_plots} represent time periods following an initial shock. The units along the vertical axis in the plots from Figure~\ref{fig:IRF_plots} represent percent change following an initial shock since the endogenous variables included in the model are mean centered quarter over quarter percent change of U.S. real wage and employment. In addition, this function returns a list containing the data used to produce the plots in Figure~\ref{fig:IRF_plots}.
+
 \vspace{\baselineskip}
-\hypertarget{chunk8}{CODE CHUNK 8}
-<<HD_plots, include = TRUE, echo = TRUE, fig.keep = 'all', fig.show = 'hide', fig.align = 'center', fig.asp = 0.5, background = 'NA', highlight = FALSE>>=
+\hypertarget{chunk8}{Code Chunk 8}
+<<HD_plots, include = TRUE, echo = TRUE, fig.keep = 'all', fig.show = 'hide', fig.align = 'center', fig.asp = 0.4, background = 'NA', highlight = FALSE>>=
 freq <- 4
 start_date <- 
   c(floor(USLMData[(nlags + 1), 1]),
@@ -384,8 +412,7 @@ hd_results <-
            shocknames = shocknames,
            freq = freq, start_date = start_date)
 @
-
-The \verb$HD_Plots()$ function from \hyperlink{chunk8}{Code Chunk 8} creates plots of historical decompositions. This function can be used to display the cumulative effect of specific shocks on a particular endogenous variable at any given time period. The \verb$results$, \verb$varnames$, \verb$shocknames$, \verb$xlab$, \verb$ylab$ arguments for the \verb$HD_Plots()$ function are the same as those from the \verb$IRF_Plots()$ function. Figure~\ref{fig:HD_plots} displays the historical decompositions. The units along the horizontal axis in the plots from Figure~\ref{fig:HD_plots}, produced by the \verb$HD_Plots$ function, represent actual time periods. The units along the horizontal axis of each plot are created with the \verb$freq$ and \verb$start_date$ arguments. The \verb$freq$ argument is set to \verb$\Sexpr{freq}$ since the endogenous variables are measured at a quarterly frequency in this example. The \verb$start_date$ argument represents the date of the first observation which is Q\Sexpr{start_date[2]} \Sexpr{start_date[1]} in this example so \verb$start_date <- c(\Sexpr{start_date[1]}, \Sexpr{start_date[2]})$. The units along the vertical axis in the plots from Figure~\ref{fig:IRF_plots} represent percent change since the endogenous variables included in the model are mean centered quarter over quarter percent change of U.S. real wage and employment. This function also returns a list of the data used to produce the plots in Figure~\ref{fig:HD_plots}.
+\vspace{0.5\baselineskip}
 
 \begin{figure}[h]
 \renewcommand{\familydefault}{\rmdefault}\normalfont
@@ -396,9 +423,11 @@ The \verb$HD_Plots()$ function from \hyperlink{chunk8}{Code Chunk 8} creates plo
 {Note: Horizontal axis indicates percent change. Vertical axis indicates actual dates. Black solid lines are mean centered endogenous variables. Red solid lines indicate the posterior median. Red dashed lines indicate credibility intervals.}
 \end{figure}
 
+The \verb$HD_Plots()$ function from \hyperlink{chunk8}{Code Chunk 8} creates plots of historical decompositions. This function can be used to display the cumulative effect of specific shocks on an endogenous variable at any given time period. The \verb$results$, \verb$varnames$, \verb$shocknames$, \verb$xlab$, \verb$ylab$ arguments for the \verb$HD_Plots()$ function are the same as those from the \verb$IRF_Plots()$ function. Figure~\ref{fig:HD_plots} displays the historical decompositions. The units along the horizontal axis in the plots from Figure~\ref{fig:HD_plots}, produced by the \verb$HD_Plots$ function, represent actual time periods. The units along the horizontal axis of each plot are created with the \verb$freq$ and \verb$start_date$ arguments. The \verb$freq$ argument is set to \verb$\Sexpr{freq}$ since the endogenous variables are measured at a quarterly frequency in this example. The \verb$start_date$ argument represents the date of the first observation which is Q\Sexpr{start_date[2]} \Sexpr{start_date[1]} in this example so \verb$start_date <- c(\Sexpr{start_date[1]}, \Sexpr{start_date[2]})$. The units along the vertical axis in the plots from Figure~\ref{fig:IRF_plots} represent percent change since the endogenous variables included in the model are mean centered quarter over quarter percent change of U.S. real wage and employment. This function also returns a list of the data used to produce the plots in Figure~\ref{fig:HD_plots}.
+
 \vspace{\baselineskip}
-\hypertarget{chunk9}{CODE CHUNK 9}
-<<Dist_plots, include = TRUE, echo = TRUE, fig.keep = 'all', fig.show = 'hide', fig.align = 'center', fig.asp = 0.25, background = 'NA', highlight = FALSE>>=
+\hypertarget{chunk9}{Code Chunk 9}
+<<Dist_plots, include = TRUE, echo = TRUE, fig.keep = 'all', fig.show = 'hide', fig.align = 'center', fig.asp = 0.2, background = 'NA', highlight = FALSE>>=
 A_titles <- 
   matrix(data = NA_character_, nrow = dim(pA)[1], ncol = dim(pA)[2])
 A_titles[1, 1] <- "Wage Elasticity of Labor Demand"
@@ -407,10 +436,11 @@ par(cex.axis = 0.8, cex.main = 1, font.main = 1, family = "serif",
     mfcol = c(1, 2), mar = c(2, 2.2, 2, 1), las = 1)
 Dist_Plots(results = results1, A_titles = A_titles)
 @
+\vspace{0.5\baselineskip}
 
 \begin{figure}[h]
 \renewcommand{\familydefault}{\rmdefault}\normalfont
-\caption{Posterior and Prior Distributions}
+\caption{Posterior and Prior Distribution Plots}
 \includegraphics[width=\linewidth]{fig/Dist_plots-1.pdf}
 \label{fig:Dist_plots}
 \scriptsize
@@ -422,11 +452,11 @@ The \verb$Dist_Plots()$ function from \hyperlink{chunk9}{Code Chunk 9} creates p
 \clearpage
 \hypertarget{appendix}{\sectiontitle{Appendix}}
 
-List of formulas used to compute the density of the prior distributions at some proposal value:
+List of functions used to compute the density of the prior distributions at some proposal value:
 
-x1: is the proposal value.
+a1: is the proposal value.
 
-c1: is the prior position parameter.
+p1: is the prior position parameter.
 
 sigma1: is the prior confidence in the position parameter, c1.
 
@@ -435,65 +465,65 @@ nu: is the degrees of freedom.
 lam: is the non-centrality or skew parameter.
 
 \vspace{\baselineskip}
-t-distribution:
+Student t-distribution:
 
 <<Density1, eval = FALSE, include = TRUE, echo = TRUE, background = 'NA', highlight = FALSE>>=
 density <-
-  dt(x = ((x1 - c1) / sigma1), df = nu, ncp = 0, log = FALSE) / sigma1
+  dt(x = ((a1 - p1) / sigma1), df = nu, ncp = 0, log = FALSE) / sigma1
 @
 
-Non-central t-distribution:
+Non-central Student t-distribution:
 
 <<Density2, eval = FALSE, include = TRUE, echo = TRUE, background = 'NA', highlight = FALSE>>=
 density <-
-  dt(x = ((x1 - c1) / sigma1), df = nu, ncp = lam, log = FALSE) / sigma1
+  dt(x = ((a1 - p1) / sigma1), df = nu, ncp = lam, log = FALSE) / sigma1
 @
 
-t-distribution truncated to be positive:
+Student t-distribution truncated to be positive:
 
 <<Density3, eval = FALSE, include = TRUE, echo = TRUE, background = 'NA', highlight = FALSE>>=
 density <-
-  dt(x = ((x1 - c1) / sigma1), df = nu, ncp = 0, log = FALSE) / 
+  dt(x = ((a1 - p1) / sigma1), df = nu, ncp = 0, log = FALSE) / 
   (sigma1 * 
-     (1 - pt(q = ((-c1) / sigma1), df = nu, ncp = 0,
+     (1 - pt(q = ((-p1) / sigma1), df = nu, ncp = 0,
              lower.tail = TRUE, log.p = FALSE)))
 @
 
-t-distribution truncated to be negative:
+Student t-distribution truncated to be negative:
 
 <<Density4, eval = FALSE, include = TRUE, echo = TRUE, background = 'NA', highlight = FALSE>>=
 density <-
-  dt(x = ((x1 - c1) / sigma1), df = nu, ncp = 0, log = FALSE) / 
+  dt(x = ((a1 - p1) / sigma1), df = nu, ncp = 0, log = FALSE) / 
   (sigma1 * 
-     (pt(q = ((-c1) / sigma1), df = nu, ncp = 0,
+     (pt(q = ((-p1) / sigma1), df = nu, ncp = 0,
          lower.tail = TRUE, log.p = FALSE)))
 @
 
 \clearpage
 \sectiontitle{References}
 
-\def\hanglength{1in} % Define the lenght of indentation
+\def\hanglength{1in} % define the length of indentation
 
 \hangindent=\hanglength
-\hypertarget{BH2015}{Baumeister, C., and Hamilton, J. D. (2015). Sign restrictions, structural vector autoregressions, and useful prior information. \textit{Econometrica}, 83(5), 1963-1999.}
+\hypertarget{BH2015}{Baumeister, C., \& Hamilton, J. D. (2015). Sign restrictions, structural vector autoregressions, and useful prior information. \textit{Econometrica}, 83(5), 1963-1999.}
 
 \hangindent=\hanglength
-\hypertarget{BH2017}{Baumeister, C., and Hamilton, J. D. (2017). Structural interpretation of vector autoregressions with incomplete identification: Revisiting the role of oil supply and demand shocks (No. w24167). National Bureau of Economic Research.}
+\hypertarget{BH2017}{Baumeister, C., \& Hamilton, J. D. (2017). Structural interpretation of vector autoregressions with incomplete identification: Revisiting the role of oil supply and demand shocks (No. w24167). National Bureau of Economic Research.}
 
 \hangindent=\hanglength
-\hypertarget{BH2018}{Baumeister, C., and Hamilton, J. D. (2018). Inference in structural vector autoregressions when the identifying assumptions are not fully believed: Re-evaluating the role of monetary policy in economic fluctuations. \textit{Journal of Monetary Economics}, 100, 48-65.}
+\hypertarget{BH2018}{Baumeister, C., \& Hamilton, J. D. (2018). Inference in structural vector autoregressions when the identifying assumptions are not fully believed: Re-evaluating the role of monetary policy in economic fluctuations. \textit{Journal of Monetary Economics}, 100, 48-65.}
 
 \hangindent=\hanglength
-\hypertarget{BQ1989}{Blanchard, O. J., and Quah, D. (1989). The Dynamic effects of aggregate demand and supply disturbances. \textit{The American Economic Review}, 79(4), 655-673.}
+\hypertarget{BQ1989}{Blanchard, O. J., \& Quah, D. (1989). The Dynamic effects of aggregate demand and supply disturbances. \textit{The American Economic Review}, 79(4), 655-673.}
 
 \hangindent=\hanglength
-\hypertarget{Litterman1986}{Litterman, R. B. (1986). Forecasting with bayesian vector autoregressions: Five years of experience. \textit{Journal of Business \& Economic Statistics} 4(1), 25-38.}
+\hypertarget{Litterman1986}{Litterman, R. B. (1986). Forecasting with bayesian vector autoregressions: Five years of experience. \textit{Journal of Business \& Economic Statistics}, 4(1), 25-38.}
 
 \hangindent=\hanglength
-\hypertarget{SZ1998}{Sims, C. A., and Zha, T. (1998). Bayesian methods for dynamic multivariate models. \textit{International Economic Review}, 39(4), 949-968.}
+\hypertarget{SZ1998}{Sims, C. A., \& Zha, T. (1998). Bayesian methods for dynamic multivariate models. \textit{International Economic Review}, 39(4), 949-968.}
 
 \hangindent=\hanglength
-\hypertarget{DLS1984}{Doan, T., Litterman, R. B., and Sims, C. (1984). Forecasting and conditional projection using realistic prior distributions. \textit{Econometric Reviews}, 3(1), 1-100.}
+\hypertarget{DLS1984}{Doan, T., Litterman, R. B., \& Sims, C. (1984). Forecasting and conditional projection using realistic prior distributions. \textit{Econometric Reviews}, 3(1), 1-100.}
 
 \hangindent=\hanglength
 \hypertarget{Doan2018}{Doan, T. (2018). \textit{RATS User's Guide, Version 10}. \url{https://www.estima.com}.}

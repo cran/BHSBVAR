@@ -167,6 +167,11 @@ Baumeister, C., and Hamilton, J.D. (2017). Structural interpretation of vector a
 
 Baumeister, C., and Hamilton, J.D. (2018). Inference in structural vector autoregressions when the identifying assumptions are not fully believed: Re-evaluating the role of monetary policy in economic fluctuations. \emph{Journal of Monetary Economics},
 }
+\seealso{
+\href{https://sites.google.com/site/cjsbaumeister/}{Professor Christiane Baumeister's website}.
+
+\href{https://econweb.ucsd.edu/~jhamilton/}{Professor James D. Hamilton's website}.
+}
 \author{
 Paul Richardson
 }
