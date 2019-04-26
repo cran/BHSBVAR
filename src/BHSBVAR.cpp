@@ -55,7 +55,7 @@ double sum_log_prior_densities(const arma::mat& A_test, const arma::cube& pA, co
   //compute sum of log priors
   for (int i = 0; i < nrow; ++i) {
     for (int j = 0; j < ncol; ++j) {
-      // if pA(i,j,0) == 0, symmetric t-distribution
+      // if pA(i, j, 0) == 0, symmetric t-distribution
       if (pA(i, j, 0) == 0) {
         // if pA(i, j, 1) == 1,  positive sign restrictions
         if (pA(i, j, 1) == 1) {
@@ -132,7 +132,7 @@ double post_A_function(const arma::mat& A_test, const arma::cube& pA, const arma
   return posterior;
 }
 
-// Genterate Proposal Values for A.
+// Generate Proposal Values for A.
 arma::mat proposal_function(const arma::mat& A_old, const arma::cube& pA, const arma::cube& pdetA, const arma::cube& pH, const arma::mat& scale1) {
   
   int nrow = int (pA.n_rows), ncol = int (pA.n_cols);
@@ -215,7 +215,7 @@ arma::mat proposal_function(const arma::mat& A_old, const arma::cube& pA, const 
   
 }
 
-// Start Random-Walk Metropolis-Hastigs Algorithm.
+// Start Random-Walk Metropolis-Hastings Algorithm.
 arma::field<arma::cube> MH(const arma::mat& y1, const arma::mat& x1, const int nlags, const arma::mat& omega, const arma::mat& somega, const arma::cube& pA, const arma::cube& pdetA, const arma::cube& pH, const arma::mat& pP, const arma::mat& pP_sig, const arma::cube& pR_sig, const arma::mat& kappa1, arma::mat A_old, const int itr, const int burn, const arma::mat& scale1) {
   int pA_nrow = int (pA.n_rows), pA_ncol = int (pA.n_cols);
   
@@ -312,7 +312,7 @@ arma::field<arma::cube> MH(const arma::mat& y1, const arma::mat& x1, const int n
     //threshold to determine whether to accept proposals
     ru = R::runif(0, 1);
     
-    //determing if the proposals will be kept
+    //determine if the proposals will be kept
     if (ru <= accept) {
       A_old = A_test;
       B_old = B_test;
@@ -366,13 +366,13 @@ arma::cube results_function(const arma::cube& raw, const double ci) {
   arma::mat temp(nrow, nsli), temp1(nrow, 1);
   std::fill(temp.begin(), temp.end(), Rcpp::NumericVector::get_na());
   std::fill(temp1.begin(), temp1.end(), Rcpp::NumericVector::get_na());
-
+  
   arma::cube results1(nrow, ncol, 3);
   std::fill(results1.begin(), results1.end(), Rcpp::NumericVector::get_na());
   
   double total = double (nsli);
-  int lb = int (std::ceil(total * (1.0 - ci))) - 1;
-  int ub = int (std::ceil(total * ci)) - 1;
+  int lb = int (std::round(total * (1.0 - ci)));
+  int ub = int (std::round((total * ci) - 1.0));
   
   for (int j = 0; j < ncol; ++j) {
     
@@ -381,7 +381,7 @@ arma::cube results_function(const arma::cube& raw, const double ci) {
     results1.slice(0).col(j) = temp1.col(lb);
     results1.slice(1).col(j) = arma::median(temp1, 1);
     results1.slice(2).col(j) = temp1.col(ub);
-
+    
   }
   
   return results1;
@@ -538,8 +538,8 @@ arma::cube hd_estimates(const arma::cube& A_chain, const arma::cube& B_chain, co
   std::fill(HD.begin(), HD.end(), Rcpp::NumericVector::get_na());
   
   double total = double (nsli);
-  int lb = int (std::ceil(total * (1.0 - ci))) - 1;
-  int ub = int (std::ceil(total * ci)) - 1;
+  int lb = int (std::round(total * (1.0 - ci)));
+  int ub = int (std::round((total * ci) - 1.0));
 
   for (int j = 0; j < ncol; ++j) {
     
@@ -602,9 +602,9 @@ arma::cube irf_estimates(const arma::cube& A_chain, const arma::cube& B_chain, c
   std::fill(IRF.begin(), IRF.end(), Rcpp::NumericVector::get_na());
   
   double total = double (nsli);
-  int lb = int (std::ceil(total * (1.0 - ci))) - 1;
-  int ub = int (std::ceil(total * ci)) - 1;
-
+  int lb = int (std::round(total * (1.0 - ci)));
+  int ub = int (std::round((total * ci) - 1.0));
+  
   for (int j = 0; j < ncol; ++j) {
     
     temp = IRF_chain(arma::span::all, arma::span(j), arma::span::all);
@@ -644,8 +644,8 @@ arma::cube phi_estimates(const arma::cube& A_chain, const arma::cube& B_chain, c
   std::fill(Phi.begin(), Phi.end(), Rcpp::NumericVector::get_na());
   
   double total = double (nsli);
-  int lb = int (std::ceil(total * (1.0 - ci))) - 1;
-  int ub = int (std::ceil(total * ci)) - 1;
+  int lb = int (std::round(total * (1.0 - ci)));
+  int ub = int (std::round((total * ci) - 1.0));
 
   for (int j = 0; j < ncol; ++j) {
     
@@ -704,7 +704,7 @@ Rcpp::List deta_estimates(const arma::cube& A_chain, const int nsli, const arma:
                             Rcpp::Named("detA") = results_function(detA_chain, ci));
 }
 
-// Run the BH_SBVAR Model.
+// Estimate the Parameters of the BH_SBVAR Model.
 //' @useDynLib BHSBVAR, .registration = TRUE
 //' @keywords internal
 // [[Rcpp::export]]

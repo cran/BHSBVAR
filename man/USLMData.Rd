@@ -20,6 +20,6 @@ Quarterly U.S. labor market time-series data. These data are the data used in Ba
 data(USLMData)
 }
 \references{
-Baumeister, C., and Hamilton, J.D. (2015). Sign restrictions, structural vector autoregressions, and useful prior information. \emph{Econometrica}, 83(5), 1963-1999.
+Baumeister, C., & Hamilton, J.D. (2015). Sign restrictions, structural vector autoregressions, and useful prior information. \emph{Econometrica}, 83(5), 1963-1999.
 }
 \keyword{datasets}

@@ -19,7 +19,7 @@ IRF_Plots(results, varnames, shocknames = NULL, xlab = NULL,
 \item{ylab}{Character label for the vertical axis of impulse response plots (default = NULL). Default produces plots without a label for the vertical axis.}
 }
 \value{
-A list containing impulse responses:
+A list containing impulse responses.
 }
 \description{
 Plot Impulse Responses.
@@ -36,7 +36,7 @@ y <- matrix(data = c(USLMData$Wage, USLMData$Employment), ncol = 2)
 colnames(y) <- c("Wage", "Employment")
 
 # Set function arguments
-nlags <- 4
+nlags <- 8
 itr <- 5000
 burn <- 0
 thin <- 1
@@ -116,7 +116,7 @@ kappa1 <- matrix(data = 2, nrow = 1, ncol = ncol(y))
 par(cex.axis = 0.8, cex.main = 1, font.main = 1, family = "serif",
     mfrow = c(2, 2), mar = c(2, 2.2, 2, 1), las = 1)
 
-# Run the model and estimate the model parameters
+# Estimate the parameters of the model
 results1 <- 
   BH_SBVAR(y = y, nlags = nlags, pA = pA, pP = pP, pP_sig = pP_sig,
            pR_sig = pR_sig, kappa1 = kappa1, itr = itr, burn = burn,

@@ -37,7 +37,7 @@ BH_SBVAR(y, nlags, pA, pdetA = NULL, pH = NULL, pP = NULL,
 
 \item{h1_irf}{Integer specifying the time horizon for computing impulse responses (default = 12).}
 
-\item{ci}{Numeric value indicating credibility intervals for the estimates to be returned (default = 0.975).}
+\item{ci}{Numeric value used to determine the upper and lower bound of credibility intervals for the estimates to be returned (default = 0.975). A value of 0.975 will return 95\% credibility intervals. A value of 0.95 will return 90\% credibility intervals.}
 }
 \value{
 A list containing the following:
@@ -59,10 +59,10 @@ A_den, detA_den, and H_den: Lists containing the horizontal and vertical axis co
 Line and ACF plots of the estimates for \emph{A}, \emph{det(A)}, and \emph{H}.
 }
 \description{
-Runs a Structural Bayesian Vector Autoregression model with the method developed by Baumeister and Hamilton (2015, 2017, and 2018).
+Estimates the parameters of a Structural Bayesian Vector Autoregression model with the method developed by Baumeister and Hamilton (2015/2017/2018).
 }
 \details{
-Runs a Structural Bayesian Vector Autoregression model with the method developed in Baumeister and Hamilton (2015, 2017, and 2018). The function returns a list containing the results.
+Estimates the parameters of a Structural Bayesian Vector Autoregression model with the method developed in Baumeister and Hamilton (2015/2017/2018). The function returns a list containing the results.
 }
 \examples{
 # Import data
@@ -73,7 +73,7 @@ y <- matrix(data = c(USLMData$Wage, USLMData$Employment), ncol = 2)
 colnames(y) <- c("Wage", "Employment")
 
 # Set function arguments
-nlags <- 4
+nlags <- 8
 itr <- 5000
 burn <- 0
 thin <- 1
@@ -153,7 +153,7 @@ kappa1 <- matrix(data = 2, nrow = 1, ncol = ncol(y))
 par(cex.axis = 0.8, cex.main = 1, font.main = 1, family = "serif",
     mfrow = c(2, 2), mar = c(2, 2.2, 2, 1), las = 1)
 
-# Run the model and estimate the model parameters
+# Estimate the parameters of the model
 results1 <- 
   BH_SBVAR(y = y, nlags = nlags, pA = pA, pP = pP, pP_sig = pP_sig,
            pR_sig = pR_sig, kappa1 = kappa1, itr = itr, burn = burn,
@@ -161,11 +161,11 @@ results1 <-
            h1_irf = h1_irf, ci = ci)
 }
 \references{
-Baumeister, C., and Hamilton, J.D. (2015). Sign restrictions, structural vector autoregressions, and useful prior information. \emph{Econometrica}, 83(5), 1963-1999.
+Baumeister, C., & Hamilton, J.D. (2015). Sign restrictions, structural vector autoregressions, and useful prior information. \emph{Econometrica}, 83(5), 1963-1999.
 
-Baumeister, C., and Hamilton, J.D. (2017). Structural interpretation of vector autoregressions with incomplete identification: Revisiting the role of oil supply and demand shocks (No. w24167). National Bureau of Economic Research.
+Baumeister, C., & Hamilton, J.D. (2017). Structural interpretation of vector autoregressions with incomplete identification: Revisiting the role of oil supply and demand shocks (No. w24167). National Bureau of Economic Research.
 
-Baumeister, C., and Hamilton, J.D. (2018). Inference in structural vector autoregressions when the identifying assumptions are not fully believed: Re-evaluating the role of monetary policy in economic fluctuations. \emph{Journal of Monetary Economics},
+Baumeister, C., & Hamilton, J.D. (2018). Inference in structural vector autoregressions when the identifying assumptions are not fully believed: Re-evaluating the role of monetary policy in economic fluctuations. \emph{Journal of Monetary Economics}, 100, 48-65.
 }
 \seealso{
 \href{https://sites.google.com/site/cjsbaumeister/}{Professor Christiane Baumeister's website}.

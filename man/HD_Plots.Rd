@@ -23,7 +23,7 @@ HD_Plots(results, varnames, shocknames = NULL, xlab = NULL,
 \item{start_date}{Numeric vector indicating the date of the first observation of the endogenous variables included in the model.}
 }
 \value{
-A list containing historical decompositions:
+A list containing historical decompositions.
 }
 \description{
 Plot Historical Decompositions.
@@ -40,7 +40,7 @@ y <- matrix(data = c(USLMData$Wage, USLMData$Employment), ncol = 2)
 colnames(y) <- c("Wage", "Employment")
 
 # Set function arguments
-nlags <- 4
+nlags <- 8
 itr <- 5000
 burn <- 0
 thin <- 1
@@ -120,7 +120,7 @@ kappa1 <- matrix(data = 2, nrow = 1, ncol = ncol(y))
 par(cex.axis = 0.8, cex.main = 1, font.main = 1, family = "serif",
     mfrow = c(2, 2), mar = c(2, 2.2, 2, 1), las = 1)
 
-# Run the model and estimate the model parameters
+# Estimate the parameters of the model
 results1 <- 
   BH_SBVAR(y = y, nlags = nlags, pA = pA, pP = pP, pP_sig = pP_sig,
            pR_sig = pR_sig, kappa1 = kappa1, itr = itr, burn = burn,

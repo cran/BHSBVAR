@@ -79,7 +79,6 @@ post_A_optim <- function(par, pA, pdetA, pH, pP, pP_sig, pR_sig, kappa1, y1, x1,
   
 }
 
-
 # Check arguments from the BH_SBVAR function that should be integers.
 #' @keywords internal
 check_integers <- function(list1) {
@@ -379,7 +378,7 @@ acf_plot <- function(data1, prior_name, i, j) {
 
 #' Structural Bayesian Vector Autoregression
 #' 
-#' Runs a Structural Bayesian Vector Autoregression model with the method developed by Baumeister and Hamilton (2015, 2017, and 2018).
+#' Estimates the parameters of a Structural Bayesian Vector Autoregression model with the method developed by Baumeister and Hamilton (2015/2017/2018).
 #' @author Paul Richardson
 #' @export
 #' @name BH_SBVAR
@@ -397,8 +396,8 @@ acf_plot <- function(data1, prior_name, i, j) {
 #' @param thin Integer specifying the thinning parameter (default = 1). All draws beyond burn are kept when thin = 1. Draw 1, draw 3, etc. beyond burn are kept when thin = 2.
 #' @param acc_irf Boolean indicating whether accumulated impulse responses are to be returned (default = TRUE).
 #' @param h1_irf Integer specifying the time horizon for computing impulse responses (default = 12).
-#' @param ci Numeric value indicating credibility intervals for the estimates to be returned (default = 0.975).
-#' @details Runs a Structural Bayesian Vector Autoregression model with the method developed in Baumeister and Hamilton (2015, 2017, and 2018). The function returns a list containing the results.
+#' @param ci Numeric value used to determine the upper and lower bound of credibility intervals for the estimates to be returned (default = 0.975). A value of 0.975 will return 95\% credibility intervals. A value of 0.95 will return 90\% credibility intervals.
+#' @details Estimates the parameters of a Structural Bayesian Vector Autoregression model with the method developed in Baumeister and Hamilton (2015/2017/2018). The function returns a list containing the results.
 #' @return A list containing the following:
 #' @return accept_rate: Acceptance rate of the algorithm.
 #' @return y and x: Matrices containing the endogenous variables and their lags.
@@ -408,9 +407,9 @@ acf_plot <- function(data1, prior_name, i, j) {
 #' @return HD and IRF: Arrays containing historical decomposition of structural shocks and impulse response functions. The first, second, and third slices of the third dimension are lower, median, and upper bounds of the estimates.
 #' @return A_den, detA_den, and H_den: Lists containing the horizontal and vertical axis coordinates of posterior densities of \emph{A}, \emph{det(A)}, and \emph{H}.
 #' @return Line and ACF plots of the estimates for \emph{A}, \emph{det(A)}, and \emph{H}.
-#' @references Baumeister, C., and Hamilton, J.D. (2015). Sign restrictions, structural vector autoregressions, and useful prior information. \emph{Econometrica}, 83(5), 1963-1999.
-#' @references Baumeister, C., and Hamilton, J.D. (2017). Structural interpretation of vector autoregressions with incomplete identification: Revisiting the role of oil supply and demand shocks (No. w24167). National Bureau of Economic Research.
-#' @references Baumeister, C., and Hamilton, J.D. (2018). Inference in structural vector autoregressions when the identifying assumptions are not fully believed: Re-evaluating the role of monetary policy in economic fluctuations. \emph{Journal of Monetary Economics},
+#' @references Baumeister, C., & Hamilton, J.D. (2015). Sign restrictions, structural vector autoregressions, and useful prior information. \emph{Econometrica}, 83(5), 1963-1999.
+#' @references Baumeister, C., & Hamilton, J.D. (2017). Structural interpretation of vector autoregressions with incomplete identification: Revisiting the role of oil supply and demand shocks (No. w24167). National Bureau of Economic Research.
+#' @references Baumeister, C., & Hamilton, J.D. (2018). Inference in structural vector autoregressions when the identifying assumptions are not fully believed: Re-evaluating the role of monetary policy in economic fluctuations. \emph{Journal of Monetary Economics}, 100, 48-65.
 #' @seealso \href{https://sites.google.com/site/cjsbaumeister/}{Professor Christiane Baumeister's website}.
 #' @seealso \href{https://econweb.ucsd.edu/~jhamilton/}{Professor James D. Hamilton's website}.
 #' @examples
@@ -422,7 +421,7 @@ acf_plot <- function(data1, prior_name, i, j) {
 #' colnames(y) <- c("Wage", "Employment")
 #' 
 #' # Set function arguments
-#' nlags <- 4
+#' nlags <- 8
 #' itr <- 5000
 #' burn <- 0
 #' thin <- 1
@@ -502,7 +501,7 @@ acf_plot <- function(data1, prior_name, i, j) {
 #' par(cex.axis = 0.8, cex.main = 1, font.main = 1, family = "serif",
 #'     mfrow = c(2, 2), mar = c(2, 2.2, 2, 1), las = 1)
 #' 
-#' # Run the model and estimate the model parameters
+#' # Estimate the parameters of the model
 #' results1 <- 
 #'   BH_SBVAR(y = y, nlags = nlags, pA = pA, pP = pP, pP_sig = pP_sig,
 #'            pR_sig = pR_sig, kappa1 = kappa1, itr = itr, burn = burn,
@@ -571,27 +570,15 @@ BH_SBVAR <- function(y, nlags, pA, pdetA = NULL, pH = NULL, pP = NULL, pP_sig = 
   
   #optimization
   startvalues <- c(pA[, , 3])[which(!is.na(c(pA[, , 1])))]
-  lower <- c(pA[, , 2])[which(!is.na(c(pA[, , 1])))]
-  upper <- c(pA[, , 2])[which(!is.na(c(pA[, , 1])))]
-  for (i in 1:length(lower)) {
-    if (is.na(lower[i])) {
-      lower[i] <- -Inf
-      upper[i] <- Inf
-    } else if (lower[i] == 1) {
-      lower[i] <- 0.0001
-      upper[i] <- Inf
-    } else if (lower[i] == -1) {
-      lower[i] <- -Inf
-      upper[i] <- -0.0001
-    }
+  
+  A_optim <- stats::nlminb(start = startvalues, objective = post_A_optim, pA = pA, pdetA = pdetA, pH = pH, pP = pP, pP_sig = pP_sig, pR_sig = pR_sig, kappa1 = kappa1, y1 = y1, x1 = x1, omega = omega, somega = somega, nlags = nlags, control = list(iter.max = 500, eval.max = 1000))
+  if (A_optim$convergence != 0) {
+    A_optim <- stats::optim(par = A_optim$par, fn = post_A_optim, pA = pA, pdetA = pdetA, pH = pH, pP = pP, pP_sig = pP_sig, pR_sig = pR_sig, kappa1 = kappa1, y1 = y1, x1 = x1, omega = omega, somega = somega, nlags = nlags, method = "L-BFGS-B", control = list(maxit = 2500))
   }
-  
-  A_optim <- stats::optim(par = startvalues, fn = post_A_optim, pA = pA, pdetA = pdetA, pH = pH, pP = pP, pP_sig = pP_sig, pR_sig = pR_sig, kappa1 = kappa1, y1 = y1, x1 = x1, omega = omega, somega = somega, nlags = nlags, method = "L-BFGS-B", lower = lower, upper = upper, hessian = TRUE, control = list(maxit = 2500))
-  
-  #test convergence
   if (A_optim$convergence != 0) {
     stop("Optimization routine convergence was not successful.")
   }
+  A_optim[["hessian"]] <- stats::optimHess(par = A_optim$par, fn = post_A_optim, pA = pA, pdetA = pdetA, pH = pH, pP = pP, pP_sig = pP_sig, pR_sig = pR_sig, kappa1 = kappa1, y1 = y1, x1 = x1, omega = omega, somega = somega, nlags = nlags)
   
   #optimum values in A
   A_temp <- c(pA[, , 3])
@@ -603,7 +590,7 @@ BH_SBVAR <- function(y, nlags, pA, pdetA = NULL, pH = NULL, pP = NULL, pP_sig = 
   for (i in 1:nrow(pA)) {
     for (j in 1:ncol(pA)) {
       if ((!is.na(pA[i, j, 1])) && (pA[i, j, 1] == 0) && (!is.na(pA[i, j, 2])) && (pA[i, j, 2] != (A_start[i, j] / abs(A_start[i, j])))) {
-        stop("Optimization routine produced values for the elements in A that are not consistent with sign restrictions.")
+        warning("Optimization routine produced values for the elements in A that are not consistent with sign restrictions.", immediate. = TRUE)
       }
       if ((!is.na(pH[i, j, 1])) && (pH[i, j, 1] == 0) && (!is.na(pH[i, j, 2])) && (pH[i, j, 2] != (H_max[i, j] / abs(H_max[i, j])))) {
         warning("Optimization routine produced values for the elements in H that are not consistent with sign restrictions.", immediate. = TRUE)
@@ -615,7 +602,7 @@ BH_SBVAR <- function(y, nlags, pA, pdetA = NULL, pH = NULL, pP = NULL, pP_sig = 
   }
   
   #scale
-  H0 <- A_optim[[6]]
+  H0 <- A_optim$hessian
   if (min(eigen(solve(H0))[[1]]) > 0) {
     PH <- t(chol(solve(H0)))
   } else {
@@ -668,7 +655,7 @@ check_results <- function(results, xlab, ylab) {
 #' @param xlab Character label for the horizontal axis of impulse response plots (default = NULL). Default produces plots without a label for the horizontal axis.
 #' @param ylab Character label for the vertical axis of impulse response plots (default = NULL). Default produces plots without a label for the vertical axis.
 #' @details Plots impulse responses and returns a list containing the actual processed data used to create the plots.
-#' @return A list containing impulse responses:
+#' @return A list containing impulse responses.
 #' @examples
 #' # Import data
 #' library(BHSBVAR)
@@ -678,7 +665,7 @@ check_results <- function(results, xlab, ylab) {
 #' colnames(y) <- c("Wage", "Employment")
 #' 
 #' # Set function arguments
-#' nlags <- 4
+#' nlags <- 8
 #' itr <- 5000
 #' burn <- 0
 #' thin <- 1
@@ -758,7 +745,7 @@ check_results <- function(results, xlab, ylab) {
 #' par(cex.axis = 0.8, cex.main = 1, font.main = 1, family = "serif",
 #'     mfrow = c(2, 2), mar = c(2, 2.2, 2, 1), las = 1)
 #' 
-#' # Run the model and estimate the model parameters
+#' # Estimate the parameters of the model
 #' results1 <- 
 #'   BH_SBVAR(y = y, nlags = nlags, pA = pA, pP = pP, pP_sig = pP_sig,
 #'            pR_sig = pR_sig, kappa1 = kappa1, itr = itr, burn = burn,
@@ -779,7 +766,7 @@ IRF_Plots <- function(results, varnames, shocknames = NULL, xlab = NULL, ylab = 
     stop(test)
   }
   if ((class(varnames) != "character") || (length(varnames) != dim(results$A)[2])) {
-    return(paste("varnames: Must be a character vector containing the names of the endogenous variables", sep = ""))
+    stop(paste("varnames: Must be a character vector containing the names of the endogenous variables", sep = ""))
   }
   if (is.null(shocknames)) {
     shocknames <- varnames
@@ -832,7 +819,7 @@ IRF_Plots <- function(results, varnames, shocknames = NULL, xlab = NULL, ylab = 
 #' @param freq Numeric value indicating the frequency of the data.
 #' @param start_date Numeric vector indicating the date of the first observation of the endogenous variables included in the model.
 #' @details Plots historical decompositions and returns a list containing the actual processed data used to create the plots.
-#' @return A list containing historical decompositions:
+#' @return A list containing historical decompositions.
 #' @examples
 #' # Import data
 #' library(BHSBVAR)
@@ -842,7 +829,7 @@ IRF_Plots <- function(results, varnames, shocknames = NULL, xlab = NULL, ylab = 
 #' colnames(y) <- c("Wage", "Employment")
 #' 
 #' # Set function arguments
-#' nlags <- 4
+#' nlags <- 8
 #' itr <- 5000
 #' burn <- 0
 #' thin <- 1
@@ -922,7 +909,7 @@ IRF_Plots <- function(results, varnames, shocknames = NULL, xlab = NULL, ylab = 
 #' par(cex.axis = 0.8, cex.main = 1, font.main = 1, family = "serif",
 #'     mfrow = c(2, 2), mar = c(2, 2.2, 2, 1), las = 1)
 #' 
-#' # Run the model and estimate the model parameters
+#' # Estimate the parameters of the model
 #' results1 <- 
 #'   BH_SBVAR(y = y, nlags = nlags, pA = pA, pP = pP, pP_sig = pP_sig,
 #'            pR_sig = pR_sig, kappa1 = kappa1, itr = itr, burn = burn,
@@ -948,7 +935,7 @@ HD_Plots <- function(results, varnames, shocknames = NULL, xlab = NULL, ylab = N
     stop(test)
   }
   if ((class(varnames) != "character") || (length(varnames) != dim(results$A)[2])) {
-    return(paste("varnames: Must be a character vector containing the names of the endogenous variables", sep = ""))
+    stop(paste("varnames: Must be a character vector containing the names of the endogenous variables", sep = ""))
   }
   if (is.null(shocknames)) {
     shocknames <- varnames
@@ -1030,7 +1017,7 @@ den_plot <- function(list2, den1, elast, lb, ub, nticks0, A_titles, H_titles, xl
 #' colnames(y) <- c("Wage", "Employment")
 #' 
 #' # Set function arguments
-#' nlags <- 4
+#' nlags <- 8
 #' itr <- 5000
 #' burn <- 0
 #' thin <- 1
@@ -1110,7 +1097,7 @@ den_plot <- function(list2, den1, elast, lb, ub, nticks0, A_titles, H_titles, xl
 #' par(cex.axis = 0.8, cex.main = 1, font.main = 1, family = "serif",
 #'     mfrow = c(2, 2), mar = c(2, 2.2, 2, 1), las = 1)
 #' 
-#' # Run the model and estimate the model parameters
+#' # Estimate the parameters of the model
 #' results1 <- 
 #'   BH_SBVAR(y = y, nlags = nlags, pA = pA, pP = pP, pP_sig = pP_sig,
 #'            pR_sig = pR_sig, kappa1 = kappa1, itr = itr, burn = burn,
