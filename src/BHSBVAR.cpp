@@ -318,7 +318,9 @@ arma::field<arma::cube> MH(const arma::mat& y1, const arma::mat& x1, const int n
       B_old = B_test;
       zeta_old = zeta_test;
       post_A_old = post_A_test;
-      naccept += 1.0; 
+      if (c >= burn) {
+        naccept += 1.0;
+      }
     }
     
     if (c >= burn) {
@@ -759,7 +761,7 @@ Rcpp::List MAIN(const arma::mat& y1, const arma::mat& x1, const arma::mat& omega
   for (int i = 0; i < pA_ncol; ++i) {
     for (int j = 0; j < pA_ncol; ++j) {
       if (arma::is_finite(pA(j, i, 6))) {
-        pR(j, i) = pA(j, i, 6);
+        pR(j, i) = pA(j, i, 2);
       }
     }
   }
