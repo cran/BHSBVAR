@@ -9,7 +9,9 @@
 
 /* .Call calls */
 extern SEXP _BHSBVAR_likelihood_function(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
-extern SEXP _BHSBVAR_MAIN(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+extern SEXP _BHSBVAR_MAIN(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+extern SEXP _BHSBVAR_prior_beta(SEXP, SEXP, SEXP);
+extern SEXP _BHSBVAR_prior_ibeta(SEXP, SEXP, SEXP);
 extern SEXP _BHSBVAR_prior_nonc_t(SEXP, SEXP, SEXP, SEXP, SEXP);
 extern SEXP _BHSBVAR_prior_t(SEXP, SEXP, SEXP, SEXP);
 extern SEXP _BHSBVAR_prior_t_n(SEXP, SEXP, SEXP, SEXP);
@@ -18,7 +20,9 @@ extern SEXP _BHSBVAR_sum_log_prior_densities(SEXP, SEXP, SEXP, SEXP);
 
 static const R_CallMethodDef CallEntries[] = {
     {"_BHSBVAR_likelihood_function",     (DL_FUNC) &_BHSBVAR_likelihood_function,      6},
-    {"_BHSBVAR_MAIN",                    (DL_FUNC) &_BHSBVAR_MAIN,                    23},
+    {"_BHSBVAR_MAIN",                    (DL_FUNC) &_BHSBVAR_MAIN,                    25},
+    {"_BHSBVAR_prior_beta",              (DL_FUNC) &_BHSBVAR_prior_beta,               3},
+    {"_BHSBVAR_prior_ibeta",             (DL_FUNC) &_BHSBVAR_prior_ibeta,              3},
     {"_BHSBVAR_prior_nonc_t",            (DL_FUNC) &_BHSBVAR_prior_nonc_t,             5},
     {"_BHSBVAR_prior_t",                 (DL_FUNC) &_BHSBVAR_prior_t,                  4},
     {"_BHSBVAR_prior_t_n",               (DL_FUNC) &_BHSBVAR_prior_t_n,                4},

@@ -6,18 +6,19 @@
 \usage{
 BH_SBVAR(y, nlags, pA, pdetA = NULL, pH = NULL, pP = NULL,
   pP_sig = NULL, pR_sig = NULL, kappa1 = NULL, itr = 5000,
-  burn = 0, thin = 1, acc_irf = TRUE, h1_irf = 12, ci = 0.975)
+  burn = 0, thin = 1, acc_irf = TRUE, h1_irf = 12, ci = NULL,
+  cri = 0.95, rA = FALSE, rB = FALSE)
 }
 \arguments{
 \item{y}{\emph{(T x n)} matrix containing the endogenous variables. \emph{T} is the number of observations and \emph{n} is the number of endogenous variables.}
 
 \item{nlags}{Integer specifying the lag order.}
 
-\item{pA}{\emph{(n x n x 8)} array where \emph{n} is the number of endogenous variables and each slice of the third dimension contains the prior distributions (NA - no prior, 0 - symmetric t-distribution, 1 - non-central t-distribution), sign restrictions (NA - no restriction, 1 - positive restriction, -1 - negative restriction), distribution position parameters, distribution scale parameters, distribution degrees of freedom parameters, distribution skew parameters, indication for long-run restrictions (NA - no long-run restriction, 1 - long-run restriction), and random-walk proposal scale parameters for \emph{A}, respectively.}
+\item{pA}{\emph{(n x n x 8)} array where \emph{n} is the number of endogenous variables and each slice of the third dimension contains the prior distributions (NA - no prior, 0 - symmetric t-distribution, 1 - non-central t-distribution, 2 - inverted beta distribution, 3 - beta distribution), sign restrictions (NA - no restriction, 1 - positive restriction, -1 - negative restriction), distribution position parameters, distribution scale or shape1 parameters for t-distributions or inverted beta and beta distributions, distribution degrees of freedom or shape2 parameters for t-distributions or inverted beta and beta distributions, distribution skew parameters for t-distributions, indication for long-run restrictions (NA - no long-run restriction, 1 - long-run restriction), and random-walk proposal scale parameters for \emph{A}, respectively.}
 
-\item{pdetA}{\emph{(1 x 1 x 6)} array where each slice of the third dimension contains the prior distributions (NA - no prior, 0 - symmetric t-distribution, 1 - non-central t-distribution), sign restrictions (NA - no restriction, 1 - positive restriction, -1 - negative restriction), distribution position parameters, distribution scale parameters, distribution degrees of freedom parameters, and distribution skew parameters for the determinant of \emph{A}, respectively (default = NULL). NULL indicates no priors for the determinant of \emph{A}.}
+\item{pdetA}{\emph{(1 x 1 x 6)} array where each slice of the third dimension contains the prior distributions (NA - no prior, 0 - symmetric t-distribution, 1 - non-central t-distribution, 2 - inverted beta distribution, 3 - beta distribution), sign restrictions (NA - no restriction, 1 - positive restriction, -1 - negative restriction), distribution position parameters, distribution scale or shape1 parameters for t-distributions or inverted beta and beta distributions, distribution degrees of freedom or shape2 parameters for t-distributions or inverted beta and beta distributions, and distribution skew parameters for t-distributions for the determinant of \emph{A}, respectively (default = NULL). NULL indicates no priors for the determinant of \emph{A}.}
 
-\item{pH}{\emph{(n x n x 6)} array where \emph{n} is the number of endogenous variables and each slice of the third dimension contains the prior distributions (NA - no prior, 0 - symmetric t-distribution, 1 - non-central t-distribution), sign restrictions (NA - no restriction, 1 - positive restriction, -1 - negative restriction), distribution position parameters, distribution scale parameters, distribution degrees of freedom parameters, and distribution skew parameters for \emph{H}, the inverse of \emph{A}, respectively (default = NULL). NULL indicates no priors for the inverse of \emph{A}.}
+\item{pH}{\emph{(n x n x 6)} array where \emph{n} is the number of endogenous variables and each slice of the third dimension contains the prior distributions (NA - no prior, 0 - symmetric t-distribution, 1 - non-central t-distribution, 2 - inverted beta distribution, 3 - beta distribution), sign restrictions (NA - no restriction, 1 - positive restriction, -1 - negative restriction), distribution position parameters, distribution scale or shape1 parameters for t-distributions or inverted beta and beta distributions, distribution degrees of freedom or shape2 parameters for t-distributions or inverted beta and beta distributions, and distribution skew parameters for t-distributions for \emph{H}, the inverse of \emph{A}, respectively (default = NULL). NULL indicates no priors for the inverse of \emph{A}.}
 
 \item{pP}{\emph{(k x n)} matrix containing the prior position parameters for the reduced form lagged coefficient matrix \emph{\eqn{\Phi}} (default = NULL). \emph{\eqn{k = n L + 1}}, \emph{n} is the number of endogenous variables, and \emph{L} is the lag length. NULL indicates no priors for \emph{\eqn{\Phi}}.}
 
@@ -37,7 +38,13 @@ BH_SBVAR(y, nlags, pA, pdetA = NULL, pH = NULL, pP = NULL,
 
 \item{h1_irf}{Integer specifying the time horizon for computing impulse responses (default = 12).}
 
-\item{ci}{Numeric value used to determine the upper and lower bound of credibility intervals for the estimates to be returned (default = 0.975). A value of 0.975 will return 95\% credibility intervals. A value of 0.95 will return 90\% credibility intervals.}
+\item{ci}{Numeric value used to determine the upper and lower bound of credibility intervals for the estimates to be returned (default = 0.975). A value of 0.975 will return 95\% credibility intervals. A value of 0.95 will return 90\% credibility intervals. Use the \code{cri} argument instead of the \code{ci} argument.}
+
+\item{cri}{credibility intervals for the estimates to be returned (default = 0.95). A value of 0.95 will return 95\% credibility intervals. A value of 0.90 will return 90\% credibility intervals.}
+
+\item{rA}{Boolean indicating whether raw results for \emph{A} should be returned (default = FALSE).}
+
+\item{rB}{Boolean indicating whether raw results for \emph{B} should be returned (default = FALSE).}
 }
 \value{
 A list containing the following:
@@ -55,6 +62,8 @@ A, detA, H, B, and Phi: Arrays containing estimates of the model parameters. The
 HD and IRF: Arrays containing historical decompositions and impulse response functions. The first, second, and third slices of the third dimension are lower, median, and upper bounds of the estimates.
 
 A_den, detA_den, and H_den: Lists containing the horizontal and vertical axis coordinates of posterior densities of \emph{A}, \emph{det(A)}, and \emph{H}.
+
+A_chain and B_chain: Arrays containing the raw results for \emph{A} and \emph{B}.
 
 Line and ACF plots of the estimates for \emph{A}, \emph{det(A)}, and \emph{H}.
 }
@@ -79,7 +88,7 @@ burn <- 0
 thin <- 1
 acc_irf <- TRUE
 h1_irf <- 20
-ci <- 0.975
+cri <- 0.95
 
 # Priors for A
 pA <- array(data = NA, dim = c(2, 2, 8))
@@ -158,7 +167,7 @@ results1 <-
   BH_SBVAR(y = y, nlags = nlags, pA = pA, pP = pP, pP_sig = pP_sig,
            pR_sig = pR_sig, kappa1 = kappa1, itr = itr, burn = burn,
            thin = thin, acc_irf = acc_irf,
-           h1_irf = h1_irf, ci = ci)
+           h1_irf = h1_irf, cri = cri)
 }
 \references{
 Baumeister, C., & Hamilton, J.D. (2015). Sign restrictions, structural vector autoregressions, and useful prior information. \emph{Econometrica}, 83(5), 1963-1999.

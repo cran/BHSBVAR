@@ -42,7 +42,7 @@ burn <- 0
 thin <- 1
 acc_irf <- TRUE
 h1_irf <- 20
-ci <- 0.975
+cri <- 0.95
 
 # Priors for A
 pA <- array(data = NA, dim = c(2, 2, 8))
@@ -121,7 +121,7 @@ results1 <-
   BH_SBVAR(y = y, nlags = nlags, pA = pA, pP = pP, pP_sig = pP_sig,
            pR_sig = pR_sig, kappa1 = kappa1, itr = itr, burn = burn,
            thin = thin, acc_irf = acc_irf,
-           h1_irf = h1_irf, ci = ci)
+           h1_irf = h1_irf, cri = cri)
 
 # Plot impulse responses
 varnames <- colnames(USLMData)[2:3]

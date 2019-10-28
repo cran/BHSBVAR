@@ -28,7 +28,7 @@ burn <- 0
 thin <- 20
 acc_irf <- TRUE
 h1_irf <- 20
-ci <- 0.975
+cri <- 0.95
 
 
 ###################################################
@@ -112,7 +112,7 @@ results1 <-
   BH_SBVAR(y = y, nlags = nlags, pA = pA, pP = pP, pP_sig = pP_sig,
            pR_sig = pR_sig, kappa1 = kappa1, itr = itr, burn = burn,
            thin = thin, acc_irf = acc_irf,
-           h1_irf = h1_irf, ci = ci)
+           h1_irf = h1_irf, cri = cri)
 
 
 ###################################################
@@ -150,7 +150,7 @@ A_titles <-
 A_titles[1, 1] <- "Wage Elasticity of Labor Demand"
 A_titles[1, 2] <- "Wage Elasticity of Labor Supply"
 par(cex.axis = 0.8, cex.main = 1, font.main = 1, family = "serif",
-    mfcol = c(1, 2), mar = c(2, 2.2, 2, 1), las = 1)
+    mfrow = c(1, 2), mar = c(2, 2.2, 2, 1), las = 1)
 Dist_Plots(results = results1, A_titles = A_titles)
 
 
@@ -165,7 +165,7 @@ Dist_Plots(results = results1, A_titles = A_titles)
 ### code chunk number 12: Density2 (eval = FALSE)
 ###################################################
 ## density <-
-##   dt(x = ((a1 - p1) / sigma1), df = nu, ncp = lam, log = FALSE) / sigma1
+##   dt(x = ((a1 - p1) / sigma1), df = nu, ncp = lam1, log = FALSE) / sigma1
 
 
 ###################################################
@@ -174,17 +174,34 @@ Dist_Plots(results = results1, A_titles = A_titles)
 ## density <-
 ##   dt(x = ((a1 - p1) / sigma1), df = nu, ncp = 0, log = FALSE) / 
 ##   (sigma1 * 
-##      (1 - pt(q = ((-p1) / sigma1), df = nu, ncp = 0,
-##              lower.tail = TRUE, log.p = FALSE)))
+##      (1 - pt(q = ((-p1) / sigma1), df = nu, ncp = 0, lower.tail = TRUE, 
+##              log.p = FALSE)))
 
 
 ###################################################
-### code chunk number 14: Density4 (eval = FALSE)
+### code chunk number 14: Density5 (eval = FALSE)
 ###################################################
-## density <-
-##   dt(x = ((a1 - p1) / sigma1), df = nu, ncp = 0, log = FALSE) / 
-##   (sigma1 * 
-##      (pt(q = ((-p1) / sigma1), df = nu, ncp = 0,
-##          lower.tail = TRUE, log.p = FALSE)))
+## density <- dt(x = ((a1 - p1) / sigma1), df = nu, ncp = 0, log = FALSE) / 
+##   (sigma1 * pt(q = ((-p1) / sigma1), df = nu, ncp = 0, lower.tail = TRUE, 
+##                log.p = FALSE))
+
+
+###################################################
+### code chunk number 15: Density6 (eval = FALSE)
+###################################################
+## density <- 0
+## if (a1 >= 1) {
+##   density <- exp(
+##     ((sh2 - 1) * log((a1 - 1))) + 
+##       (((-1) * (sh2 + sh1)) * log((1 + (a1 - 1)))) - 
+##       log(beta(sh2, sh1))
+##     )
+## }
+
+
+###################################################
+### code chunk number 16: Density4 (eval = FALSE)
+###################################################
+## density <- dbeta(x = a1, shape1 = sh1, shape2 = sh2, ncp = 0, log = FALSE)
 
 
