@@ -4,10 +4,26 @@
 \alias{BH_SBVAR}
 \title{Structural Bayesian Vector Autoregression}
 \usage{
-BH_SBVAR(y, nlags, pA, pdetA = NULL, pH = NULL, pP = NULL,
-  pP_sig = NULL, pR_sig = NULL, kappa1 = NULL, itr = 5000,
-  burn = 0, thin = 1, acc_irf = TRUE, h1_irf = 12, ci = NULL,
-  cri = 0.95, rA = FALSE, rB = FALSE)
+BH_SBVAR(
+  y,
+  nlags,
+  pA,
+  pdetA = NULL,
+  pH = NULL,
+  pP = NULL,
+  pP_sig = NULL,
+  pR_sig = NULL,
+  kappa1 = NULL,
+  itr = 5000,
+  burn = 0,
+  thin = 1,
+  acc_irf = TRUE,
+  h1_irf = 12,
+  ci = NULL,
+  cri = 0.95,
+  rA = FALSE,
+  rB = FALSE
+)
 }
 \arguments{
 \item{y}{\emph{(T x n)} matrix containing the endogenous variables. \emph{T} is the number of observations and \emph{n} is the number of endogenous variables.}
@@ -24,7 +40,7 @@ BH_SBVAR(y, nlags, pA, pdetA = NULL, pH = NULL, pP = NULL,
 
 \item{pP_sig}{\emph{(k x k)} matrix containing values indicating confidence in the priors for \emph{\eqn{\Phi}} (default = NULL). \emph{\eqn{k = n L + 1}}, \emph{n} is the number of endogenous variables, and \emph{L} is the lag length. NULL indicates no priors for \emph{\eqn{\Phi}}.}
 
-\item{pR_sig}{\emph{(k x k x n)} array containing values indicating confidence in long-run restrictions on the reduced form lagged coefficient matrix \emph{\eqn{\Phi}} (default = NULL). \emph{\eqn{k = n L + 1}}, \emph{n} is the number of endogenous variables, and \emph{L} is the lag length. NULL indicates no long-run restrictions.}
+\item{pR_sig}{\emph{(k x k x n)} array containing values indicating confidence in long-run restrictions on the lagged structural coefficient matrix \emph{B} (default = NULL). \emph{\eqn{k = n L + 1}}, \emph{n} is the number of endogenous variables, and \emph{L} is the lag length. NULL indicates no long-run restrictions.}
 
 \item{kappa1}{\emph{(1 x n)} matrix containing values indicating confidence in priors for the structural variances (default = NULL). \emph{n} is the number of endogenous variables. NULL indicates no priors for structural variances.}
 
@@ -78,7 +94,9 @@ Estimates the parameters of a Structural Bayesian Vector Autoregression model wi
 library(BHSBVAR)
 set.seed(123)
 data(USLMData)
-y <- matrix(data = c(USLMData$Wage, USLMData$Employment), ncol = 2)
+y0 <- matrix(data = c(USLMData$Wage, USLMData$Employment), ncol = 2)
+y <- y0 - (matrix(data = 1, nrow = nrow(y0), ncol = ncol(y0)) \%*\% 
+             diag(x = colMeans(x = y0, na.rm = FALSE, dims = 1)))
 colnames(y) <- c("Wage", "Employment")
 
 # Set function arguments
@@ -99,7 +117,7 @@ pA[, , 4] <- c(0.6, NA, 0.6, NA)
 pA[, , 5] <- c(3, NA, 3, NA)
 pA[, , 6] <- c(NA, NA, NA, NA)
 pA[, , 7] <- c(NA, NA, 1, NA)
-pA[, , 8] <- c(2.4, NA, 2.4, NA)
+pA[, , 8] <- c(2, NA, 2, NA)
 
 # Position priors for Phi
 pP <- matrix(data = 0, nrow = ((nlags * ncol(pA)) + 1), ncol = ncol(pA))
@@ -117,7 +135,7 @@ for (k in 1:nlags) {
 x1 <- cbind(x1, 1)
 colnames(x1) <- 
   c(paste(rep(colnames(y), nlags),
-          ".L",
+          "_L",
           sort(rep(seq(from = 1, to = nlags, by = 1), times = ncol(y)),
                decreasing = FALSE),
           sep = ""),
@@ -177,9 +195,9 @@ Baumeister, C., & Hamilton, J.D. (2017). Structural interpretation of vector aut
 Baumeister, C., & Hamilton, J.D. (2018). Inference in structural vector autoregressions when the identifying assumptions are not fully believed: Re-evaluating the role of monetary policy in economic fluctuations. \emph{Journal of Monetary Economics}, 100, 48-65.
 }
 \seealso{
-\href{https://sites.google.com/site/cjsbaumeister/}{Professor Christiane Baumeister's website}.
+Dr. Christiane Baumeister's website \href{https://sites.google.com/site/cjsbaumeister/}{https://sites.google.com/site/cjsbaumeister/}.
 
-\href{https://econweb.ucsd.edu/~jhamilton/}{Professor James D. Hamilton's website}.
+Dr. James D. Hamilton's website \href{https://econweb.ucsd.edu/~jhamilton/}{https://econweb.ucsd.edu/~jhamilton/}.
 }
 \author{
 Paul Richardson

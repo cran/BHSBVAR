@@ -10,7 +10,7 @@ getXY <- function(data1, nlags) {
     X[, (ncol(data1) * (k - 1) + 1):(ncol(data1) * k)] <- data1[(nlags - k + 1):(nrow(data1) - k), ]
   }
   X <- cbind(X, 1)
-  colnames(X) <- c(paste(rep(colnames(data1), nlags), ".L", sort(rep(seq(from = 1, to = nlags, by = 1), times = ncol(data1)), decreasing = FALSE), sep = ""), "cons")
+  colnames(X) <- c(paste(rep(colnames(data1), nlags), "_L", sort(rep(seq(from = 1, to = nlags, by = 1), times = ncol(data1)), decreasing = FALSE), sep = ""), "cons")
   Y <- data1[(nlags + 1):nrow(data1), ]
   list1 <- list("X" = X, "Y" = Y)
   return(list1)
@@ -28,18 +28,17 @@ post_A_optim <- function(par, pA, pdetA, pH, pP, pP_sig, pR_sig, kappa1, y1, x1,
   A_temp[which(c(!is.na(pA[, , 1])))] <- par
   A_test <- matrix(data = A_temp, nrow = nrow1, ncol = ncol1)
   
-  Phi1 <- matrix(data = NA_real_, nrow = ((ncol1 * nlags) + 1), ncol = ncol1)
   B_test <- matrix(data = NA_real_, nrow = ((ncol1 * nlags) + 1), ncol = ncol1)
   zeta_test <- matrix(data = 0, nrow = nrow1, ncol = ncol1)
   
   pR <- array(data = 0, dim = c(((ncol1 * nlags) + 1), ncol1, ncol1))
   
-  temp0 = t(x1) %*% x1 + pP_sig
-  temp1 = t(x1) %*% y1 + pP_sig %*% pP
-  temp2 = t(y1) %*% y1 + t(pP) %*% pP_sig %*% pP
-  Phi0 = solve(temp0, temp1)
-  temp4 = temp2 - t(Phi0) %*% temp1
-  temp5 <- matrix(data = NA_real_, nrow = ((ncol1 * nlags) + 1), ncol = ncol1)
+  temp0 <- t(x1) %*% x1 + pP_sig
+  temp1 <- t(x1) %*% y1 + pP_sig %*% pP
+  temp2 <- t(y1) %*% y1 + t(pP) %*% pP_sig %*% pP
+  Phi0 <- solve(temp0, temp1)
+  temp4 <- temp2 - t(Phi0) %*% temp1
+  temp5 <- matrix(data = NA_real_, nrow = ((ncol1 * nlags) + 1), ncol = 1)
   
   nR <- matrix(data = 0, nrow = ncol1, ncol = 1)
   for (i in 1:ncol1) {
@@ -62,17 +61,20 @@ post_A_optim <- function(par, pA, pdetA, pH, pP, pP_sig, pR_sig, kappa1, y1, x1,
             pR[j, i, i] <- A_test[j, i]
           }
         }
-        temp5 <- pR_sig[, , i] %*% pR[, , i]
-        Phi1 <- solve((temp0 + pR_sig[, , i]), (temp1 + temp5))
-        B_test[, i] <- Phi1 %*% A_test[, i]
-        zeta_test[i, i] <- c(t(A_test[, i]) %*% ((temp2 + t(pR[, , i]) %*% temp5) - (t(Phi1) %*% (temp1 + temp5))) %*% A_test[, i])
+        temp5[,] <- pR_sig[, , i] %*% pR[, i, i]
+        B_test[, i] <- solve((temp0 + pR_sig[, , i])) %*% ((temp1 %*% A_test[, i]) + temp5)
+        zeta_test[i, i] <- 
+          ((t(A_test[, i]) %*% temp2 %*% A_test[, i]) + (t(pR[,i,i]) %*% temp5)) - 
+          t((temp1 %*% A_test[, i]) + temp5) %*%
+          solve(temp0 + pR_sig[,,i]) %*%
+          ((temp1 %*% A_test[, i]) + temp5)
       }
     }
   }
   
   #compute posterior density
-  priors <- sum_log_prior_densities(A_test, pA, pdetA, pH)
-  likelihood <- likelihood_function(A_test, kappa1, y1, omega, zeta_test, somega)
+  priors <- sum_log_prior_densities(A_test = A_test, pA = pA, pdetA = pdetA, pH = pH)
+  likelihood <- log_likelihood_function(A_test = A_test, kappa1 = kappa1, y1 = y1, omega = omega, zeta_test = zeta_test, somega = somega)
   posterior <- -(priors + likelihood)
   
   return(posterior)
@@ -410,11 +412,11 @@ check_arrays <- function(list1, y) {
 # Check arguments from the BH_SBVAR function
 #' @keywords internal
 arguments_check <- function(y, nlags, pA, pdetA, pH, pP, pP_sig, pR_sig, kappa1, itr, burn, thin, acc_irf, h1_irf, ci, cri, rA, rB) {
-  test <- check_integers(list(nlags = nlags, itr = itr, burn = burn, thin = thin, h1_irf = h1_irf))
+  test <- check_integers(list1 = list(nlags = nlags, itr = itr, burn = burn, thin = thin, h1_irf = h1_irf))
   if (test != "pass") {
     return(test)
   }
-  test <- check_doubles(list(ci = ci, cri = cri))
+  test <- check_doubles(list1 = list(ci = ci, cri = cri))
   if (test != "pass") {
     return(test)
   }
@@ -424,20 +426,24 @@ arguments_check <- function(y, nlags, pA, pdetA, pH, pP, pP_sig, pR_sig, kappa1,
   if (floor((itr - burn) / thin) < 5000) {
     return(paste("'floor((itr-burn)/thin)' must be greater than or equal to 5000.", sep = ""))
   }
-  test <- check_matrices(list(y = y, pP = pP, pP_sig = pP_sig, kappa1 = kappa1), nlags)
+  test <- check_matrices(list1 = list(y = y, pP = pP, pP_sig = pP_sig, kappa1 = kappa1), nlags)
   if (test != "pass") {
     return(test)
   }
-  test <- check_arrays(list(pA = pA, pdetA = pdetA, pH = pH), y)
+  test <- check_arrays(list1 = list(pA = pA, pdetA = pdetA, pH = pH), y)
   if (test != "pass") {
     return(test)
   }
+  if (h1_irf >= nrow(y)) {
+    return(paste0("h1_irf: Must be less than nrow(y) (", nrow(y), ")."))
+  }
+  
   # check pR_sig
   if (!is.array(pR_sig)) {
     return("pR_sig: Must be an array.")
   }
   if (any(!is.finite(pR_sig)) || (any(pR_sig < 0))) {
-    return("pR_sig: Mulst contain finite values greater than or equal to 0.")
+    return("pR_sig: Must contain finite values greater than or equal to 0.")
   }
   if ((dim(pR_sig)[1] != ((nlags * ncol(y)) + 1)) | (dim(pR_sig)[2] != ((nlags * ncol(y)) + 1)) | (dim(pR_sig)[3] != ncol(y))) {
     return(paste("pR_sig: Dimensions should be (", ((nlags * ncol(y)) + 1), ", ", ((nlags * ncol(y)) + 1), ", ", (ncol(y)), ").", sep = ""))
@@ -445,35 +451,36 @@ arguments_check <- function(y, nlags, pA, pdetA, pH, pP, pP_sig, pR_sig, kappa1,
   for (i in 1:ncol(y)) {
     if (any(is.finite(pA[, i, 7]))) {
       n <- which(is.finite(pA[, i, 7]))
-      for (j in n) {
-        if (pR_sig[j, j, i] <= 0) {
-          return(paste("pR_sig: The value at pR_sig[", j, ", ", j, ", ", i, "] should be a finite value greater than 0 since pA[", j, ", ", i, ", 7] indicates a long-run restriction.", sep = ""))
-        }
-      }
-      if (any(!is.finite(pA[, i, 7]))) {
-        n <- which(!is.finite(pA[, i, 7]))
-        for (j in n) {
-          for (k in seq(from = j, to = (dim(pR_sig)[1] - 1), by = ncol(y))) {
-            for (l in seq(from = j, to = (dim(pR_sig)[2] - 1), by = ncol(y))) {
-              if (pR_sig[k, l, i] != 0) {
-                return(paste("pR_sig: The vlue at pR_sig[", k, ", ", l, ", ", i, "] should be 0.", sep = ""))
-              }
-            }
+      for (j in 1:ncol(y)) {
+        if (any(n == j)) {
+          if (any(pR_sig[-seq(from = j, to = (nlags * ncol(y)), by = ncol(y)), seq(from = j, to = (nlags * ncol(y)), by = ncol(y)), i] != 0)) {
+            return(paste0("pR_sig[-c(", gsub(pattern = " ", replacement = ", ", x = trimws(paste0(seq(from = j, to = (nlags * ncol(y)), by = ncol(y)), " ", collapse = ""), which = "right")), "), c(", gsub(pattern = " ", replacement = ", ", x = trimws(paste0(seq(from = j, to = (nlags * ncol(y)), by = ncol(y)), " ", collapse = ""), which = "right")), "), ", i, "]: Must be 0."))
+          }
+          if (any(pR_sig[seq(from = j, to = (nlags * ncol(y)), by = ncol(y)), -seq(from = j, to = (nlags * ncol(y)), by = ncol(y)), i] != 0)) {
+            return(paste0("pR_sig[c(", gsub(pattern = " ", replacement = ", ", x = trimws(paste0(seq(from = j, to = (nlags * ncol(y)), by = ncol(y)), " ", collapse = ""), which = "right")), "), -c(", gsub(pattern = " ", replacement = ", ", x = trimws(paste0(seq(from = j, to = (nlags * ncol(y)), by = ncol(y)), " ", collapse = ""), which = "right")), "), ", i, "]: Must be 0."))
+          }
+          if (any(pR_sig[seq(from = j, to = (nlags * ncol(y)), by = ncol(y)), seq(from = j, to = (nlags * ncol(y)), by = ncol(y)), i] == 0)) {
+            return(paste0("pR_sig[-c(", gsub(pattern = " ", replacement = ", ", x = trimws(paste0(seq(from = j, to = (nlags * ncol(y)), by = ncol(y)), " ", collapse = ""), which = "right")), "), c(", gsub(pattern = " ", replacement = ", ", x = trimws(paste0(seq(from = j, to = (nlags * ncol(y)), by = ncol(y)), " ", collapse = ""), which = "right")), "), ", i, "]: Must be greater than 0 since pA[", j, ", ", i, ", 7] = ", pA[j, i, 7], "."))
+          }
+        } else {
+          if (any(pR_sig[, seq(from = j, to = (nlags * ncol(y)), by = ncol(y)), i] != 0)) {
+            return(paste0("pR_sig[, c(", gsub(pattern = " ", replacement = ", ", x = trimws(paste0(seq(from = j, to = (nlags * ncol(y)), by = ncol(y)), " ", collapse = ""), which = "right")), "), ", i, "]: Must be 0 since pA[", j, ", ", i, ", 7] = ", pA[j, i, 7], "."))
+          }
+          if (any(pR_sig[seq(from = j, to = (nlags * ncol(y)), by = ncol(y)), , i] != 0)) {
+            return(paste0("pR_sig[c(", gsub(pattern = " ", replacement = ", ", x = trimws(paste0(seq(from = j, to = (nlags * ncol(y)), by = ncol(y)), " ", collapse = ""), which = "right")), "), ,", i, "]: Must be 0 since pA[", j, ", ", i, ", 7] = ", pA[j, i, 7], "."))
           }
         }
       }
-      if ((any(pR_sig[(dim(pR_sig)[1]), , i] != 0)) | (any(pR_sig[, (dim(pR_sig)[2]), i] != 0))) {
-        return(paste("pR_sig: The values at pR_sig[", (dim(pR_sig)[1]), ", , ", i, "] and pR_sig[,",(dim(pR_sig)[2]), ", ", i, "] should be 0.", sep = ""))
-      }
     } else {
       if (any(pR_sig[, , i] != 0)) {
-        return(paste("pR_sig: Each element in pR_sig[, , ", i, "] should be 0 since there were no long-run restrictions indicated for equation ", i, ".", sep = ""))
+        return(paste0("pR_sig[, , ", i, "]: Must be 0 since pA[, ", i, ", 7] = ", pA[, i, 7], "."))
       }
     }
     if (!isSymmetric(pR_sig[, , i])) {
-      return(paste("pR_sig[, , ", i, "]: Must be symmetric.", sep = ""))
+      return(paste0("pR_sig[, , ", i, "]: Must be symmetric."))
     }
   }
+  
   if ((!isTRUE(rA)) & (!isFALSE(rA))) {
     return("rA: Should be TRUE or FALSE.")
   }
@@ -531,7 +538,7 @@ acf_plot <- function(data1, prior_name, i, j) {
 #' @param pH \emph{(n x n x 6)} array where \emph{n} is the number of endogenous variables and each slice of the third dimension contains the prior distributions (NA - no prior, 0 - symmetric t-distribution, 1 - non-central t-distribution, 2 - inverted beta distribution, 3 - beta distribution), sign restrictions (NA - no restriction, 1 - positive restriction, -1 - negative restriction), distribution position parameters, distribution scale or shape1 parameters for t-distributions or inverted beta and beta distributions, distribution degrees of freedom or shape2 parameters for t-distributions or inverted beta and beta distributions, and distribution skew parameters for t-distributions for \emph{H}, the inverse of \emph{A}, respectively (default = NULL). NULL indicates no priors for the inverse of \emph{A}.
 #' @param pP \emph{(k x n)} matrix containing the prior position parameters for the reduced form lagged coefficient matrix \emph{\eqn{\Phi}} (default = NULL). \emph{\eqn{k = n L + 1}}, \emph{n} is the number of endogenous variables, and \emph{L} is the lag length. NULL indicates no priors for \emph{\eqn{\Phi}}.
 #' @param pP_sig \emph{(k x k)} matrix containing values indicating confidence in the priors for \emph{\eqn{\Phi}} (default = NULL). \emph{\eqn{k = n L + 1}}, \emph{n} is the number of endogenous variables, and \emph{L} is the lag length. NULL indicates no priors for \emph{\eqn{\Phi}}.
-#' @param pR_sig \emph{(k x k x n)} array containing values indicating confidence in long-run restrictions on the reduced form lagged coefficient matrix \emph{\eqn{\Phi}} (default = NULL). \emph{\eqn{k = n L + 1}}, \emph{n} is the number of endogenous variables, and \emph{L} is the lag length. NULL indicates no long-run restrictions.
+#' @param pR_sig \emph{(k x k x n)} array containing values indicating confidence in long-run restrictions on the lagged structural coefficient matrix \emph{B} (default = NULL). \emph{\eqn{k = n L + 1}}, \emph{n} is the number of endogenous variables, and \emph{L} is the lag length. NULL indicates no long-run restrictions.
 #' @param kappa1 \emph{(1 x n)} matrix containing values indicating confidence in priors for the structural variances (default = NULL). \emph{n} is the number of endogenous variables. NULL indicates no priors for structural variances.
 #' @param itr Integer specifying the total number of iterations for the algorithm (default = 5000).
 #' @param burn Integer specifying the number of draws to throw out at the beginning of the algorithm (default = 0).
@@ -556,14 +563,16 @@ acf_plot <- function(data1, prior_name, i, j) {
 #' @references Baumeister, C., & Hamilton, J.D. (2015). Sign restrictions, structural vector autoregressions, and useful prior information. \emph{Econometrica}, 83(5), 1963-1999.
 #' @references Baumeister, C., & Hamilton, J.D. (2017). Structural interpretation of vector autoregressions with incomplete identification: Revisiting the role of oil supply and demand shocks (No. w24167). National Bureau of Economic Research.
 #' @references Baumeister, C., & Hamilton, J.D. (2018). Inference in structural vector autoregressions when the identifying assumptions are not fully believed: Re-evaluating the role of monetary policy in economic fluctuations. \emph{Journal of Monetary Economics}, 100, 48-65.
-#' @seealso \href{https://sites.google.com/site/cjsbaumeister/}{Professor Christiane Baumeister's website}.
-#' @seealso \href{https://econweb.ucsd.edu/~jhamilton/}{Professor James D. Hamilton's website}.
+#' @seealso Dr. Christiane Baumeister's website \href{https://sites.google.com/site/cjsbaumeister/}{https://sites.google.com/site/cjsbaumeister/}.
+#' @seealso Dr. James D. Hamilton's website \href{https://econweb.ucsd.edu/~jhamilton/}{https://econweb.ucsd.edu/~jhamilton/}.
 #' @examples
 #' # Import data
 #' library(BHSBVAR)
 #' set.seed(123)
 #' data(USLMData)
-#' y <- matrix(data = c(USLMData$Wage, USLMData$Employment), ncol = 2)
+#' y0 <- matrix(data = c(USLMData$Wage, USLMData$Employment), ncol = 2)
+#' y <- y0 - (matrix(data = 1, nrow = nrow(y0), ncol = ncol(y0)) %*% 
+#'              diag(x = colMeans(x = y0, na.rm = FALSE, dims = 1)))
 #' colnames(y) <- c("Wage", "Employment")
 #' 
 #' # Set function arguments
@@ -584,7 +593,7 @@ acf_plot <- function(data1, prior_name, i, j) {
 #' pA[, , 5] <- c(3, NA, 3, NA)
 #' pA[, , 6] <- c(NA, NA, NA, NA)
 #' pA[, , 7] <- c(NA, NA, 1, NA)
-#' pA[, , 8] <- c(2.4, NA, 2.4, NA)
+#' pA[, , 8] <- c(2, NA, 2, NA)
 #' 
 #' # Position priors for Phi
 #' pP <- matrix(data = 0, nrow = ((nlags * ncol(pA)) + 1), ncol = ncol(pA))
@@ -602,7 +611,7 @@ acf_plot <- function(data1, prior_name, i, j) {
 #' x1 <- cbind(x1, 1)
 #' colnames(x1) <- 
 #'   c(paste(rep(colnames(y), nlags),
-#'           ".L",
+#'           "_L",
 #'           sort(rep(seq(from = 1, to = nlags, by = 1), times = ncol(y)),
 #'                decreasing = FALSE),
 #'           sep = ""),
@@ -674,7 +683,7 @@ BH_SBVAR <- function(y, nlags, pA, pdetA = NULL, pH = NULL, pP = NULL, pP_sig = 
   }
   
   #check BH_SBVAR function arguments
-  test <- arguments_check(y, nlags, pA, pdetA, pH, pP, pP_sig, pR_sig, kappa1, itr, burn, thin, acc_irf, h1_irf, ci, cri, rA, rB)
+  test <- arguments_check(y = y, nlags = nlags, pA = pA, pdetA = pdetA, pH = pH, pP = pP, pP_sig = pP_sig, pR_sig = pR_sig, kappa1 = kappa1, itr = itr, burn = burn, thin = thin, acc_irf = acc_irf, h1_irf = h1_irf, ci = ci, cri = cri, rA = rA, rB = rB)
   if (test != "pass") {
     stop(test)
   }
@@ -702,7 +711,7 @@ BH_SBVAR <- function(y, nlags, pA, pdetA = NULL, pH = NULL, pP = NULL, pP_sig = 
   varnames <- colnames(y)
   
   #get x and y data matrices
-  list1 <- getXY(y, nlags)
+  list1 <- getXY(data1 = y, nlags = nlags)
   x1 <- list1$X
   y1 <- list1$Y
   
@@ -767,7 +776,7 @@ BH_SBVAR <- function(y, nlags, pA, pdetA = NULL, pH = NULL, pP = NULL, pP_sig = 
   scale1 <- PH * scale_ar
   
   #Metropolis-Hastings Algorithm
-  results <- MAIN(y1, x1, omega, somega, nlags, pA, pdetA, pH, pP, pP_sig, pR_sig, kappa1, A_start, itr, burn, thin, scale1, h1_irf, acc_irf, ci, varnames, line_plot, acf_plot, rA, rB)
+  results <- MAIN(y1 = y1, x1 = x1, omega = omega, somega = somega, nlags = nlags, pA = pA, pdetA = pdetA, pH = pH, pP = pP, pP_sig = pP_sig, pR_sig = pR_sig, kappa1 = kappa1, A_start = A_start, itr = itr, burn = burn, thin = thin, scale1 = scale1, h1_irf = h1_irf, acc_irf = acc_irf, ci = ci, varnames = varnames, line_plot = line_plot, acf_plot = acf_plot, rA = rA, rB = rB)
   
   dimnames(results$y) <- dimnames(y1)
   dimnames(results$x) <- dimnames(x1)
@@ -779,7 +788,7 @@ BH_SBVAR <- function(y, nlags, pA, pdetA = NULL, pH = NULL, pP = NULL, pP_sig = 
   dimnames(results$pP) <- list(colnames(x1), paste0(varnames, "_Eq"))
   dimnames(results$pP_sig) <- list(colnames(x1), colnames(x1))
   
-  dimnames(results$pR) <- list(colnames(x1), paste0(varnames, "_Eq"))
+  dimnames(results$pR) <- list(colnames(x1), paste0(varnames, "_Eq"), paste0(varnames, "_Eq"))
   dimnames(results$pR_sig) <- list(colnames(x1), colnames(x1), paste0(varnames, "_Eq"))
   
   dimnames(results$tau1) <- list(varnames, varnames)
@@ -859,7 +868,9 @@ check_results <- function(results, xlab, ylab) {
 #' library(BHSBVAR)
 #' set.seed(123)
 #' data(USLMData)
-#' y <- matrix(data = c(USLMData$Wage, USLMData$Employment), ncol = 2)
+#' y0 <- matrix(data = c(USLMData$Wage, USLMData$Employment), ncol = 2)
+#' y <- y0 - (matrix(data = 1, nrow = nrow(y0), ncol = ncol(y0)) %*% 
+#'              diag(x = colMeans(x = y0, na.rm = FALSE, dims = 1)))
 #' colnames(y) <- c("Wage", "Employment")
 #' 
 #' # Set function arguments
@@ -880,7 +891,7 @@ check_results <- function(results, xlab, ylab) {
 #' pA[, , 5] <- c(3, NA, 3, NA)
 #' pA[, , 6] <- c(NA, NA, NA, NA)
 #' pA[, , 7] <- c(NA, NA, 1, NA)
-#' pA[, , 8] <- c(2.4, NA, 2.4, NA)
+#' pA[, , 8] <- c(2, NA, 2, NA)
 #' 
 #' # Position priors for Phi
 #' pP <- matrix(data = 0, nrow = ((nlags * ncol(pA)) + 1), ncol = ncol(pA))
@@ -898,7 +909,7 @@ check_results <- function(results, xlab, ylab) {
 #' x1 <- cbind(x1, 1)
 #' colnames(x1) <- 
 #'   c(paste(rep(colnames(y), nlags),
-#'           ".L",
+#'           "_L",
 #'           sort(rep(seq(from = 1, to = nlags, by = 1), times = ncol(y)),
 #'                decreasing = FALSE),
 #'           sep = ""),
@@ -959,7 +970,7 @@ check_results <- function(results, xlab, ylab) {
 IRF_Plots <- function(results, varnames, shocknames = NULL, xlab = NULL, ylab = NULL) {
   
   #test arguments
-  test <- check_results(results, xlab, ylab)
+  test <- check_results(results = results, xlab = xlab, ylab = ylab)
   if (test != "pass") {
     stop(test)
   }
@@ -1022,7 +1033,9 @@ IRF_Plots <- function(results, varnames, shocknames = NULL, xlab = NULL, ylab = 
 #' library(BHSBVAR)
 #' set.seed(123)
 #' data(USLMData)
-#' y <- matrix(data = c(USLMData$Wage, USLMData$Employment), ncol = 2)
+#' y0 <- matrix(data = c(USLMData$Wage, USLMData$Employment), ncol = 2)
+#' y <- y0 - (matrix(data = 1, nrow = nrow(y0), ncol = ncol(y0)) %*% 
+#'              diag(x = colMeans(x = y0, na.rm = FALSE, dims = 1)))
 #' colnames(y) <- c("Wage", "Employment")
 #' 
 #' # Set function arguments
@@ -1043,7 +1056,7 @@ IRF_Plots <- function(results, varnames, shocknames = NULL, xlab = NULL, ylab = 
 #' pA[, , 5] <- c(3, NA, 3, NA)
 #' pA[, , 6] <- c(NA, NA, NA, NA)
 #' pA[, , 7] <- c(NA, NA, 1, NA)
-#' pA[, , 8] <- c(2.4, NA, 2.4, NA)
+#' pA[, , 8] <- c(2, NA, 2, NA)
 #' 
 #' # Position priors for Phi
 #' pP <- matrix(data = 0, nrow = ((nlags * ncol(pA)) + 1), ncol = ncol(pA))
@@ -1061,7 +1074,7 @@ IRF_Plots <- function(results, varnames, shocknames = NULL, xlab = NULL, ylab = 
 #' x1 <- cbind(x1, 1)
 #' colnames(x1) <- 
 #'   c(paste(rep(colnames(y), nlags),
-#'           ".L",
+#'           "_L",
 #'           sort(rep(seq(from = 1, to = nlags, by = 1), times = ncol(y)),
 #'                decreasing = FALSE),
 #'           sep = ""),
@@ -1127,7 +1140,7 @@ IRF_Plots <- function(results, varnames, shocknames = NULL, xlab = NULL, ylab = 
 HD_Plots <- function(results, varnames, shocknames = NULL, xlab = NULL, ylab = NULL, freq, start_date) {
   
   #test arguments
-  test <- check_results(results, xlab, ylab)
+  test <- check_results(results = results, xlab = xlab, ylab = ylab)
   if (test != "pass") {
     stop(test)
   }
@@ -1209,7 +1222,9 @@ den_plot <- function(list2, den1, elast, lb, ub, nticks0, A_titles, H_titles, xl
 #' library(BHSBVAR)
 #' set.seed(123)
 #' data(USLMData)
-#' y <- matrix(data = c(USLMData$Wage, USLMData$Employment), ncol = 2)
+#' y0 <- matrix(data = c(USLMData$Wage, USLMData$Employment), ncol = 2)
+#' y <- y0 - (matrix(data = 1, nrow = nrow(y0), ncol = ncol(y0)) %*% 
+#'              diag(x = colMeans(x = y0, na.rm = FALSE, dims = 1)))
 #' colnames(y) <- c("Wage", "Employment")
 #' 
 #' # Set function arguments
@@ -1230,7 +1245,7 @@ den_plot <- function(list2, den1, elast, lb, ub, nticks0, A_titles, H_titles, xl
 #' pA[, , 5] <- c(3, NA, 3, NA)
 #' pA[, , 6] <- c(NA, NA, NA, NA)
 #' pA[, , 7] <- c(NA, NA, 1, NA)
-#' pA[, , 8] <- c(2.4, NA, 2.4, NA)
+#' pA[, , 8] <- c(2, NA, 2, NA)
 #' 
 #' # Position priors for Phi
 #' pP <- matrix(data = 0, nrow = ((nlags * ncol(pA)) + 1), ncol = ncol(pA))
@@ -1248,7 +1263,7 @@ den_plot <- function(list2, den1, elast, lb, ub, nticks0, A_titles, H_titles, xl
 #' x1 <- cbind(x1, 1)
 #' colnames(x1) <- 
 #'   c(paste(rep(colnames(y), nlags),
-#'           ".L",
+#'           "_L",
 #'           sort(rep(seq(from = 1, to = nlags, by = 1), times = ncol(y)),
 #'                decreasing = FALSE),
 #'           sep = ""),
@@ -1311,7 +1326,7 @@ den_plot <- function(list2, den1, elast, lb, ub, nticks0, A_titles, H_titles, xl
 Dist_Plots <- function(results, A_titles, H_titles = NULL, xlab = NULL, ylab = NULL) {
   
   #test arguments
-  test <- check_results(results, xlab, ylab)
+  test <- check_results(results = results, xlab = xlab, ylab = ylab)
   if (test != "pass") {
     stop(test)
   }
@@ -1430,7 +1445,7 @@ Dist_Plots <- function(results, A_titles, H_titles = NULL, xlab = NULL, ylab = N
             }
           }
           den1[, ] <- cbind(hori[, 1], vert[, 1])
-          den_plot(list2, den1, elast, lb, ub, nticks0, A_titles, H_titles, xlab, ylab, k, j, i)
+          den_plot(list2 = list2, den1 = den1, elast = elast, lb = lb, ub = ub, nticks0 = nticks0, A_titles = A_titles, H_titles = H_titles, xlab = xlab, ylab = ylab, k = k, j = j, i = i)
           
           prior_den[, 1] <- seq(from = (elast * lb), to = (elast * ub), by = (elast * (ub - lb) / 500))
           
@@ -1524,7 +1539,7 @@ Dist_Plots <- function(results, A_titles, H_titles = NULL, xlab = NULL, ylab = N
     }
     
     den1[, ] <- cbind(hori[, 1], vert[, 1])
-    den_plot(list2, den1, elast, lb, ub, nticks0, A_titles, H_titles, xlab, ylab, 1, 1, 1)
+    den_plot(list2 = list2, den1 = den1, elast = elast, lb = lb, ub = ub, nticks0 = nticks0, A_titles = A_titles, H_titles = H_titles, xlab = xlab, ylab = ylab, k = 1, j = 1, i = 1)
     
     prior_den[, 1] <- seq(from = (elast * lb), to = (elast * ub), by = (elast * (ub - lb) / 500))
     
@@ -1578,4 +1593,6 @@ Dist_Plots <- function(results, A_titles, H_titles = NULL, xlab = NULL, ylab = N
     
   }
 }
+
+
 

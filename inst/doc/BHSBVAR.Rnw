@@ -72,7 +72,7 @@ knitr::opts_chunk$set(fig.path = "fig/", prompt = TRUE)
 
 \centerline{p.richardson.54391@gmail.com}
 
-\centerline{October, 2019}
+\centerline{December, 2019}
 
 \sectiontitle{Acknowledgment}
 
@@ -159,7 +159,7 @@ Reduced Form Univariate Autoregression Model:
 \hspace*{\fill}
 \end{multline}
 
-Let $P$ be an $(n \times k)$ matrix containing the prior position values for the reduced form lagged coefficient matrix, $\Phi$. $M^{-1}$ is a $(k \times k)$ symmetric matrix indicating confidence in $P$. $R$ is an $(n \times k)$ matrix containing the prior position values for the reduced form lagged coefficient matrix ($\Phi$) representing a belief that specific shocks have no long-run affect. $V_{i}^{-1}$ is a $(k \times k)$ symmetric matrix indicating confidence in $R$ for $i = 1, 2, ..., n$. $\beta_{i}$ is an $(n \times k)$ lagged structural coefficient matrix for $i = 1, 2, ..., n$. $\beta_{i}(i,)$ is a $(1 \times k)$ matrix of lagged structural coefficients from $\beta_{i}$ for $i = 1, 2, ..., n$. $B(i,)$ is an $(1 \times k)$ matrix of the lagged structural coefficients from $B$ for $i = 1, 2, ..., n$. $\zeta_{i}$ is an $(n \times n)$ matrix for $i = 1, 2, ..., n$. $Z$ is an $(n \times n)$ diagonal matrix. $\zeta_{i}(i, i)$ is the $(i,i)$ element of the symmetric matrix $\zeta_{i}$ for $i = 1, 2, ..., n$. $Z(i, i)$ is the $(i,i)$ element of the diagonal matrix $Z$ for $i = 1, 2, ..., n$. $diag(A \Sigma A^{\top})$ is an $(n \times n)$ diagonal matrix whose main diagonal elements are the main diagonal elements from the matrix $A \Sigma A^{\top}$. $\kappa$ is an $(n \times n)$ diagonal matrix whose elements along the main diagonal represent confidence in the priors for the structural variances in $D$. $\kappa_{i}$ and $\tau_{i}$ refers to element $(i,i)$ of $\kappa$ and $\tau$, respectively for $i = 1, 2, ..., n$. The prior for $D_{i} \sim \frac{1}{\Gamma(\kappa_{i},\tau_{i})}$ where $D_{i}$ refers to element $(i,i)$ of $D$ for $i = 1, 2, ..., n$.
+Let $P$ be an $(n \times k)$ matrix containing the prior position values for the reduced form lagged coefficient matrix, $\Phi$. $M^{-1}$ is a $(k \times k)$ symmetric matrix indicating confidence in $P$. $R$ is an $(n \times k)$ matrix containing the prior position values for long-run restrictions on the lagged structural coefficient matrix $B$. $R_{i,*}$ is row $i$ of R. $V_{i}^{-1}$ is a $(k \times k)$ symmetric matrix indicating confidence in $R$, one matrix for each equation $i = 1, 2, ..., n$. $\beta_{i}$ is a $(1 \times k)$ lagged structural coefficient matrix, one matrix for each equation $i = 1, 2, ..., n$. $B_{i,*}$ is row $i$ of the lagged structural coefficients matrix $B$ for $i = 1, 2, ..., n$. $Z$ is an $(n \times n)$ diagonal matrix. $Z_{i}$ is the $(i,i)$ element of the diagonal matrix $Z$ for $i = 1, 2, ..., n$. $diag(A \Sigma A^{\top})$ is an $(n \times n)$ diagonal matrix whose main diagonal elements are the main diagonal elements from the matrix $A \Sigma A^{\top}$. $\kappa$ is an $(n \times n)$ diagonal matrix whose elements along the main diagonal represent confidence in the priors for the structural variances in $D$. $\kappa_{i}$ and $\tau_{i}$ refers to element $(i,i)$ of $\kappa$ and $\tau$, respectively for $i = 1, 2, ..., n$. The prior for $D_{i} \sim \frac{1}{\Gamma(\kappa_{i},\tau_{i})}$ where $D_{i}$ refers to element $(i,i)$ of $D$ for $i = 1, 2, ..., n$.
 
 \vspace{\baselineskip}
 Structural Bayesian Vector Autoregression Model:
@@ -170,25 +170,20 @@ Structural Bayesian Vector Autoregression Model:
 \end{multline}
 \begin{multline}
 \label{eq:eq14}
-\mbox{\normalsize $\beta_{i} = A (Y X^{\top} + P M^{-1} + R V_{i}^{-1}) (X X^{\top} + M^{-1} + V_{i}^{-1})^{-1}$}
+\mbox{\normalsize $\beta_{i} = (A_{i,*} (Y X^{\top} + P M^{-1}) + R_{i,*} V_{i}^{-1}) (X X^{\top} + M^{-1} + V_{i}^{-1})^{-1}$}
 \hspace*{\fill}
 \end{multline}
 \begin{multline}
 \label{eq:eq15}
-\mbox{\normalsize $B(i,) = \beta_{i}(i,)$}
+\mbox{\normalsize $B_{i,*} = \beta_{i}$}
 \hspace*{\fill}
 \end{multline}
 \begin{multline}
 \label{eq:eq16}
-\mbox{\normalsize $\zeta_{i} = A [(Y Y^{\top} + P M^{-1} P^{\top} + R V_{i}^{-1} R^{\top})$}
+\mbox{\normalsize $Z_{i} = (A_{i,*} (Y Y^{\top} + P M^{-1} P^{\top}) A_{i,*}^{\top} + R_{i,*} V_{i}^{-1} R_{i,*}^{\top}) - [(A_{i,*} (Y X^{\top} + P M^{-1}) + R_{i,*} V_{i}^{-1})$}
 \hspace*{\fill} \\
 \hspace*{\fill}
-\mbox{\normalsize $- (Y X^{\top} + P M^{-1} + R V_{i}^{-1}) (X X^{\top} + M^{-1} + V_{i}^{-1})^{-1} (Y X^{\top} + P M^{-1} + R V_{i}^{-1})^{\top}] A^{\top}$}
-\end{multline}
-\begin{multline}
-\label{eq:eq17}
-\mbox{\normalsize $Z(i,i) = \zeta_{i}(i, i)$}
-\hspace*{\fill}
+\mbox{\normalsize $(X X^{\top} + M^{-1} + V_{i}^{-1})^{-1} (A_{i,*} (Y X^{\top} + P M^{-1}) + R_{i,*} V_{i}^{-1})^{\top}]$}
 \end{multline}
 \begin{multline}
 \label{eq:eq18}
@@ -229,7 +224,7 @@ Generate draws for $D|A,Y$ ($\tilde{D}^{(c+1)}$). $\tilde{D_{i}}^{(c+1)} \sim \f
 \vspace{\baselineskip}
 Step 3)
 
-Generate draws for $B|D,A,Y$ ($\tilde{B}^{(c+1)}$). $\tilde{B}^{(c+1)}(i,) = \hat{\beta}_{i}^{(c+1)}(i,)$ for $i = 1, 2, ..., n$. $ \hat{\beta}_{i}^{(c+1)} \sim N(\tilde{\beta}_{i}^{(c+1)}, \tilde{\Psi}_{i}^{(c+1)})$ for $i = 1, 2, ..., n$. $\tilde{\beta}_{i}^{(c+1)}$ are estimates of $\beta_{i}$, replacing $A$ with $\tilde{A}^{(c+1)}$ for $i = 1, 2, ..., n$. $\tilde{\Psi}_{i}^{(c+1)} = \tilde{D}^{(c+1)} (X X^{\top} + M^{-1} + V_{i}^{-1})^{-1}$ for $i = 1, 2, ..., n$.
+Generate draws for $B|D,A,Y$ ($\tilde{B}^{(c+1)}$). $\tilde{B}_{i,*}^{(c+1)} = \hat{\beta}_{i}^{(c+1)}$ for $i = 1, 2, ..., n$. $\hat{\beta}_{i}^{(c+1)} \sim N(\tilde{\beta}_{i}^{(c+1)}$, $\tilde{\Psi}_{i}^{(c+1)})$ for $i = 1, 2, ..., n$. $\tilde{\beta}_{i}^{(c+1)}$ are estimates of $\beta_{i}$, replacing $A$ with $\tilde{A}^{(c+1)}$ for $i = 1, 2, ..., n$. $\tilde{\Psi}_{i}^{(c+1)} = \tilde{D}^{(c+1)} (X X^{\top} + M^{-1} + V_{i}^{-1})^{-1}$ for $i = 1, 2, ..., n$.
 
 \vspace{\baselineskip}
 Step 4)
@@ -247,12 +242,14 @@ rm(list = ls())
 library(BHSBVAR)
 set.seed(123)
 data(USLMData)
-y <- matrix(data = c(USLMData$Wage, USLMData$Employment), ncol = 2)
+y0 <- matrix(data = c(USLMData$Wage, USLMData$Employment), ncol = 2)
+y <- y0 - (matrix(data = 1, nrow = nrow(y0), ncol = ncol(y0)) %*% 
+             diag(x = colMeans(x = y0, na.rm = FALSE, dims = 1)))
 colnames(y) <- c("Wage", "Employment")
 @
 \vspace{0.5\baselineskip}
 
-The first line from \hyperlink{chunk1}{Code Chunk 1} clears the workspace. The second line loads the \verb$BHSBVAR$ package namespace. The third line sets the seed for random number generation. The fourth line imports the data used in this example. The fifth line creates a matrix (\verb$y$) containing quarter over quarter percent change of U.S. real wage and employment data use by \hyperlink{BH2015}{Baumeister and Hamilton (2015)}.
+The first line from \hyperlink{chunk1}{Code Chunk 1} clears the workspace. The second line loads the \verb$BHSBVAR$ package namespace. The third line sets the seed for random number generation. The fourth line imports the data used in this example. The fifth through seventh line creates a matrix (\verb$y$) containing quarter over quarter percent change of U.S. real wage and employment data used by \hyperlink{BH2015}{Baumeister and Hamilton (2015)}.
 
 \vspace{\baselineskip}
 \hypertarget{chunk2}{Code Chunk 2}
@@ -302,7 +299,7 @@ for (k in 1:nlags) {
 x1 <- cbind(x1, 1)
 colnames(x1) <- 
   c(paste(rep(colnames(y), nlags),
-          ".L",
+          "_L",
           sort(rep(seq(from = 1, to = nlags, by = 1), times = ncol(y)),
                decreasing = FALSE),
           sep = ""),
@@ -357,8 +354,8 @@ par(cex.axis = 0.8, cex.main = 1, font.main = 1, family = "serif",
     mfrow = c(2, 2), mar = c(2, 2.2, 2, 1), las = 1)
 results1 <- 
   BH_SBVAR(y = y, nlags = nlags, pA = pA, pP = pP, pP_sig = pP_sig,
-           pR_sig = pR_sig, kappa1 = kappa1, itr = itr, burn = burn,
-           thin = thin, acc_irf = acc_irf,
+           pR_sig = pR_sig, kappa1 = kappa1, itr = itr,
+           burn = burn, thin = thin, acc_irf = acc_irf,
            h1_irf = h1_irf, cri = cri)
 @
 \vspace{0.5\baselineskip}
@@ -370,7 +367,7 @@ results1 <-
 \label{fig:Diagnostic_plots}
 \end{figure}
 
-The first line in \hyperlink{chunk6}{Code Chunk 6} sets the parameters used to display plots that will be created by the \verb$BH_SBVAR()$ function. The \verb$BH_SBVAR()$ function allows the user to include prior information for $A$, $det(A)$, $H$ ($A^{-1}$), $\Phi$, and $D$ directly when estimating the parameters of an SBVAR model. The \verb$pdetA$ and \verb$pH$ arguments are arrays containing prior information for $det(A)$ and the elements of $H$ but are not included in this example. The \verb$BH_SBVAR()$ function returns a list that includes the acceptance rate (\verb$accept_rate$) of the algorithm, a matrix containing the endogenous variables (\verb$y$), a matrix containing lags of the endogenous variables (\verb$x$), and the prior information provided directly or indirectly to the function (\verb$pA$, \verb$pdetA$, \verb$pH$, \verb$pP$, \verb$pP_sig$, \verb$pR$, \verb$pR_sig$, \verb$tau1$, and \verb$kappa1$). A matrix containing the starting values of the model parameters in $A$ from an optimization routine is returned (\verb$A_start$). Arrays containing estimates of the model parameters, historical decompositions, and impulse responses are returned (\verb$A$, \verb$detA$, \verb$H$, \verb$B$, \verb$Phi$, \verb$HD$, \verb$IRF$). The first, second, and third slices of the third dimension of these arrays are lower, median, and upper bounds of the estimates, respectively. Lists containing horizontal and vertical axis coordinates of posterior densities, for the estimates of the parameters in $A$, $det(A)$, and $H$ with priors, are returned (\verb$A_den$, \verb$detA_den$, and \verb$H_den$). Raw estimates of the elements of $A$ and $B$ are returned (\verb$A_chain$ and \verb$B_chain$) if the \verb$rA$ and \verb$rB$ arguments in the \verb$BH_SBVAR()$ function are set to \verb$TRUE$. In addition, line and autocorrelation plots of the Markov chains of $A$, $det(A)$, and $H$ are returned for diagnostic purposes. The line and autocorrelation plots provide an indication of how well the algorithm covers the model's parameter space. The line plots in Figure~\ref{fig:Diagnostic_plots} display the Markov chains of the estimates from the algorithm with the estimate values shown on the vertical axis and the iteration number shown on the horizontal axis. The autocorrelation plots in Figure~\ref{fig:Diagnostic_plots} displays the autocorrelation of the Markov chains of the estimates from the algorithm with the correlation estimates on the vertical axis and the lag length shown on the horizontal axis.
+The first line in \hyperlink{chunk6}{Code Chunk 6} sets the parameters used to display plots that will be created by the \verb$BH_SBVAR()$ function. The \verb$BH_SBVAR()$ function allows the user to include prior information for $A$, $det(A)$, $H$ ($A^{-1}$), $\Phi$, and $D$ directly when estimating the parameters of an SBVAR model. The \verb$pdetA$ and \verb$pH$ arguments are arrays containing prior information for $det(A)$ and the elements of $H$ but are not included in this example. The \verb$BH_SBVAR()$ function returns a list that includes the acceptance rate (\verb$accept_rate$) of the algorithm, a matrix containing the endogenous variables (\verb$y$), a matrix containing lags of the endogenous variables (\verb$x$), and the prior information provided directly or indirectly to the function (\verb$pA$, \verb$pdetA$, \verb$pH$, \verb$pP$, \verb$pP_sig$, \verb$pR_sig$, \verb$tau1$, and \verb$kappa1$). A matrix containing the starting values of the model parameters in $A$ from an optimization routine is returned (\verb$A_start$). Arrays containing estimates of the model parameters, historical decompositions, and impulse responses are returned (\verb$A$, \verb$detA$, \verb$H$, \verb$B$, \verb$Phi$, \verb$HD$, \verb$IRF$). The first, second, and third slices of the third dimension of these arrays are lower, median, and upper bounds of the estimates, respectively. Lists containing horizontal and vertical axis coordinates of posterior densities, for the estimates of the parameters in $A$, $det(A)$, and $H$ with priors, are returned (\verb$A_den$, \verb$detA_den$, and \verb$H_den$). Raw estimates of the elements of $A$ and $B$ are returned (\verb$A_chain$ and \verb$B_chain$) if the \verb$rA$ and \verb$rB$ arguments in the \verb$BH_SBVAR()$ function are set to \verb$TRUE$. In addition, line and autocorrelation plots of the Markov chains of $A$, $det(A)$, and $H$ are returned for diagnostic purposes. The line and autocorrelation plots provide an indication of how well the algorithm covers the model's parameter space. The line plots in Figure~\ref{fig:Diagnostic_plots} display the Markov chains of the estimates from the algorithm with the estimate values shown on the vertical axis and the iteration number shown on the horizontal axis. The autocorrelation plots in Figure~\ref{fig:Diagnostic_plots} displays the autocorrelation of the Markov chains of the estimates from the algorithm with the correlation estimates on the vertical axis and the lag length shown on the horizontal axis.
 
 The titles of the plots in Figure~\ref{fig:Diagnostic_plots} indicate the element of the coefficient matrix that is plotted. The plots of the estimated parameters in $A$ are automatically multiplied by -1 to illustrate elasticity values and/or isolate the dependent variable for each equation. These elements correspond to those found in the results from running the \verb$BH_SBVAR()$ function and the transpose of those from the mathematical representation from Equation~\ref{eq:eq13}. In other words, each column of the coefficient matrix arrays in the resulting list object from running the \verb$BH_SBVAR()$ function contain coefficient estimates for each equation. However, each row of the coefficient matrices from the mathematical representation described in Equation~\ref{eq:eq13} represent the parameters of each equation.
 
@@ -404,7 +401,7 @@ The first two lines in \hyperlink{chunk7}{Code Chunk 7} store the names of endog
 freq <- 4
 start_date <- 
   c(floor(USLMData[(nlags + 1), 1]),
-    round(((USLMData[(nlags + 1), 1] %% 1) * freq), digits = 0))
+    (floor(((USLMData[(nlags + 1), 1] %% 1) * freq)) + 1))
 par(cex.axis = 0.8, cex.main = 1, font.main = 1, family = "serif",
     mfrow = c(2, 2), mar = c(2, 2.2, 2, 1), las = 1)
 hd_results <- 

@@ -45,8 +45,8 @@ sum_log_prior_densities <- function(A_test, pA, pdetA, pH) {
 
 #' @useDynLib BHSBVAR, .registration = TRUE
 #' @keywords internal
-likelihood_function <- function(A_test, kappa1, y1, omega, zeta, somega) {
-    .Call(`_BHSBVAR_likelihood_function`, A_test, kappa1, y1, omega, zeta, somega)
+log_likelihood_function <- function(A_test, kappa1, y1, omega, zeta_test, somega) {
+    .Call(`_BHSBVAR_log_likelihood_function`, A_test, kappa1, y1, omega, zeta_test, somega)
 }
 
 #' @useDynLib BHSBVAR, .registration = TRUE

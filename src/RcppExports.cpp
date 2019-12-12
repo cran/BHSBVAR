@@ -103,9 +103,9 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
-// likelihood_function
-double likelihood_function(const arma::mat& A_test, const arma::mat& kappa1, const arma::mat& y1, const arma::mat& omega, const arma::mat& zeta, const arma::mat& somega);
-RcppExport SEXP _BHSBVAR_likelihood_function(SEXP A_testSEXP, SEXP kappa1SEXP, SEXP y1SEXP, SEXP omegaSEXP, SEXP zetaSEXP, SEXP somegaSEXP) {
+// log_likelihood_function
+double log_likelihood_function(const arma::mat& A_test, const arma::mat& kappa1, const arma::mat& y1, const arma::mat& omega, const arma::mat& zeta_test, const arma::mat& somega);
+RcppExport SEXP _BHSBVAR_log_likelihood_function(SEXP A_testSEXP, SEXP kappa1SEXP, SEXP y1SEXP, SEXP omegaSEXP, SEXP zeta_testSEXP, SEXP somegaSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -113,9 +113,9 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const arma::mat& >::type kappa1(kappa1SEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type y1(y1SEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type omega(omegaSEXP);
-    Rcpp::traits::input_parameter< const arma::mat& >::type zeta(zetaSEXP);
+    Rcpp::traits::input_parameter< const arma::mat& >::type zeta_test(zeta_testSEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type somega(somegaSEXP);
-    rcpp_result_gen = Rcpp::wrap(likelihood_function(A_test, kappa1, y1, omega, zeta, somega));
+    rcpp_result_gen = Rcpp::wrap(log_likelihood_function(A_test, kappa1, y1, omega, zeta_test, somega));
     return rcpp_result_gen;
 END_RCPP
 }

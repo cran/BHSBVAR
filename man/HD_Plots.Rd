@@ -4,8 +4,15 @@
 \alias{HD_Plots}
 \title{Plot Historical Decompositions}
 \usage{
-HD_Plots(results, varnames, shocknames = NULL, xlab = NULL,
-  ylab = NULL, freq, start_date)
+HD_Plots(
+  results,
+  varnames,
+  shocknames = NULL,
+  xlab = NULL,
+  ylab = NULL,
+  freq,
+  start_date
+)
 }
 \arguments{
 \item{results}{List containing the results from running BH_SBVAR().}
@@ -36,7 +43,9 @@ Plots historical decompositions and returns a list containing the actual process
 library(BHSBVAR)
 set.seed(123)
 data(USLMData)
-y <- matrix(data = c(USLMData$Wage, USLMData$Employment), ncol = 2)
+y0 <- matrix(data = c(USLMData$Wage, USLMData$Employment), ncol = 2)
+y <- y0 - (matrix(data = 1, nrow = nrow(y0), ncol = ncol(y0)) \%*\% 
+             diag(x = colMeans(x = y0, na.rm = FALSE, dims = 1)))
 colnames(y) <- c("Wage", "Employment")
 
 # Set function arguments
@@ -57,7 +66,7 @@ pA[, , 4] <- c(0.6, NA, 0.6, NA)
 pA[, , 5] <- c(3, NA, 3, NA)
 pA[, , 6] <- c(NA, NA, NA, NA)
 pA[, , 7] <- c(NA, NA, 1, NA)
-pA[, , 8] <- c(2.4, NA, 2.4, NA)
+pA[, , 8] <- c(2, NA, 2, NA)
 
 # Position priors for Phi
 pP <- matrix(data = 0, nrow = ((nlags * ncol(pA)) + 1), ncol = ncol(pA))
@@ -75,7 +84,7 @@ for (k in 1:nlags) {
 x1 <- cbind(x1, 1)
 colnames(x1) <- 
   c(paste(rep(colnames(y), nlags),
-          ".L",
+          "_L",
           sort(rep(seq(from = 1, to = nlags, by = 1), times = ncol(y)),
                decreasing = FALSE),
           sep = ""),

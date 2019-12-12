@@ -1,0 +1,3 @@
+BHSBVAR 2.0.1
+
+* Corrected a mistake that impacted the BH_SBVAR() function when long-run restrictions were applied.

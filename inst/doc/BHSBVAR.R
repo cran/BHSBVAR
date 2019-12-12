@@ -15,7 +15,9 @@ rm(list = ls())
 library(BHSBVAR)
 set.seed(123)
 data(USLMData)
-y <- matrix(data = c(USLMData$Wage, USLMData$Employment), ncol = 2)
+y0 <- matrix(data = c(USLMData$Wage, USLMData$Employment), ncol = 2)
+y <- y0 - (matrix(data = 1, nrow = nrow(y0), ncol = ncol(y0)) %*% 
+             diag(x = colMeans(x = y0, na.rm = FALSE, dims = 1)))
 colnames(y) <- c("Wage", "Employment")
 
 
@@ -61,7 +63,7 @@ for (k in 1:nlags) {
 x1 <- cbind(x1, 1)
 colnames(x1) <- 
   c(paste(rep(colnames(y), nlags),
-          ".L",
+          "_L",
           sort(rep(seq(from = 1, to = nlags, by = 1), times = ncol(y)),
                decreasing = FALSE),
           sep = ""),
@@ -110,8 +112,8 @@ par(cex.axis = 0.8, cex.main = 1, font.main = 1, family = "serif",
     mfrow = c(2, 2), mar = c(2, 2.2, 2, 1), las = 1)
 results1 <- 
   BH_SBVAR(y = y, nlags = nlags, pA = pA, pP = pP, pP_sig = pP_sig,
-           pR_sig = pR_sig, kappa1 = kappa1, itr = itr, burn = burn,
-           thin = thin, acc_irf = acc_irf,
+           pR_sig = pR_sig, kappa1 = kappa1, itr = itr,
+           burn = burn, thin = thin, acc_irf = acc_irf,
            h1_irf = h1_irf, cri = cri)
 
 
@@ -133,7 +135,7 @@ irf_results <-
 freq <- 4
 start_date <- 
   c(floor(USLMData[(nlags + 1), 1]),
-    round(((USLMData[(nlags + 1), 1] %% 1) * freq), digits = 0))
+    (floor(((USLMData[(nlags + 1), 1] %% 1) * freq)) + 1))
 par(cex.axis = 0.8, cex.main = 1, font.main = 1, family = "serif",
     mfrow = c(2, 2), mar = c(2, 2.2, 2, 1), las = 1)
 hd_results <- 
