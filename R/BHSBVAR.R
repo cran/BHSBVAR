@@ -43,7 +43,7 @@ post_A_optim <- function(par, pA, pdetA, pH, pP, pP_sig, pR_sig, kappa1, y1, x1,
   nR <- matrix(data = 0, nrow = ncol1, ncol = 1)
   for (i in 1:ncol1) {
     if (any(pR_sig[, , i] > 0)) {
-      nR[i, 1] <- 1;
+      nR[i, 1] <- 1
     }
   }
   
@@ -63,11 +63,7 @@ post_A_optim <- function(par, pA, pdetA, pH, pP, pP_sig, pR_sig, kappa1, y1, x1,
         }
         temp5[,] <- pR_sig[, , i] %*% pR[, i, i]
         B_test[, i] <- solve((temp0 + pR_sig[, , i])) %*% ((temp1 %*% A_test[, i]) + temp5)
-        zeta_test[i, i] <- 
-          ((t(A_test[, i]) %*% temp2 %*% A_test[, i]) + (t(pR[,i,i]) %*% temp5)) - 
-          t((temp1 %*% A_test[, i]) + temp5) %*%
-          solve(temp0 + pR_sig[,,i]) %*%
-          ((temp1 %*% A_test[, i]) + temp5)
+        zeta_test[i, i] <- ((t(A_test[, i]) %*% temp2 %*% A_test[, i]) + (t(pR[,i,i]) %*% temp5)) - (t((temp1 %*% A_test[, i]) + temp5) %*% solve(temp0 + pR_sig[,,i]) %*% ((temp1 %*% A_test[, i]) + temp5))
       }
     }
   }
@@ -248,7 +244,7 @@ check_arrays <- function(list1, y) {
           if ((!is.finite(list1[[i]][j, k, 5])) || (list1[[i]][j, k, 5] <= 2)) {
             return(paste(names(list1[i]), "[", j, ", ", k, ", 5]: Degrees of freedom should be indicated with a finite number greater than 2.", sep = ""))
           }
-          if (any(!is.na(list1[[i]][j, k, 6]))) {
+          if ((!is.na(list1[[i]][j, k, 6]))) {
             return(paste(names(list1[i]), "[", j, ", ", k, ", 6]: Skew should be NA.", sep = ""))
           }
           if ((names(list1[i]) == "pA") && ((!is.na(list1[[i]][j, k, 7])) && ((!is.finite(list1[[i]][j, k, 7])) || (list1[[i]][j, k, 7] != 1)))) {
@@ -313,7 +309,10 @@ check_arrays <- function(list1, y) {
       }
     }
   }
-    
+  
+  if ((is.finite(list1[["pdetA"]][1, 1, 3])) && (list1[["pdetA"]][1, 1, 3] == 0)) {
+    return("pdetA[1, 1, 3]: Should be a finite value other than 0.")
+  }
   list2 <- list(pH = list1[["pH"]], pdetA = list1[["pdetA"]])
   list3 <- list(H = solve(list1[["pA"]][, , 3]), detA = matrix(data = det(list1[["pA"]][, , 3])))
   
@@ -336,7 +335,7 @@ check_arrays <- function(list1, y) {
                   }
                 }
               } else {
-                if (list2[[i]][j, k, 2] != (list3[[i]][j, k] / abs(list3[[i]][j, k]))) {
+                if ((list3[[i]][j, k] != 0) && (list2[[i]][j, k, 2] != (list3[[i]][j, k] / abs(list3[[i]][j, k])))) {
                   if (names(list2[i]) == "pH") {
                     return(paste0("pH[", j, ", ", k, ", 2:3]: Must have the same sign as the (", j, ", ", k, ") element of the inverse of pA[, , 3]."))
                   }
@@ -374,7 +373,7 @@ check_arrays <- function(list1, y) {
             }
             
             if ((list2[[i]][j, k, 1] == 2) | (list2[[i]][j, k, 1] == 3)) {
-              if (list2[[i]][j, k, 2] != (list3[[i]][j, k] / abs(list3[[i]][j, k]))) {
+              if ((list3[[i]][j, k] != 0) && (list2[[i]][j, k, 2] != (list3[[i]][j, k] / abs(list3[[i]][j, k])))) {
                 if (names(list2[i]) == "pH") {
                   return(paste0("pH[", j, ", ", k, ", 2:3]: Must have the same sign as the (", j, ", ", k, ") element of the inverse of pA[, , 3]."))
                 }
@@ -754,15 +753,15 @@ BH_SBVAR <- function(y, nlags, pA, pdetA = NULL, pH = NULL, pP = NULL, pP_sig = 
   H_max <- solve(A_start)
   for (i in 1:nrow(pA)) {
     for (j in 1:ncol(pA)) {
-      if ((!is.na(pA[i, j, 1])) && (pA[i, j, 1] == 0) && (!is.na(pA[i, j, 2])) && (pA[i, j, 2] != (A_start[i, j] / abs(A_start[i, j])))) {
+      if ((!is.na(pA[i, j, 1])) && ((pA[i, j, 1] == 0) | (pA[i, j, 1] == 2) | (pA[i, j, 1] == 3)) && (!is.na(pA[i, j, 2])) && (A_start[i, j] != 0) && (pA[i, j, 2] != (A_start[i, j] / abs(A_start[i, j])))) {
         warning("Optimization routine produced values for the elements in A that are not consistent with sign restrictions.", immediate. = TRUE)
       }
-      if ((!is.na(pH[i, j, 1])) && (pH[i, j, 1] == 0) && (!is.na(pH[i, j, 2])) && (pH[i, j, 2] != (H_max[i, j] / abs(H_max[i, j])))) {
+      if ((!is.na(pH[i, j, 1])) && ((pH[i, j, 1] == 0) | (pH[i, j, 1] == 2) | (pH[i, j, 1] == 3)) && (!is.na(pH[i, j, 2])) && (H_max[i, j] != 0) && (pH[i, j, 2] != (H_max[i, j] / abs(H_max[i, j])))) {
         warning("Optimization routine produced values for the elements in H that are not consistent with sign restrictions.", immediate. = TRUE)
       }
     }
   }
-  if ((!is.na(pdetA[1, 1, 1])) && (pdetA[1, 1, 1] == 0) && (!is.na(pdetA[1, 1, 2])) && (pdetA[1, 1, 2] != (det(A_start) / abs(det(A_start))))) {
+  if ((!is.na(pdetA[1, 1, 1])) && ((pdetA[1, 1, 1] == 0) | (pdetA[1, 1, 1] == 2) | (pdetA[1, 1, 1] == 3)) && (!is.na(pdetA[1, 1, 2])) && (pdetA[1, 1, 2] != (det(A_start) / abs(det(A_start))))) {
     warning("Optimization routine produced values for the determinant of A that are not consistent with sign restrictions.", immediate. = TRUE)
   }
   
