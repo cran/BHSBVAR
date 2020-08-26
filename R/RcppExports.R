@@ -51,7 +51,7 @@ log_likelihood_function <- function(A_test, kappa1, y1, omega, zeta_test, somega
 
 #' @useDynLib BHSBVAR, .registration = TRUE
 #' @keywords internal
-MAIN <- function(y1, x1, omega, somega, nlags, pA, pdetA, pH, pP, pP_sig, pR_sig, kappa1, A_start, itr, burn, thin, scale1, h1_irf, acc_irf, ci, varnames, line_plot, acf_plot, rA, rB) {
-    .Call(`_BHSBVAR_MAIN`, y1, x1, omega, somega, nlags, pA, pdetA, pH, pP, pP_sig, pR_sig, kappa1, A_start, itr, burn, thin, scale1, h1_irf, acc_irf, ci, varnames, line_plot, acf_plot, rA, rB)
+MAIN <- function(y1, x1, omega, somega, nlags, pA, pdetA, pH, pP, pP_sig, pR_sig, kappa1, A_start, itr, burn, thin, scale1, h1_irf, acc_irf, ci, varnames, line_plot, acf_plot, rA, rB, rD) {
+    .Call(`_BHSBVAR_MAIN`, y1, x1, omega, somega, nlags, pA, pdetA, pH, pP, pP_sig, pR_sig, kappa1, A_start, itr, burn, thin, scale1, h1_irf, acc_irf, ci, varnames, line_plot, acf_plot, rA, rB, rD)
 }
 

@@ -2,6 +2,7 @@
 
 export(BH_SBVAR)
 export(Dist_Plots)
+export(FEVD_Plots)
 export(HD_Plots)
 export(IRF_Plots)
 import(Rcpp)

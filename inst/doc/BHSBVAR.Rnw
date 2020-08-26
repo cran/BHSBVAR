@@ -27,8 +27,8 @@ urlcolor=blue
 }
 
 \usepackage{caption} % required for customizing captions
-\def\tablename{\textrm{Table}}
-\captionsetup[table]{labelfont={},labelsep=newline,justification=raggedright,singlelinecheck=off,textfont={it}}{} % table caption setup
+% \def\tablename{\textrm{Table}}
+% \captionsetup[table]{labelfont={},labelsep=newline,justification=raggedright,singlelinecheck=off,textfont={it}}{} % table caption setup
 \def\figurename{\textrm{Figure}}
 \captionsetup[figure]{labelfont={},labelsep=newline,justification=raggedright,singlelinecheck=off,textfont={it}} % specify the figure caption style
 
@@ -72,7 +72,7 @@ knitr::opts_chunk$set(fig.path = "fig/", prompt = TRUE)
 
 \centerline{p.richardson.54391@gmail.com}
 
-\centerline{January, 2020}
+\centerline{August, 2020}
 
 \sectiontitle{Acknowledgment}
 
@@ -233,7 +233,7 @@ Increase $c$ by 1 and repeat Steps 1-4 for $c = 1, 2, ..., C$. $C$ is the total 
 
 \sectiontitle{Example}
 
-The \verb$BHSBVAR$ package provides a function for estimating the parameters of SBVAR models and several functions for plotting results. The \verb$BH_SBVAR()$ function estimates the parameters of an SBVAR model with the method developed by \hyperlink{BH2015}{Baumeister and Hamilton (2015}/\hyperlink{BH2017}{2017}/\hyperlink{BH2018}{2018)}. The \verb$IRF_Plots()$ function creates plots of impulse responses. The \verb$HD_Plots()$ function creates plots of historical decompositions. The \verb$Dist_Plots()$ function creates posterior density plots of the model parameters in $A$, $det(A)$, and $H$ overlaid with prior densities to illustrate the difference between posterior and prior distributions. The following example illustrates how these functions can be applied to reproduce the results from \hyperlink{BH2015}{Baumeister and Hamilton (2015)}.
+The \verb$BHSBVAR$ package provides a function for estimating the parameters of SBVAR models and several functions for plotting results. The \verb$BH_SBVAR()$ function estimates the parameters of an SBVAR model with the method developed by \hyperlink{BH2015}{Baumeister and Hamilton (2015}/\hyperlink{BH2017}{2017}/\hyperlink{BH2018}{2018)}. The \verb$IRF_Plots()$ function creates plots of impulse responses. The \verb$FEVD_Plots()$ function creates plots of forecast error variance decompositions. The \verb$HD_Plots()$ function creates plots of historical decompositions. The \verb$Dist_Plots()$ function creates posterior density plots of the model parameters in $A$, $det(A)$, and $H$ overlaid with prior densities to illustrate the difference between posterior and prior distributions. The following example illustrates how these functions can be applied to reproduce the results from \hyperlink{BH2015}{Baumeister and Hamilton (2015)}.
 
 \vspace{\baselineskip}
 \hypertarget{chunk1}{Code Chunk 1}
@@ -360,7 +360,7 @@ results1 <-
 @
 \vspace{0.5\baselineskip}
 
-\begin{figure}[h]
+\begin{figure}[ht]
 \renewcommand{\familydefault}{\rmdefault}\normalfont
 \caption{Line and Autocorrelation Diagnostic Plots of the Posterior Estimates}
 \includegraphics[width=\linewidth]{fig/Model-1.pdf}
@@ -384,7 +384,7 @@ irf_results <-
 @
 \vspace{0.5\baselineskip}
 
-\begin{figure}[h]
+\begin{figure}[ht]
 \renewcommand{\familydefault}{\rmdefault}\normalfont
 \caption{Impulse Responses}
 \includegraphics[width=\linewidth]{fig/IRF_plots-1.pdf}
@@ -397,6 +397,30 @@ The first two lines in \hyperlink{chunk7}{Code Chunk 7} store the names of endog
 
 \vspace{\baselineskip}
 \hypertarget{chunk8}{Code Chunk 8}
+<<FEVD_plots, include = TRUE, echo = TRUE, fig.keep = 'all', fig.show = 'hide', fig.align = 'center', fig.asp = 0.4, background = 'NA', highlight = FALSE>>=
+varnames <- colnames(USLMData)[2:3]
+shocknames <- c("Labor Demand","Labor Supply")
+par(cex.axis = 0.8, cex.main = 1, font.main = 1, family = "serif",
+    mfrow = c(2, 2), mar = c(2, 2.2, 2, 1), las = 1)
+fevd_results <- 
+  FEVD_Plots(results = results1, varnames = varnames,
+            shocknames = shocknames)
+@
+\vspace{0.5\baselineskip}
+
+\begin{figure}[ht]
+\renewcommand{\familydefault}{\rmdefault}\normalfont
+\caption{Forecast Error Variance Decompositions}
+\includegraphics[width=\linewidth]{fig/FEVD_plots-1.pdf}
+\label{fig:FEVD_plots}
+\scriptsize
+{Note: Horizontal axis indicates time periods following an initial shock. Vertical axis indicates forecast error variance explained by the structural shock as a percent of total forecast error variance.}
+\end{figure}
+
+The \verb$FEVD_Plots()$ function from \hyperlink{chunk8}{Code Chunk 8} creates plots of forecast error variance decompositions. This function can be used to display the forecast error variance that is explained by the structural shocks. The \verb$results$, \verb$varnames$, \verb$shocknames$, \verb$xlab$, \verb$ylab$ arguments for the \verb$FEVD_Plots()$ function are the same as those from the \verb$IRF_Plots()$ function. The \verb$rel$ argument is used to display forecast error variance explained by shocks as a percent of total forecast error variance. The units along the horizontal axis in the plots from Figure~\ref{fig:FEVD_plots} represent time periods following an initial shock. The units along the vertical axis in the plots from Figure~\ref{fig:FEVD_plots} represent forecast error variance explained by the structural shock as a percent of total forecast error variance since \verb$rel = TRUE$. This function returns a list containing the data used to produce the plots in Figure~\ref{fig:FEVD_plots}.
+
+\vspace{\baselineskip}
+\hypertarget{chunk9}{Code Chunk 9}
 <<HD_plots, include = TRUE, echo = TRUE, fig.keep = 'all', fig.show = 'hide', fig.align = 'center', fig.asp = 0.4, background = 'NA', highlight = FALSE>>=
 freq <- 4
 start_date <- 
@@ -411,7 +435,7 @@ hd_results <-
 @
 \vspace{0.5\baselineskip}
 
-\begin{figure}[h]
+\begin{figure}[ht]
 \renewcommand{\familydefault}{\rmdefault}\normalfont
 \caption{Historical Decompositions}
 \includegraphics[width=\linewidth]{fig/HD_plots-1.pdf}
@@ -420,10 +444,10 @@ hd_results <-
 {Note: Horizontal axis indicates percent change. Vertical axis indicates actual dates. Black solid lines are mean centered endogenous variables. Red solid lines indicate the posterior median. Red dashed lines indicate credibility intervals.}
 \end{figure}
 
-The \verb$HD_Plots()$ function from \hyperlink{chunk8}{Code Chunk 8} creates plots of historical decompositions. This function can be used to display the cumulative effect of specific shocks on an endogenous variable at any given time period. The \verb$results$, \verb$varnames$, \verb$shocknames$, \verb$xlab$, \verb$ylab$ arguments for the \verb$HD_Plots()$ function are the same as those from the \verb$IRF_Plots()$ function. Figure~\ref{fig:HD_plots} displays the historical decompositions. The units along the horizontal axis in the plots from Figure~\ref{fig:HD_plots}, produced by the \verb$HD_Plots$ function, represent actual time periods. The units along the horizontal axis of each plot are created with the \verb$freq$ and \verb$start_date$ arguments. The \verb$freq$ argument is set to \verb$\Sexpr{freq}$ since the endogenous variables are measured at a quarterly frequency in this example. The \verb$start_date$ argument represents the date of the first observation which is Q\Sexpr{start_date[2]} \Sexpr{start_date[1]} in this example so \verb$start_date <- c(\Sexpr{start_date[1]}, \Sexpr{start_date[2]})$. The units along the vertical axis in the plots from Figure~\ref{fig:IRF_plots} represent percent change since the endogenous variables included in the model are mean centered quarter over quarter percent change of U.S. real wage and employment. This function also returns a list of the data used to produce the plots in Figure~\ref{fig:HD_plots}.
+The \verb$HD_Plots()$ function from \hyperlink{chunk9}{Code Chunk 9} creates plots of historical decompositions. This function can be used to display the cumulative effect of specific shocks on an endogenous variable at any given time period. The \verb$results$, \verb$varnames$, \verb$shocknames$, \verb$xlab$, \verb$ylab$ arguments for the \verb$HD_Plots()$ function are the same as those from the \verb$IRF_Plots()$ function. Figure~\ref{fig:HD_plots} displays the historical decompositions. The units along the horizontal axis in the plots from Figure~\ref{fig:HD_plots}, produced by the \verb$HD_Plots$ function, represent actual time periods. The units along the horizontal axis of each plot are created with the \verb$freq$ and \verb$start_date$ arguments. The \verb$freq$ argument is set to \verb$\Sexpr{freq}$ since the endogenous variables are measured at a quarterly frequency in this example. The \verb$start_date$ argument represents the date of the first observation which is Q\Sexpr{start_date[2]} \Sexpr{start_date[1]} in this example so \verb$start_date <- c(\Sexpr{start_date[1]}, \Sexpr{start_date[2]})$. The units along the vertical axis in the plots from Figure~\ref{fig:IRF_plots} represent percent change since the endogenous variables included in the model are mean centered quarter over quarter percent change of U.S. real wage and employment. This function also returns a list of the data used to produce the plots in Figure~\ref{fig:HD_plots}.
 
 \vspace{\baselineskip}
-\hypertarget{chunk9}{Code Chunk 9}
+\hypertarget{chunk10}{Code Chunk 10}
 <<Dist_plots, include = TRUE, echo = TRUE, fig.keep = 'all', fig.show = 'hide', fig.align = 'center', fig.asp = 0.2, background = 'NA', highlight = FALSE>>=
 A_titles <- 
   matrix(data = NA_character_, nrow = dim(pA)[1], ncol = dim(pA)[2])
@@ -435,7 +459,7 @@ Dist_Plots(results = results1, A_titles = A_titles)
 @
 \vspace{0.5\baselineskip}
 
-\begin{figure}[h]
+\begin{figure}[ht]
 \renewcommand{\familydefault}{\rmdefault}\normalfont
 \caption{Posterior and Prior Distribution Plots}
 \includegraphics[width=\linewidth]{fig/Dist_plots-1.pdf}
@@ -444,7 +468,7 @@ Dist_Plots(results = results1, A_titles = A_titles)
 {Note: Horizontal axis indicates percent change. Vertical axis indicates density. Blue solid regions indicate posterior density evaluated at values along the horizontal axis. Red solid lines indicate prior density evaluated at values along the horizontal axis.}
 \end{figure}
 
-The \verb$Dist_Plots()$ function from \hyperlink{chunk9}{Code Chunk 9} creates posterior density plots for the estimates for the parameters in $A$, $H$, and $det(A)$. Prior densities are also plotted to illustrate the differences between posterior and prior distributions. The \verb$results$, \verb$xlab$, and \verb$ylab$ arguments for the \verb$Dist_Plots()$ function are the same as those from the \verb$IRF_Plots()$ and \verb$HD_Plots()$ functions. \verb$A_titles$ and \verb$H_titles$ arguments are matrices that contain the titles of the plots. The elements of the \verb$A_titles$ and \verb$H_titles$ matrices correspond to the elements of the first and second dimensions of the \verb$A$ and \verb$H$ arrays from the results of the \verb$BH_SBVAR()$ function. The posterior and prior density plots for the estimates of the parameters in $A$ are multiplied by -1 to illustrate elasticity values and/or the value of the coefficient if the dependent variable for each equation were isolated.
+The \verb$Dist_Plots()$ function from \hyperlink{chunk10}{Code Chunk 10} creates posterior density plots for the estimates for the parameters in $A$, $H$, and $det(A)$. Prior densities are also plotted to illustrate the differences between posterior and prior distributions. The \verb$results$, \verb$xlab$, and \verb$ylab$ arguments for the \verb$Dist_Plots()$ function are the same as those from the \verb$IRF_Plots()$ and \verb$HD_Plots()$ functions. \verb$A_titles$ and \verb$H_titles$ arguments are matrices that contain the titles of the plots. The elements of the \verb$A_titles$ and \verb$H_titles$ matrices correspond to the elements of the first and second dimensions of the \verb$A$ and \verb$H$ arrays from the results of the \verb$BH_SBVAR()$ function. The posterior and prior density plots for the estimates of the parameters in $A$ are multiplied by -1 to illustrate elasticity values and/or the value of the coefficient if the dependent variable for each equation were isolated.
 
 \clearpage
 \hypertarget{appendix}{\sectiontitle{Appendix}}

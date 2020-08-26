@@ -22,7 +22,8 @@ BH_SBVAR(
   ci = NULL,
   cri = 0.95,
   rA = FALSE,
-  rB = FALSE
+  rB = FALSE,
+  rD = FALSE
 )
 }
 \arguments{
@@ -61,6 +62,8 @@ BH_SBVAR(
 \item{rA}{Boolean indicating whether raw results for \emph{A} should be returned (default = FALSE).}
 
 \item{rB}{Boolean indicating whether raw results for \emph{B} should be returned (default = FALSE).}
+
+\item{rD}{Boolean indicating whether raw results for \emph{D} should be returned (default = FALSE).}
 }
 \value{
 A list containing the following:
@@ -73,13 +76,13 @@ pA, pdetA, pH, pP, pP_sig, pR, pR_sig, tau1, and kappa1: Matrices and arrays con
 
 A_start: Matrix containing estimates of the parameters in \emph{A} from the optimization routine.
 
-A, detA, H, B, and Phi: Arrays containing estimates of the model parameters. The first, second, and third slices of the third dimension are lower, median, and upper bounds of the estimates.
+A, detA, H, B, Phi, and D: Arrays containing estimates of the model parameters. The first, second, and third slices of the third dimension are lower, median, and upper bounds of the estimates.
 
-HD and IRF: Arrays containing historical decompositions and impulse response functions. The first, second, and third slices of the third dimension are lower, median, and upper bounds of the estimates.
+HD, IRF, FEVD: Arrays containing historical decompositions, impulse response functions, and variance decompositions. The first, second, and third slices of the third dimension are lower, median, and upper bounds of the estimates.
 
 A_den, detA_den, and H_den: Lists containing the horizontal and vertical axis coordinates of posterior densities of \emph{A}, \emph{det(A)}, and \emph{H}.
 
-A_chain and B_chain: Arrays containing the raw results for \emph{A} and \emph{B}.
+A_chain, B_chain, D_chain: Arrays containing the raw results for \emph{A}, \emph{B}, \emph{D}.
 
 Line and ACF plots of the estimates for \emph{A}, \emph{det(A)}, and \emph{H}.
 }

@@ -120,8 +120,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // MAIN
-Rcpp::List MAIN(const arma::mat& y1, const arma::mat& x1, const arma::mat& omega, const arma::mat& somega, const arma::uword nlags, const arma::cube& pA, const arma::cube& pdetA, const arma::cube& pH, const arma::mat& pP, const arma::mat& pP_sig, const arma::cube& pR_sig, const arma::mat& kappa1, const arma::mat& A_start, const arma::uword itr, const arma::uword burn, const arma::uword thin, const arma::mat& scale1, const arma::uword h1_irf, const bool acc_irf, const double ci, const Rcpp::StringVector& varnames, const Rcpp::Function& line_plot, const Rcpp::Function& acf_plot, const bool& rA, const bool& rB);
-RcppExport SEXP _BHSBVAR_MAIN(SEXP y1SEXP, SEXP x1SEXP, SEXP omegaSEXP, SEXP somegaSEXP, SEXP nlagsSEXP, SEXP pASEXP, SEXP pdetASEXP, SEXP pHSEXP, SEXP pPSEXP, SEXP pP_sigSEXP, SEXP pR_sigSEXP, SEXP kappa1SEXP, SEXP A_startSEXP, SEXP itrSEXP, SEXP burnSEXP, SEXP thinSEXP, SEXP scale1SEXP, SEXP h1_irfSEXP, SEXP acc_irfSEXP, SEXP ciSEXP, SEXP varnamesSEXP, SEXP line_plotSEXP, SEXP acf_plotSEXP, SEXP rASEXP, SEXP rBSEXP) {
+Rcpp::List MAIN(const arma::mat& y1, const arma::mat& x1, const arma::mat& omega, const arma::mat& somega, const arma::uword nlags, const arma::cube& pA, const arma::cube& pdetA, const arma::cube& pH, const arma::mat& pP, const arma::mat& pP_sig, const arma::cube& pR_sig, const arma::mat& kappa1, const arma::mat& A_start, const arma::uword itr, const arma::uword burn, const arma::uword thin, const arma::mat& scale1, const arma::uword h1_irf, const bool acc_irf, const double ci, const Rcpp::StringVector& varnames, const Rcpp::Function& line_plot, const Rcpp::Function& acf_plot, const bool& rA, const bool& rB, const bool& rD);
+RcppExport SEXP _BHSBVAR_MAIN(SEXP y1SEXP, SEXP x1SEXP, SEXP omegaSEXP, SEXP somegaSEXP, SEXP nlagsSEXP, SEXP pASEXP, SEXP pdetASEXP, SEXP pHSEXP, SEXP pPSEXP, SEXP pP_sigSEXP, SEXP pR_sigSEXP, SEXP kappa1SEXP, SEXP A_startSEXP, SEXP itrSEXP, SEXP burnSEXP, SEXP thinSEXP, SEXP scale1SEXP, SEXP h1_irfSEXP, SEXP acc_irfSEXP, SEXP ciSEXP, SEXP varnamesSEXP, SEXP line_plotSEXP, SEXP acf_plotSEXP, SEXP rASEXP, SEXP rBSEXP, SEXP rDSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -150,7 +150,8 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const Rcpp::Function& >::type acf_plot(acf_plotSEXP);
     Rcpp::traits::input_parameter< const bool& >::type rA(rASEXP);
     Rcpp::traits::input_parameter< const bool& >::type rB(rBSEXP);
-    rcpp_result_gen = Rcpp::wrap(MAIN(y1, x1, omega, somega, nlags, pA, pdetA, pH, pP, pP_sig, pR_sig, kappa1, A_start, itr, burn, thin, scale1, h1_irf, acc_irf, ci, varnames, line_plot, acf_plot, rA, rB));
+    Rcpp::traits::input_parameter< const bool& >::type rD(rDSEXP);
+    rcpp_result_gen = Rcpp::wrap(MAIN(y1, x1, omega, somega, nlags, pA, pdetA, pH, pP, pP_sig, pR_sig, kappa1, A_start, itr, burn, thin, scale1, h1_irf, acc_irf, ci, varnames, line_plot, acf_plot, rA, rB, rD));
     return rcpp_result_gen;
 END_RCPP
 }

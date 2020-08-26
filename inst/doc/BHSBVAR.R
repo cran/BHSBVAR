@@ -1,5 +1,4 @@
 ### R code from vignette source 'BHSBVAR.Rnw'
-### Encoding: ISO8859-1
 
 ###################################################
 ### code chunk number 1: Setup
@@ -130,7 +129,19 @@ irf_results <-
 
 
 ###################################################
-### code chunk number 9: HD_plots
+### code chunk number 9: FEVD_plots
+###################################################
+varnames <- colnames(USLMData)[2:3]
+shocknames <- c("Labor Demand","Labor Supply")
+par(cex.axis = 0.8, cex.main = 1, font.main = 1, family = "serif",
+    mfrow = c(2, 2), mar = c(2, 2.2, 2, 1), las = 1)
+fevd_results <- 
+  FEVD_Plots(results = results1, varnames = varnames,
+            shocknames = shocknames)
+
+
+###################################################
+### code chunk number 10: HD_plots
 ###################################################
 freq <- 4
 start_date <- 
@@ -145,7 +156,7 @@ hd_results <-
 
 
 ###################################################
-### code chunk number 10: Dist_plots
+### code chunk number 11: Dist_plots
 ###################################################
 A_titles <- 
   matrix(data = NA_character_, nrow = dim(pA)[1], ncol = dim(pA)[2])
@@ -157,21 +168,21 @@ Dist_Plots(results = results1, A_titles = A_titles)
 
 
 ###################################################
-### code chunk number 11: Density1 (eval = FALSE)
+### code chunk number 12: Density1 (eval = FALSE)
 ###################################################
 ## density <-
 ##   dt(x = ((a1 - p1) / sigma1), df = nu, ncp = 0, log = FALSE) / sigma1
 
 
 ###################################################
-### code chunk number 12: Density2 (eval = FALSE)
+### code chunk number 13: Density2 (eval = FALSE)
 ###################################################
 ## density <-
 ##   dt(x = ((a1 - p1) / sigma1), df = nu, ncp = lam1, log = FALSE) / sigma1
 
 
 ###################################################
-### code chunk number 13: Density3 (eval = FALSE)
+### code chunk number 14: Density3 (eval = FALSE)
 ###################################################
 ## density <-
 ##   dt(x = ((a1 - p1) / sigma1), df = nu, ncp = 0, log = FALSE) / 
@@ -181,7 +192,7 @@ Dist_Plots(results = results1, A_titles = A_titles)
 
 
 ###################################################
-### code chunk number 14: Density5 (eval = FALSE)
+### code chunk number 15: Density5 (eval = FALSE)
 ###################################################
 ## density <- dt(x = ((a1 - p1) / sigma1), df = nu, ncp = 0, log = FALSE) / 
 ##   (sigma1 * pt(q = ((-p1) / sigma1), df = nu, ncp = 0, lower.tail = TRUE, 
@@ -189,7 +200,7 @@ Dist_Plots(results = results1, A_titles = A_titles)
 
 
 ###################################################
-### code chunk number 15: Density6 (eval = FALSE)
+### code chunk number 16: Density6 (eval = FALSE)
 ###################################################
 ## density <- 0
 ## if (a1 >= 1) {
@@ -202,7 +213,7 @@ Dist_Plots(results = results1, A_titles = A_titles)
 
 
 ###################################################
-### code chunk number 16: Density4 (eval = FALSE)
+### code chunk number 17: Density4 (eval = FALSE)
 ###################################################
 ## density <- dbeta(x = a1, shape1 = sh1, shape2 = sh2, ncp = 0, log = FALSE)
 

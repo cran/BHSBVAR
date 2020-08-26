@@ -3,8 +3,8 @@ Language: en-US
 Package: BHSBVAR
 Type: Package
 Title: Structural Bayesian Vector Autoregression Models
-Version: 2.0.2
-Date: 2020-01-18
+Version: 2.1.0
+Date: 2020-08-24
 Author: Paul Richardson
 Maintainer: Paul Richardson <p.richardson.54391@gmail.com>
 Description: Provides a function for estimating the parameters of Structural Bayesian Vector Autoregression models with the method developed by Baumeister and Hamilton (2015) <doi:10.3982/ECTA12356>, Baumeister and Hamilton (2017) <doi:10.3386/w24167>, and Baumeister and Hamilton (2018) <doi:10.1016/j.jmoneco.2018.06.005>. Functions for plotting impulse responses, historical decompositions, and posterior distributions of model parameters are also provided.
@@ -12,11 +12,11 @@ License: GPL (>= 3)
 Depends: R (>= 3.5.0)
 Imports: Rcpp (>= 1.0.0)
 LinkingTo: Rcpp, RcppArmadillo
-RoxygenNote: 7.0.2
+RoxygenNote: 7.1.1
 Suggests: knitr
 VignetteBuilder: knitr
 LazyData: true
 NeedsCompilation: yes
-Packaged: 2020-01-18 19:38:48 UTC; prich
+Packaged: 2020-08-24 23:11:05 UTC; paulrichardson
 Repository: CRAN
-Date/Publication: 2020-01-19 00:00:02 UTC
+Date/Publication: 2020-08-26 23:50:02 UTC
