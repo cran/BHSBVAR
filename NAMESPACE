@@ -2,8 +2,11 @@
 
 export(BH_SBVAR)
 export(Dist_Plots)
+export(FEVD)
 export(FEVD_Plots)
+export(HD)
 export(HD_Plots)
+export(IRF)
 export(IRF_Plots)
 import(Rcpp)
 useDynLib(BHSBVAR, .registration = TRUE)

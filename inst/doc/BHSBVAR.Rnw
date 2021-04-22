@@ -1,5 +1,5 @@
 \documentclass[12pt]{article}
-
+ 
 \usepackage{amsmath}
 \setlength{\multlinegap}{0pt} % set multilinegap length for math equations
 
@@ -56,7 +56,7 @@ urlcolor=blue
 }
 
 <<Setup, include=FALSE, echo=FALSE>>=
-knitr::opts_knit$set(self.contained = TRUE, concordance = FALSE)
+knitr::opts_knit$set(self.contained = TRUE, concordance = TRUE)
 knitr::opts_chunk$set(fig.path = "fig/", prompt = TRUE)
 @
 
@@ -72,7 +72,7 @@ knitr::opts_chunk$set(fig.path = "fig/", prompt = TRUE)
 
 \centerline{p.richardson.54391@gmail.com}
 
-\centerline{August, 2020}
+\centerline{April, 2021}
 
 \sectiontitle{Acknowledgment}
 
@@ -258,13 +258,13 @@ nlags <- 8
 itr <- 200000
 burn <- 0
 thin <- 20
-acc_irf <- TRUE
-h1_irf <- 20
+acc <- TRUE
+h <- 20
 cri <- 0.95
 @
 \vspace{0.5\baselineskip}
 
-\verb$nlags$ from \hyperlink{chunk2}{Code Chunk 2} sets the lag length used in the SBVAR model. \verb$itr$ sets the number of iterations for the algorithm. \verb$burn$ is the number of draws to throw out at the beginning of the algorithm. \verb$thin$ sets the thinning parameter which will thin the Markov chains. \verb$acc_irf$ indicates whether accumulated impulse responses are to be computed and returned. \verb$h1_irf$ indicates the time horizon for computing impulse responses. \verb$cri$ indicates the credibility intervals to be returned. A \verb$cri$ value of 0.95 will return 95\% credibility intervals.
+\verb$nlags$ from \hyperlink{chunk2}{Code Chunk 2} sets the lag length used in the SBVAR model. \verb$itr$ sets the number of iterations for the algorithm. \verb$burn$ is the number of draws to throw out at the beginning of the algorithm. \verb$thin$ sets the thinning parameter which will thin the Markov chains. \verb$acc$ indicates whether accumulated impulse responses are to be computed and returned. \verb$h$ indicates the time horizon for computing impulse responses. \verb$cri$ indicates the credibility intervals to be returned. A \verb$cri$ value of 0.95 will return 95\% credibility intervals.
 
 \vspace{\baselineskip}
 \hypertarget{chunk3}{Code Chunk 3}
@@ -355,8 +355,7 @@ par(cex.axis = 0.8, cex.main = 1, font.main = 1, family = "serif",
 results1 <- 
   BH_SBVAR(y = y, nlags = nlags, pA = pA, pP = pP, pP_sig = pP_sig,
            pR_sig = pR_sig, kappa1 = kappa1, itr = itr,
-           burn = burn, thin = thin, acc_irf = acc_irf,
-           h1_irf = h1_irf, cri = cri)
+           burn = burn, thin = thin, cri = cri)
 @
 \vspace{0.5\baselineskip}
 
@@ -367,19 +366,20 @@ results1 <-
 \label{fig:Diagnostic_plots}
 \end{figure}
 
-The first line in \hyperlink{chunk6}{Code Chunk 6} sets the parameters used to display plots that will be created by the \verb$BH_SBVAR()$ function. The \verb$BH_SBVAR()$ function allows the user to include prior information for $A$, $det(A)$, $H$ ($A^{-1}$), $\Phi$, and $D$ directly when estimating the parameters of an SBVAR model. The \verb$pdetA$ and \verb$pH$ arguments are arrays containing prior information for $det(A)$ and the elements of $H$ but are not included in this example. The \verb$BH_SBVAR()$ function returns a list that includes the acceptance rate (\verb$accept_rate$) of the algorithm, a matrix containing the endogenous variables (\verb$y$), a matrix containing lags of the endogenous variables (\verb$x$), and the prior information provided directly or indirectly to the function (\verb$pA$, \verb$pdetA$, \verb$pH$, \verb$pP$, \verb$pP_sig$, \verb$pR_sig$, \verb$tau1$, and \verb$kappa1$). A matrix containing the starting values of the model parameters in $A$ from an optimization routine is returned (\verb$A_start$). Arrays containing estimates of the model parameters, historical decompositions, and impulse responses are returned (\verb$A$, \verb$detA$, \verb$H$, \verb$B$, \verb$Phi$, \verb$HD$, \verb$IRF$). The first, second, and third slices of the third dimension of these arrays are lower, median, and upper bounds of the estimates, respectively. Lists containing horizontal and vertical axis coordinates of posterior densities, for the estimates of the parameters in $A$, $det(A)$, and $H$ with priors, are returned (\verb$A_den$, \verb$detA_den$, and \verb$H_den$). Raw estimates of the elements of $A$ and $B$ are returned (\verb$A_chain$ and \verb$B_chain$) if the \verb$rA$ and \verb$rB$ arguments in the \verb$BH_SBVAR()$ function are set to \verb$TRUE$. In addition, line and autocorrelation plots of the Markov chains of $A$, $det(A)$, and $H$ are returned for diagnostic purposes. The line and autocorrelation plots provide an indication of how well the algorithm covers the model's parameter space. The line plots in Figure~\ref{fig:Diagnostic_plots} display the Markov chains of the estimates from the algorithm with the estimate values shown on the vertical axis and the iteration number shown on the horizontal axis. The autocorrelation plots in Figure~\ref{fig:Diagnostic_plots} displays the autocorrelation of the Markov chains of the estimates from the algorithm with the correlation estimates on the vertical axis and the lag length shown on the horizontal axis.
+The first line in \hyperlink{chunk6}{Code Chunk 6} sets the parameters used to display plots that will be created by the \verb$BH_SBVAR()$ function. The \verb$BH_SBVAR()$ function allows the user to include prior information for $A$, $det(A)$, $H$ ($A^{-1}$), $\Phi$, and $D$ directly when estimating the parameters of an SBVAR model. The \verb$pdetA$ and \verb$pH$ arguments are arrays containing prior information for $det(A)$ and the elements of $H$ but are not included in this example. The \verb$BH_SBVAR()$ function returns a list that includes the acceptance rate (\verb$accept_rate$) of the algorithm, a matrix containing the endogenous variables (\verb$y$), a matrix containing lags of the endogenous variables (\verb$x$), a numeric value indicating the number of lags, and the prior information provided directly or indirectly to the function (\verb$pA$, \verb$pdetA$, \verb$pH$, \verb$pP$, \verb$pP_sig$, \verb$pR_sig$, \verb$tau1$, and \verb$kappa1$). A matrix containing the starting values of the model parameters in $A$ from an optimization routine is returned (\verb$A_start$). Arrays containing estimates of the model parameters are returned (\verb$A$, \verb$detA$, \verb$H$, \verb$B$, \verb$Phi$). The first, second, and third slices of the third dimension of these arrays are lower, median, and upper bounds of the estimates, respectively. Lists containing horizontal and vertical axis coordinates of posterior densities, for the estimates of the parameters in $A$, $det(A)$, and $H$ with priors, are returned (\verb$A_den$, \verb$detA_den$, and \verb$H_den$). Raw estimates of the elements of $A$, $B$, $D$, $detA$, and $H$ are returned (\verb$A_chain$, \verb$B_chain$, \verb$D_chain$, \verb$detA_chain$, \verb$H_chain$). In addition, line and autocorrelation plots of the Markov chains of $A$ are returned for diagnostic purposes. The line and autocorrelation plots provide an indication of how well the algorithm covers the model's parameter space. The line plots in Figure~\ref{fig:Diagnostic_plots} display the Markov chains of the estimates from the algorithm with the estimate values shown on the vertical axis and the iteration number shown on the horizontal axis. The autocorrelation plots in Figure~\ref{fig:Diagnostic_plots} displays the autocorrelation of the Markov chains of the estimates from the algorithm with the correlation estimates on the vertical axis and the lag length shown on the horizontal axis.
 
 The titles of the plots in Figure~\ref{fig:Diagnostic_plots} indicate the element of the coefficient matrix that is plotted. The plots of the estimated parameters in $A$ are automatically multiplied by -1 to illustrate elasticity values and/or isolate the dependent variable for each equation. These elements correspond to those found in the results from running the \verb$BH_SBVAR()$ function and the transpose of those from the mathematical representation from Equation~\ref{eq:eq13}. In other words, each column of the coefficient matrix arrays in the resulting list object from running the \verb$BH_SBVAR()$ function contain coefficient estimates for each equation. However, each row of the coefficient matrices from the mathematical representation described in Equation~\ref{eq:eq13} represent the parameters of each equation.
 
 \vspace{\baselineskip}
 \hypertarget{chunk7}{Code Chunk 7}
 <<IRF_plots, include = TRUE, echo = TRUE, fig.keep = 'all', fig.show = 'hide', fig.align = 'center', fig.asp = 0.4, background = 'NA', highlight = FALSE>>=
+irf <- IRF(results = results1, h = h, acc = acc, cri = cri)
 varnames <- colnames(USLMData)[2:3]
 shocknames <- c("Labor Demand","Labor Supply")
 par(cex.axis = 0.8, cex.main = 1, font.main = 1, family = "serif",
     mfrow = c(2, 2), mar = c(2, 2.2, 2, 1), las = 1)
 irf_results <- 
-  IRF_Plots(results = results1, varnames = varnames,
+  IRF_Plots(results = irf, varnames = varnames,
             shocknames = shocknames)
 @
 \vspace{0.5\baselineskip}
@@ -393,17 +393,18 @@ irf_results <-
 {Note: Horizontal axis indicates time periods following an initial shock. Vertical axis indicates percent change. Black solid lines indicate the posterior median. Red dashed lines indicate credibility intervals.}
 \end{figure}
 
-The first two lines in \hyperlink{chunk7}{Code Chunk 7} store the names of endogenous variables and structural shocks. The \verb$IRF_Plots()$ function creates plots of impulse responses. This function can be used to display the response of the endogenous variables following a structural shock. The \verb$results$ argument is a list object containing the unaltered results from the \verb$BH_SBVAR()$ function. The \verb$varnames$ and \verb$shocknames$ argument are character vectors containing the variable names and shock names, respectively. The \verb$xlab$ and \verb$ylab$ arguments are not included in this example, but they allow the user to include labels for the horizontal and vertical axes, respectively. Figure~\ref{fig:IRF_plots} displays the cumulative response of U.S. real wage growth and employment growth to U.S. labor demand and supply shocks. The units along the horizontal axis in the plots from Figure~\ref{fig:IRF_plots} represent time periods following an initial shock. The units along the vertical axis in the plots from Figure~\ref{fig:IRF_plots} represent percent change following an initial shock since the endogenous variables included in the model are mean centered quarter over quarter percent change of U.S. real wage and employment. In addition, this function returns a list containing the data used to produce the plots in Figure~\ref{fig:IRF_plots}.
+The first line in \hyperlink{chunk7}{Code Chunk 7} provides the impulse response estimates. Lines two and three in \hyperlink{chunk7}{Code Chunk 7} store the names of endogenous variables and structural shocks. The \verb$IRF_Plots()$ function creates plots of impulse responses. This function can be used to display the response of the endogenous variables following a structural shock. The \verb$results$ argument is a list object containing the unaltered results from the \verb$BH_SBVAR()$ function. The \verb$varnames$ and \verb$shocknames$ argument are character vectors containing the variable names and shock names, respectively. The \verb$xlab$ and \verb$ylab$ arguments are not included in this example, but they allow the user to include labels for the horizontal and vertical axes, respectively. Figure~\ref{fig:IRF_plots} displays the cumulative response of U.S. real wage growth and employment growth to U.S. labor demand and supply shocks. The units along the horizontal axis in the plots from Figure~\ref{fig:IRF_plots} represent time periods following an initial shock. The units along the vertical axis in the plots from Figure~\ref{fig:IRF_plots} represent percent change following an initial shock since the endogenous variables included in the model are mean centered quarter over quarter percent change of U.S. real wage and employment. In addition, this function returns a list containing the data used to produce the plots in Figure~\ref{fig:IRF_plots}.
 
 \vspace{\baselineskip}
 \hypertarget{chunk8}{Code Chunk 8}
 <<FEVD_plots, include = TRUE, echo = TRUE, fig.keep = 'all', fig.show = 'hide', fig.align = 'center', fig.asp = 0.4, background = 'NA', highlight = FALSE>>=
+fevd <- FEVD(results = results1, h = h, acc = acc, cri = cri)
 varnames <- colnames(USLMData)[2:3]
 shocknames <- c("Labor Demand","Labor Supply")
 par(cex.axis = 0.8, cex.main = 1, font.main = 1, family = "serif",
     mfrow = c(2, 2), mar = c(2, 2.2, 2, 1), las = 1)
 fevd_results <- 
-  FEVD_Plots(results = results1, varnames = varnames,
+  FEVD_Plots(results = fevd, varnames = varnames,
             shocknames = shocknames)
 @
 \vspace{0.5\baselineskip}
@@ -417,11 +418,12 @@ fevd_results <-
 {Note: Horizontal axis indicates time periods following an initial shock. Vertical axis indicates forecast error variance explained by the structural shock as a percent of total forecast error variance.}
 \end{figure}
 
-The \verb$FEVD_Plots()$ function from \hyperlink{chunk8}{Code Chunk 8} creates plots of forecast error variance decompositions. This function can be used to display the forecast error variance that is explained by the structural shocks. The \verb$results$, \verb$varnames$, \verb$shocknames$, \verb$xlab$, \verb$ylab$ arguments for the \verb$FEVD_Plots()$ function are the same as those from the \verb$IRF_Plots()$ function. The \verb$rel$ argument is used to display forecast error variance explained by shocks as a percent of total forecast error variance. The units along the horizontal axis in the plots from Figure~\ref{fig:FEVD_plots} represent time periods following an initial shock. The units along the vertical axis in the plots from Figure~\ref{fig:FEVD_plots} represent forecast error variance explained by the structural shock as a percent of total forecast error variance since \verb$rel = TRUE$. This function returns a list containing the data used to produce the plots in Figure~\ref{fig:FEVD_plots}.
+The first line in \hyperlink{chunk8}{Code Chunk 8} provides the forecast error variance decomposition estimates. The \verb$FEVD_Plots()$ function from \hyperlink{chunk8}{Code Chunk 8} creates plots of forecast error variance decompositions. This function can be used to display the forecast error variance that is explained by the structural shocks. The \verb$results$, \verb$varnames$, \verb$shocknames$, \verb$xlab$, \verb$ylab$ arguments for the \verb$FEVD_Plots()$ function are the same as those from the \verb$IRF_Plots()$ function. The \verb$rel$ argument is used to display forecast error variance explained by shocks as a percent of total forecast error variance. The units along the horizontal axis in the plots from Figure~\ref{fig:FEVD_plots} represent time periods following an initial shock. The units along the vertical axis in the plots from Figure~\ref{fig:FEVD_plots} represent forecast error variance explained by the structural shock as a percent of total forecast error variance since \verb$rel = TRUE$. This function returns a list containing the data used to produce the plots in Figure~\ref{fig:FEVD_plots}.
 
 \vspace{\baselineskip}
 \hypertarget{chunk9}{Code Chunk 9}
 <<HD_plots, include = TRUE, echo = TRUE, fig.keep = 'all', fig.show = 'hide', fig.align = 'center', fig.asp = 0.4, background = 'NA', highlight = FALSE>>=
+hd <- HD(results = results1, cri = cri)
 freq <- 4
 start_date <- 
   c(floor(USLMData[(nlags + 1), 1]),
@@ -429,7 +431,7 @@ start_date <-
 par(cex.axis = 0.8, cex.main = 1, font.main = 1, family = "serif",
     mfrow = c(2, 2), mar = c(2, 2.2, 2, 1), las = 1)
 hd_results <- 
-  HD_Plots(results  = results1, varnames = varnames,
+  HD_Plots(results  = hd, varnames = varnames,
            shocknames = shocknames,
            freq = freq, start_date = start_date)
 @
@@ -444,7 +446,7 @@ hd_results <-
 {Note: Horizontal axis indicates percent change. Vertical axis indicates actual dates. Black solid lines are mean centered endogenous variables. Red solid lines indicate the posterior median. Red dashed lines indicate credibility intervals.}
 \end{figure}
 
-The \verb$HD_Plots()$ function from \hyperlink{chunk9}{Code Chunk 9} creates plots of historical decompositions. This function can be used to display the cumulative effect of specific shocks on an endogenous variable at any given time period. The \verb$results$, \verb$varnames$, \verb$shocknames$, \verb$xlab$, \verb$ylab$ arguments for the \verb$HD_Plots()$ function are the same as those from the \verb$IRF_Plots()$ function. Figure~\ref{fig:HD_plots} displays the historical decompositions. The units along the horizontal axis in the plots from Figure~\ref{fig:HD_plots}, produced by the \verb$HD_Plots$ function, represent actual time periods. The units along the horizontal axis of each plot are created with the \verb$freq$ and \verb$start_date$ arguments. The \verb$freq$ argument is set to \verb$\Sexpr{freq}$ since the endogenous variables are measured at a quarterly frequency in this example. The \verb$start_date$ argument represents the date of the first observation which is Q\Sexpr{start_date[2]} \Sexpr{start_date[1]} in this example so \verb$start_date <- c(\Sexpr{start_date[1]}, \Sexpr{start_date[2]})$. The units along the vertical axis in the plots from Figure~\ref{fig:IRF_plots} represent percent change since the endogenous variables included in the model are mean centered quarter over quarter percent change of U.S. real wage and employment. This function also returns a list of the data used to produce the plots in Figure~\ref{fig:HD_plots}.
+The first line in \hyperlink{chunk9}{Code Chunk 9} provides the historical decomposition estimates. The \verb$HD_Plots()$ function from \hyperlink{chunk9}{Code Chunk 9} creates plots of historical decompositions. This function can be used to display the cumulative effect of specific shocks on an endogenous variable at any given time period. The \verb$results$, \verb$varnames$, \verb$shocknames$, \verb$xlab$, \verb$ylab$ arguments for the \verb$HD_Plots()$ function are the same as those from the \verb$IRF_Plots()$ function. Figure~\ref{fig:HD_plots} displays the historical decompositions. The units along the horizontal axis in the plots from Figure~\ref{fig:HD_plots}, produced by the \verb$HD_Plots$ function, represent actual time periods. The units along the horizontal axis of each plot are created with the \verb$freq$ and \verb$start_date$ arguments. The \verb$freq$ argument is set to \verb$\Sexpr{freq}$ since the endogenous variables are measured at a quarterly frequency in this example. The \verb$start_date$ argument represents the date of the first observation which is Q\Sexpr{start_date[2]} \Sexpr{start_date[1]} in this example so \verb$start_date <- c(\Sexpr{start_date[1]}, \Sexpr{start_date[2]})$. The units along the vertical axis in the plots from Figure~\ref{fig:IRF_plots} represent percent change since the endogenous variables included in the model are mean centered quarter over quarter percent change of U.S. real wage and employment. This function also returns a list of the data used to produce the plots in Figure~\ref{fig:HD_plots}.
 
 \vspace{\baselineskip}
 \hypertarget{chunk10}{Code Chunk 10}

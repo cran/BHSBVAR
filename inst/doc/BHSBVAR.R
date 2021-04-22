@@ -3,7 +3,7 @@
 ###################################################
 ### code chunk number 1: Setup
 ###################################################
-knitr::opts_knit$set(self.contained = TRUE, concordance = FALSE)
+knitr::opts_knit$set(self.contained = TRUE, concordance = TRUE)
 knitr::opts_chunk$set(fig.path = "fig/", prompt = TRUE)
 
 
@@ -27,8 +27,8 @@ nlags <- 8
 itr <- 200000
 burn <- 0
 thin <- 20
-acc_irf <- TRUE
-h1_irf <- 20
+acc <- TRUE
+h <- 20
 cri <- 0.95
 
 
@@ -112,37 +112,39 @@ par(cex.axis = 0.8, cex.main = 1, font.main = 1, family = "serif",
 results1 <- 
   BH_SBVAR(y = y, nlags = nlags, pA = pA, pP = pP, pP_sig = pP_sig,
            pR_sig = pR_sig, kappa1 = kappa1, itr = itr,
-           burn = burn, thin = thin, acc_irf = acc_irf,
-           h1_irf = h1_irf, cri = cri)
+           burn = burn, thin = thin, cri = cri)
 
 
 ###################################################
 ### code chunk number 8: IRF_plots
 ###################################################
+irf <- IRF(results = results1, h = h, acc = acc, cri = cri)
 varnames <- colnames(USLMData)[2:3]
 shocknames <- c("Labor Demand","Labor Supply")
 par(cex.axis = 0.8, cex.main = 1, font.main = 1, family = "serif",
     mfrow = c(2, 2), mar = c(2, 2.2, 2, 1), las = 1)
 irf_results <- 
-  IRF_Plots(results = results1, varnames = varnames,
+  IRF_Plots(results = irf, varnames = varnames,
             shocknames = shocknames)
 
 
 ###################################################
 ### code chunk number 9: FEVD_plots
 ###################################################
+fevd <- FEVD(results = results1, h = h, acc = acc, cri = cri)
 varnames <- colnames(USLMData)[2:3]
 shocknames <- c("Labor Demand","Labor Supply")
 par(cex.axis = 0.8, cex.main = 1, font.main = 1, family = "serif",
     mfrow = c(2, 2), mar = c(2, 2.2, 2, 1), las = 1)
 fevd_results <- 
-  FEVD_Plots(results = results1, varnames = varnames,
+  FEVD_Plots(results = fevd, varnames = varnames,
             shocknames = shocknames)
 
 
 ###################################################
 ### code chunk number 10: HD_plots
 ###################################################
+hd <- HD(results = results1, cri = cri)
 freq <- 4
 start_date <- 
   c(floor(USLMData[(nlags + 1), 1]),
@@ -150,7 +152,7 @@ start_date <-
 par(cex.axis = 0.8, cex.main = 1, font.main = 1, family = "serif",
     mfrow = c(2, 2), mar = c(2, 2.2, 2, 1), las = 1)
 hd_results <- 
-  HD_Plots(results  = results1, varnames = varnames,
+  HD_Plots(results  = hd, varnames = varnames,
            shocknames = shocknames,
            freq = freq, start_date = start_date)
 

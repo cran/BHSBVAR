@@ -1,4 +1,4 @@
-
+ 
 # Create matrices containing dependent and independent variables.
 #' @keywords internal
 getXY <- function(data1, nlags) {
@@ -410,17 +410,14 @@ check_arrays <- function(list1, y) {
 
 # Check arguments from the BH_SBVAR function
 #' @keywords internal
-arguments_check <- function(y, nlags, pA, pdetA, pH, pP, pP_sig, pR_sig, kappa1, itr, burn, thin, acc_irf, h1_irf, ci, cri, rA, rB, rD) {
-  test <- check_integers(list1 = list(nlags = nlags, itr = itr, burn = burn, thin = thin, h1_irf = h1_irf))
+arguments_check <- function(y, nlags, pA, pdetA, pH, pP, pP_sig, pR_sig, kappa1, itr, burn, thin, cri) {
+  test <- check_integers(list1 = list(nlags = nlags, itr = itr, burn = burn, thin = thin))
   if (test != "pass") {
     return(test)
   }
-  test <- check_doubles(list1 = list(ci = ci, cri = cri))
+  test <- check_doubles(list1 = list(cri = cri))
   if (test != "pass") {
     return(test)
-  }
-  if ((!is.logical(acc_irf)) || (is.na(acc_irf))) {
-    return(paste("acc_irf: Must be logical 'TRUE' or 'FALSE'.", sep = ""))
   }
   if (floor((itr - burn) / thin) < 5000) {
     return(paste("'floor((itr-burn)/thin)' must be greater than or equal to 5000.", sep = ""))
@@ -432,9 +429,6 @@ arguments_check <- function(y, nlags, pA, pdetA, pH, pP, pP_sig, pR_sig, kappa1,
   test <- check_arrays(list1 = list(pA = pA, pdetA = pdetA, pH = pH), y)
   if (test != "pass") {
     return(test)
-  }
-  if (h1_irf >= nrow(y)) {
-    return(paste0("h1_irf: Must be less than nrow(y) (", nrow(y), ")."))
   }
   
   # check pR_sig
@@ -480,38 +474,45 @@ arguments_check <- function(y, nlags, pA, pdetA, pH, pP, pP_sig, pR_sig, kappa1,
     }
   }
   
-  if ((!isTRUE(rA)) & (!isFALSE(rA))) {
-    return("rA: Should be TRUE or FALSE.")
-  }
-  if ((!isTRUE(rB)) & (!isFALSE(rB))) {
-    return("rB: Should be TRUE or FALSE.")
-  }
-  if ((!isTRUE(rD)) & (!isFALSE(rD))) {
-    return("rD: Should be TRUE or FALSE.")
-  }
   return("pass")
+}
+
+# Line Plot
+#' @keywords internal
+line_plot <- function(data1, prior_name, i, j) {
+  if (any(data1 != data1[1])) {
+    if (prior_name == "pA") {
+      elast = -1
+    } else {
+      elast = 1
+    }
+    graphics::plot(x = (elast * data1), type = "l", col = "black", yaxs = "r", xaxs = "i", xlab = "Iteration", ylab = "Estimate")
+    if (prior_name == "pA") {
+      graphics::title(main = paste("-A(", i, "," , j, ")", sep = ""), col.main = "black")
+    } else if (prior_name == "pH") {
+      graphics::title(main = paste("H(", i, "," , j, ")", sep = ""), col.main = "black")
+    } else if (prior_name == "pdetA") {
+      graphics::title(main = paste("Determinant of A"), col.main = "black")
+    }
+    Sys.sleep(0.25)
+  }
 }
 
 # Line Plots
 #' @keywords internal
-line_plot <- function(data1, prior_name, i, j) {
-  if (prior_name == "pA") {
-    elast = -1
-  } else {
-    elast = 1
+Line_Plots <- function(raw_array, priors_array, prior_name) {
+  n_rows <- nrow(raw_array)
+  n_cols <- ncol(raw_array)
+  for (i in 1:n_rows) {
+    for (j in 1:n_cols) {
+      if (all(is.finite(raw_array[i, j, ]))) {
+        line_plot(data1 = raw_array[i, j, ], prior_name = prior_name, i = i, j = j)
+      }
+    }
   }
-  graphics::plot(x = (elast * data1), type = "l", col = "black", yaxs = "r", xaxs = "i", xlab = "Iteration", ylab = "Estimate")
-  if (prior_name == "pA") {
-    graphics::title(main = paste("-A(", i, "," , j, ")", sep = ""), col.main = "black")
-  } else if (prior_name == "pH") {
-    graphics::title(main = paste("H(", i, "," , j, ")", sep = ""), col.main = "black")
-  } else if (prior_name == "pdetA") {
-    graphics::title(main = paste("Determinant of A"), col.main = "black")
-  }
-  Sys.sleep(0.25)
 }
 
-# Autocorrelation Plots
+# Autocorrelation Plot
 #' @keywords internal
 acf_plot <- function(data1, prior_name, i, j) {
   if (any(data1 != data1[1])) {
@@ -524,6 +525,20 @@ acf_plot <- function(data1, prior_name, i, j) {
       graphics::title(main = paste("Determinant of A"), col.main = "black")
     }
     Sys.sleep(0.25)
+  }
+}
+
+# Autocorrelation Plots
+#' @keywords internal
+ACF_Plots <- function(raw_array, priors_array, prior_name) {
+  n_rows <- nrow(raw_array)
+  n_cols <- ncol(raw_array)
+  for (i in 1:n_rows) {
+    for (j in 1:n_cols) {
+      if (all(is.finite(raw_array[i, j, ]))) {
+        acf_plot(data1 = raw_array[i, j, ], prior_name = prior_name, i = i, j = j)
+      }
+    }
   }
 }
 
@@ -545,23 +560,17 @@ acf_plot <- function(data1, prior_name, i, j) {
 #' @param itr Integer specifying the total number of iterations for the algorithm (default = 5000).
 #' @param burn Integer specifying the number of draws to throw out at the beginning of the algorithm (default = 0).
 #' @param thin Integer specifying the thinning parameter (default = 1). All draws beyond burn are kept when thin = 1. Draw 1, draw 3, etc. beyond burn are kept when thin = 2.
-#' @param acc_irf Boolean indicating whether accumulated impulse responses are to be returned (default = TRUE).
-#' @param h1_irf Integer specifying the time horizon for computing impulse responses (default = 12).
-#' @param ci Numeric value used to determine the upper and lower bound of credibility intervals for the estimates to be returned (default = 0.975). A value of 0.975 will return 95\% credibility intervals. A value of 0.95 will return 90\% credibility intervals. Use the \code{cri} argument instead of the \code{ci} argument.
 #' @param cri credibility intervals for the estimates to be returned (default = 0.95). A value of 0.95 will return 95\% credibility intervals. A value of 0.90 will return 90\% credibility intervals.
-#' @param rA Boolean indicating whether raw results for \emph{A} should be returned (default = FALSE).
-#' @param rB Boolean indicating whether raw results for \emph{B} should be returned (default = FALSE).
-#' @param rD Boolean indicating whether raw results for \emph{D} should be returned (default = FALSE).
 #' @details Estimates the parameters of a Structural Bayesian Vector Autoregression model with the method developed in Baumeister and Hamilton (2015/2017/2018). The function returns a list containing the results.
 #' @return A list containing the following:
 #' @return accept_rate: Acceptance rate of the algorithm.
 #' @return y and x: Matrices containing the endogenous variables and their lags.
+#' @return nlags: Numeric value indicating the number of lags included in the model.
 #' @return pA, pdetA, pH, pP, pP_sig, pR, pR_sig, tau1, and kappa1: Matrices and arrays containing prior information.
 #' @return A_start: Matrix containing estimates of the parameters in \emph{A} from the optimization routine.
 #' @return A, detA, H, B, Phi, and D: Arrays containing estimates of the model parameters. The first, second, and third slices of the third dimension are lower, median, and upper bounds of the estimates.
-#' @return HD, IRF, FEVD: Arrays containing historical decompositions, impulse response functions, and variance decompositions. The first, second, and third slices of the third dimension are lower, median, and upper bounds of the estimates.
 #' @return A_den, detA_den, and H_den: Lists containing the horizontal and vertical axis coordinates of posterior densities of \emph{A}, \emph{det(A)}, and \emph{H}.
-#' @return A_chain, B_chain, D_chain: Arrays containing the raw results for \emph{A}, \emph{B}, \emph{D}.
+#' @return A_chain, B_chain, D_chain, detA_chain, H_chain: Arrays containing the raw results for \emph{A}, \emph{B}, \emph{D}, \emph{detA}, \emph{H}.
 #' @return Line and ACF plots of the estimates for \emph{A}, \emph{det(A)}, and \emph{H}.
 #' @references Baumeister, C., & Hamilton, J.D. (2015). Sign restrictions, structural vector autoregressions, and useful prior information. \emph{Econometrica}, 83(5), 1963-1999.
 #' @references Baumeister, C., & Hamilton, J.D. (2017). Structural interpretation of vector autoregressions with incomplete identification: Revisiting the role of oil supply and demand shocks (No. w24167). National Bureau of Economic Research.
@@ -583,8 +592,6 @@ acf_plot <- function(data1, prior_name, i, j) {
 #' itr <- 5000
 #' burn <- 0
 #' thin <- 1
-#' acc_irf <- TRUE
-#' h1_irf <- 20
 #' cri <- 0.95
 #' 
 #' # Priors for A
@@ -663,9 +670,8 @@ acf_plot <- function(data1, prior_name, i, j) {
 #' results1 <- 
 #'   BH_SBVAR(y = y, nlags = nlags, pA = pA, pP = pP, pP_sig = pP_sig,
 #'            pR_sig = pR_sig, kappa1 = kappa1, itr = itr, burn = burn,
-#'            thin = thin, acc_irf = acc_irf,
-#'            h1_irf = h1_irf, cri = cri)
-BH_SBVAR <- function(y, nlags, pA, pdetA = NULL, pH = NULL, pP = NULL, pP_sig = NULL, pR_sig = NULL, kappa1 = NULL, itr = 5000, burn = 0, thin = 1, acc_irf = TRUE, h1_irf = 12, ci = NULL, cri = 0.95, rA = FALSE, rB = FALSE, rD = FALSE) {
+#'            thin = thin, cri = cri)
+BH_SBVAR <- function(y, nlags, pA, pdetA = NULL, pH = NULL, pP = NULL, pP_sig = NULL, pR_sig = NULL, kappa1 = NULL, itr = 5000, burn = 0, thin = 1, cri = 0.95) {
   
   #construct objects from NULL inputs
   if (is.null(pdetA)) {
@@ -686,14 +692,11 @@ BH_SBVAR <- function(y, nlags, pA, pdetA = NULL, pH = NULL, pP = NULL, pP_sig = 
   }
   
   #check BH_SBVAR function arguments
-  test <- arguments_check(y = y, nlags = nlags, pA = pA, pdetA = pdetA, pH = pH, pP = pP, pP_sig = pP_sig, pR_sig = pR_sig, kappa1 = kappa1, itr = itr, burn = burn, thin = thin, acc_irf = acc_irf, h1_irf = h1_irf, ci = ci, cri = cri, rA = rA, rB = rB, rD = rD)
+  test <- arguments_check(y = y, nlags = nlags, pA = pA, pdetA = pdetA, pH = pH, pP = pP, pP_sig = pP_sig, pR_sig = pR_sig, kappa1 = kappa1, itr = itr, burn = burn, thin = thin, cri = cri)
   if (test != "pass") {
     stop(test)
   }
-  if (!is.null(ci)) {
-    warning("Use the 'cri' argument instead of 'ci'. 'ci' will be converted to 'cri'.", immediate. = TRUE)
-    cri <- 1.0 - ((1.0 - ci) * 2.0)
-  }
+  
   ci <- (1.0 - ((1.0 - cri) / 2.0))
   
   #create proposal scale matrix
@@ -779,7 +782,7 @@ BH_SBVAR <- function(y, nlags, pA, pdetA = NULL, pH = NULL, pP = NULL, pP_sig = 
   scale1 <- PH * scale_ar
   
   #Metropolis-Hastings Algorithm
-  results <- MAIN(y1 = y1, x1 = x1, omega = omega, somega = somega, nlags = nlags, pA = pA, pdetA = pdetA, pH = pH, pP = pP, pP_sig = pP_sig, pR_sig = pR_sig, kappa1 = kappa1, A_start = A_start, itr = itr, burn = burn, thin = thin, scale1 = scale1, h1_irf = h1_irf, acc_irf = acc_irf, ci = ci, varnames = varnames, line_plot = line_plot, acf_plot = acf_plot, rA = rA, rB = rB, rD = rD)
+  results <- MAIN(y1 = y1, x1 = x1, omega = omega, somega = somega, nlags = nlags, pA = pA, pdetA = pdetA, pH = pH, pP = pP, pP_sig = pP_sig, pR_sig = pR_sig, kappa1 = kappa1, A_start = A_start, itr = itr, burn = burn, thin = thin, scale1 = scale1, ci = ci)
   
   dimnames(results$y) <- dimnames(y1)
   dimnames(results$x) <- dimnames(x1)
@@ -807,10 +810,6 @@ BH_SBVAR <- function(y, nlags, pA, pdetA = NULL, pH = NULL, pP = NULL, pP_sig = 
   dimnames(results$Phi) <- list(colnames(x1), paste0(colnames(y1), "_Eq"), paste0(c(((1 - ci) * 100), 50, (ci * 100)),"%"))
   dimnames(results$D) <- list(varnames, paste0(varnames, "_Eq"), paste0(c(((1 - ci) * 100), 50, (ci * 100)),"%"))
   
-  dimnames(results$HD) <- list(NULL, paste0("Res_", varnames, paste0("_Shk_", varnames[c(sort(x = rep(x = c(1:ncol(y1)), times = ncol(y1))))])), paste0(c(((1 - ci) * 100), 50, (ci * 100)),"%"))
-  dimnames(results$IRF) <- list(NULL, paste0("Res_", varnames, paste0("_Shk_", varnames[c(sort(x = rep(x = c(1:ncol(y1)), times = ncol(y1))))])), paste0(c(((1 - ci) * 100), 50, (ci * 100)),"%"))
-  dimnames(results$FEVD) <- list(NULL, paste0("Res_", varnames, paste0("_Shk_", varnames[c(sort(x = rep(x = c(1:ncol(y1)), times = ncol(y1))))])), paste0(c(((1 - ci) * 100), 50, (ci * 100)),"%"))
-  
   dimnames(results$A_den$hori) <- list(varnames, paste0(varnames, "_Eq"), NULL)
   dimnames(results$A_den$vert) <- list(varnames, paste0(varnames, "_Eq"), NULL)
   dimnames(results$detA_den$hori) <- list("detA", "detA", NULL)
@@ -818,15 +817,8 @@ BH_SBVAR <- function(y, nlags, pA, pdetA = NULL, pH = NULL, pP = NULL, pP_sig = 
   dimnames(results$H_den$hori) <- list(varnames, paste0(varnames, "_Eq"), NULL)
   dimnames(results$H_den$vert) <- list(varnames, paste0(varnames, "_Eq"), NULL)
   
-  if (rA) {
-    dimnames(results$A_chain) <- list(varnames, paste0(varnames, "_Eq"), NULL)
-  }
-  if (rB) {
-    dimnames(results$B_chain) <- list(colnames(x1), paste0(varnames, "_Eq"), NULL)
-  }
-  if (rD) {
-    dimnames(results$D_chain) <- list(varnames, paste0(varnames, "_Eq"), NULL)
-  }
+  Line_Plots(raw_array = results$A_chain, priors_array = results$pA, prior_name = "pA")
+  ACF_Plots(raw_array = results$A_chain, priors_array = results$pA, prior_name = "pA")
   
   return(results)
 }
@@ -834,554 +826,37 @@ BH_SBVAR <- function(y, nlags, pA, pdetA = NULL, pH = NULL, pP = NULL, pP_sig = 
 # Check arguments from the IRF_Plots, HD_Plots, Dist_Plots functions.
 #' @keywords internal
 check_results <- function(results, xlab, ylab) {
-  if ((!is.list(results)) || (length(results) == 0)) {
-    return(paste("results: Must be a list of arrays obtained from running BH_SBVAR() function.", sep = ""))
+  if (is.array(results)) {
+    if (length(results) == 0) {
+      return(paste("results: Must be an array obtained from running IRF(), HD(), or FEVD().", sep = ""))
+    }
+    if ((is.null(results)) || (any(!is.finite(results))) || (dim(results)[1] < 4) || (dim(results)[3] < 3) || ((dim(results)[2] / sqrt(dim(results)[2])) != (sqrt(dim(results)[2])))) {
+      return(paste("results: Results from IRF(), HD(), or FEVD() are not present.", sep = ""))
+    }
+  } else if (is.list(results)) {
+    if (any(names(results) == "HD")) {
+      if (!is.array(results$HD) ||(length(results$HD) == 0)) {
+        return(paste("results: Must be an array obtained from running IRF(), HD(), or FEVD().", sep = ""))
+      }
+      if ((is.null(results$HD)) || (any(!is.finite(results$HD))) || (dim(results$HD)[1] < 4) || (dim(results$HD)[3] < 3) || ((dim(results$HD)[2] / sqrt(dim(results$HD)[2])) != (sqrt(dim(results$HD)[2])))) {
+        return(paste("results: Results from IRF(), HD(), or FEVD() are not present.", sep = ""))
+      }
+    } else {
+      if ((is.null(results$A)) || (!is.array(results$A)) || (any(!is.finite(results$A))) || (dim(results$A)[1] != dim(results$A)[2]) || (dim(results$A)[3] < 3) || (dim(results$A)[2] != ncol(results$y)) || (dim(results$A)[2] < 2)) {
+        return(paste("results: A from BH_SBVAR() is not present.", sep = ""))
+      }
+    }
+  } else {
+    return(paste0("results: Results must be an array or a list containing an array"))
   }
-  if ((is.null(results$y)) || (!is.matrix(results$y)) || (any(!is.finite(results$y)))) {
-    return(paste("results: y from BH_SBVAR() is not present", sep = ""))
-  }
-  if ((is.null(results$A)) || (!is.array(results$A)) || (any(!is.finite(results$A))) || (dim(results$A)[1] != dim(results$A)[2]) || (dim(results$A)[3] < 3) || (dim(results$A)[2] != ncol(results$y)) || (dim(results$A)[2] < 2)) {
-    return(paste("results: A from BH_SBVAR() is not present", sep = ""))
-  }
-  if ((is.null(results$IRF)) || (!is.array(results$IRF)) || (any(!is.finite(results$IRF))) || (dim(results$IRF)[1] < 4) || (dim(results$IRF)[3] < 3) || (dim(results$IRF)[2] != ((dim(results$A)[2])^2))) {
-    return(paste("results: IRF from BH_SBVAR() is not present", sep = ""))
-  }
-  if ((is.null(results$FEVD)) || (!is.array(results$FEVD)) || (any(!is.finite(results$FEVD))) || (dim(results$FEVD)[1] < 4) || (dim(results$FEVD)[3] < 3) || (dim(results$FEVD)[2] != ((dim(results$A)[2])^2))) {
-    return(paste("results: FEVD from BH_SBVAR() is not present", sep = ""))
-  }
-  if ((is.null(results$HD)) || (!is.array(results$HD)) || (dim(results$HD)[2] < 4) || (dim(results$HD)[3] < 3) || (dim(results$HD)[2] != ((dim(results$A)[2])^2))) {
-    return(paste("results: HD from BH_SBVAR() is not present", sep = ""))
-  }
+  
   if ((!is.null(xlab)) && ((class(xlab) != "character") || (length(xlab) != 1))) {
-    return(paste("xlab: Must be a character vector containing the label for the horizontal axis", sep = ""))
+    return(paste("xlab: Must be a character vector containing the label for the horizontal axis.", sep = ""))
   }
   if ((!is.null(ylab)) && ((class(ylab) != "character") || (length(ylab) != 1))) {
-    return(paste("ylab: Must be a character vector containing the label for the vertical axis", sep = ""))
+    return(paste("ylab: Must be a character vector containing the label for the vertical axis.", sep = ""))
   }
   return("pass")
-}
-
-#' Plot Impulse Responses
-#' 
-#' Plot Impulse Responses.
-#' @author Paul Richardson
-#' @export
-#' @name IRF_Plots
-#' @param results List containing the results from running BH_SBVAR().
-#' @param varnames Character vector containing the names of the endogenous variables.
-#' @param shocknames Character vector containing the names of the shocks.
-#' @param xlab Character label for the horizontal axis of impulse response plots (default = NULL). Default produces plots without a label for the horizontal axis.
-#' @param ylab Character label for the vertical axis of impulse response plots (default = NULL). Default produces plots without a label for the vertical axis.
-#' @details Plots impulse responses and returns a list containing the actual processed data used to create the plots.
-#' @return A list containing impulse responses.
-#' @examples
-#' # Import data
-#' library(BHSBVAR)
-#' set.seed(123)
-#' data(USLMData)
-#' y0 <- matrix(data = c(USLMData$Wage, USLMData$Employment), ncol = 2)
-#' y <- y0 - (matrix(data = 1, nrow = nrow(y0), ncol = ncol(y0)) %*% 
-#'              diag(x = colMeans(x = y0, na.rm = FALSE, dims = 1)))
-#' colnames(y) <- c("Wage", "Employment")
-#' 
-#' # Set function arguments
-#' nlags <- 8
-#' itr <- 5000
-#' burn <- 0
-#' thin <- 1
-#' acc_irf <- TRUE
-#' h1_irf <- 20
-#' cri <- 0.95
-#' 
-#' # Priors for A
-#' pA <- array(data = NA, dim = c(2, 2, 8))
-#' pA[, , 1] <- c(0, NA, 0, NA)
-#' pA[, , 2] <- c(1, NA, -1, NA)
-#' pA[, , 3] <- c(0.6, 1, -0.6, 1)
-#' pA[, , 4] <- c(0.6, NA, 0.6, NA)
-#' pA[, , 5] <- c(3, NA, 3, NA)
-#' pA[, , 6] <- c(NA, NA, NA, NA)
-#' pA[, , 7] <- c(NA, NA, 1, NA)
-#' pA[, , 8] <- c(2, NA, 2, NA)
-#' 
-#' # Position priors for Phi
-#' pP <- matrix(data = 0, nrow = ((nlags * ncol(pA)) + 1), ncol = ncol(pA))
-#' pP[1:nrow(pA), 1:ncol(pA)] <-
-#'   diag(x = 1, nrow = nrow(pA), ncol = ncol(pA))
-#' 
-#' # Confidence in the priors for Phi
-#' x1 <- 
-#'   matrix(data = NA, nrow = (nrow(y) - nlags), 
-#'          ncol = (ncol(y) * nlags))
-#' for (k in 1:nlags) {
-#'   x1[, (ncol(y) * (k - 1) + 1):(ncol(y) * k)] <-
-#'     y[(nlags - k + 1):(nrow(y) - k),]
-#' }
-#' x1 <- cbind(x1, 1)
-#' colnames(x1) <- 
-#'   c(paste(rep(colnames(y), nlags),
-#'           "_L",
-#'           sort(rep(seq(from = 1, to = nlags, by = 1), times = ncol(y)),
-#'                decreasing = FALSE),
-#'           sep = ""),
-#'     "cons")
-#' y1 <- y[(nlags + 1):nrow(y),]
-#' ee <- matrix(data = NA, nrow = nrow(y1), ncol = ncol(y1))
-#' for (i in 1:ncol(y1)) {
-#'   xx <- cbind(x1[, seq(from = i, to = (ncol(x1) - 1), by = ncol(y1))], 1)
-#'   yy <- matrix(data = y1[, i], ncol = 1)
-#'   phi <- solve(t(xx) %*% xx, t(xx) %*% yy)
-#'   ee[, i] <- yy - (xx %*% phi)
-#' }
-#' somega <- (t(ee) %*% ee) / nrow(ee)
-#' lambda0 <- 0.2
-#' lambda1 <- 1
-#' lambda3 <- 100
-#' v1 <- matrix(data = (1:nlags), nrow = nlags, ncol = 1)
-#' v1 <- v1^((-2) * lambda1)
-#' v2 <- matrix(data = diag(solve(diag(diag(somega)))), ncol = 1)
-#' v3 <- kronecker(v1, v2)
-#' v3 <- (lambda0^2) * rbind(v3, (lambda3^2))
-#' v3 <- 1 / v3
-#' pP_sig <- diag(x = 1, nrow = nrow(v3), ncol = nrow(v3))
-#' diag(pP_sig) <- v3
-#' 
-#' # Confidence in long-run restriction priors
-#' pR_sig <-
-#'   array(data = 0,
-#'         dim = c(((nlags * ncol(y)) + 1),
-#'                 ((nlags * ncol(y)) + 1),
-#'                 ncol(y)))
-#' Ri <-
-#'   cbind(kronecker(matrix(data = 1, nrow = 1, ncol = nlags),
-#'                   matrix(data = c(1, 0), nrow = 1)),
-#'         0)
-#' pR_sig[, , 2] <- (t(Ri) %*% Ri) / 0.1
-#' 
-#' # Confidence in priors for D
-#' kappa1 <- matrix(data = 2, nrow = 1, ncol = ncol(y))
-#' 
-#' # Set graphical parameters
-#' par(cex.axis = 0.8, cex.main = 1, font.main = 1, family = "serif",
-#'     mfrow = c(2, 2), mar = c(2, 2.2, 2, 1), las = 1)
-#' 
-#' # Estimate the parameters of the model
-#' results1 <- 
-#'   BH_SBVAR(y = y, nlags = nlags, pA = pA, pP = pP, pP_sig = pP_sig,
-#'            pR_sig = pR_sig, kappa1 = kappa1, itr = itr, burn = burn,
-#'            thin = thin, acc_irf = acc_irf,
-#'            h1_irf = h1_irf, cri = cri)
-#' 
-#' # Plot impulse responses
-#' varnames <- colnames(USLMData)[2:3]
-#' shocknames <- c("Labor Demand","Labor Supply")
-#' irf_results <- 
-#'   IRF_Plots(results = results1, varnames = varnames,
-#'             shocknames = shocknames)
-IRF_Plots <- function(results, varnames, shocknames = NULL, xlab = NULL, ylab = NULL) {
-  
-  #test arguments
-  test <- check_results(results = results, xlab = xlab, ylab = ylab)
-  if (test != "pass") {
-    stop(test)
-  }
-  if ((class(varnames) != "character") || (length(varnames) != dim(results$A)[2])) {
-    stop(paste("varnames: Must be a character vector containing the names of the endogenous variables", sep = ""))
-  }
-  if (is.null(shocknames)) {
-    shocknames <- varnames
-  }
-  if ((class(shocknames) != "character") || (length(shocknames) != dim(results$A)[2])) {
-    stop(paste("shocknames: Must be a character vector containing the names of the shocks", sep = ""))
-  }
-  
-  if (is.null(xlab)) {
-    xlab <- ""
-  }
-  if (is.null(ylab)) {
-    ylab <- ""
-  }
-  
-  IRF <- results$IRF
-  nvar <- dim(results$A)[1]
-  xticks <- floor(dim(IRF)[1] / 4)
-  
-  #store results from impulse responses
-  irf_results <- vector(mode = "list", length = (nvar * nvar))
-  for (j in 1:nvar) {
-    for (i in 1:nvar) {
-      #impulse responses
-      names(irf_results)[((nvar * (j - 1)) + i)] <- dimnames(IRF)[[2]][((nvar * (j - 1)) + i)]
-      irf_results[[((nvar * (j - 1)) + i)]] <- IRF[, ((nvar * (j - 1)) + i), ]
-      #impulse response plots
-      mat_ts <- stats::ts(cbind(0, irf_results[[((nvar * (j - 1)) + i)]]))
-      colnames(mat_ts) <- c("Series1", "Series2", "Series3", "Series4")
-      stats::ts.plot(mat_ts, col = c("black", "red", "black", "red"), gpars = list(xlab = xlab, ylab = ylab, xaxs = "i", yaxs = "r", xaxt = "n", lty = c(1, 2, 1, 2)))
-      graphics::title(main = paste("Response of ", varnames[i], " to ", shocknames[j], sep = ""), col.main = "black")
-      graphics::axis(side = 1, at = seq(from = 1, to = nrow(mat_ts), by = xticks), labels = seq(from = 0, to = (nrow(mat_ts) - 1),by = xticks))
-    }
-  }
-  return(irf_results)
-}
-
-#' Plot Forecast Error Variance Decompositions
-#' 
-#' Plot Forecast Error Variance Decompositions
-#' @author Paul Richardson
-#' @export
-#' @name FEVD_Plots
-#' @param results List containing the results from running BH_SBVAR().
-#' @param varnames Character vector containing the names of the endogenous variables.
-#' @param shocknames Character vector containing the names of the shocks.
-#' @param xlab Character label for the horizontal axis of impulse response plots (default = NULL). Default produces plots without a label for the horizontal axis.
-#' @param ylab Character label for the vertical axis of impulse response plots (default = NULL). Default produces plots without a label for the vertical axis.
-#' @param rel Boolean indicating whether to display forecast error variance explained by the shock as a percent of total forecast error variance (default = TRUE).
-#' @details Plots impulse responses and returns a list containing the actual processed data used to create the plots.
-#' @return A list containing impulse responses.
-#' @examples
-#' # Import data
-#' library(BHSBVAR)
-#' set.seed(123)
-#' data(USLMData)
-#' y0 <- matrix(data = c(USLMData$Wage, USLMData$Employment), ncol = 2)
-#' y <- y0 - (matrix(data = 1, nrow = nrow(y0), ncol = ncol(y0)) %*% 
-#'              diag(x = colMeans(x = y0, na.rm = FALSE, dims = 1)))
-#' colnames(y) <- c("Wage", "Employment")
-#' 
-#' # Set function arguments
-#' nlags <- 8
-#' itr <- 5000
-#' burn <- 0
-#' thin <- 1
-#' acc_irf <- TRUE
-#' h1_irf <- 20
-#' cri <- 0.95
-#' 
-#' # Priors for A
-#' pA <- array(data = NA, dim = c(2, 2, 8))
-#' pA[, , 1] <- c(0, NA, 0, NA)
-#' pA[, , 2] <- c(1, NA, -1, NA)
-#' pA[, , 3] <- c(0.6, 1, -0.6, 1)
-#' pA[, , 4] <- c(0.6, NA, 0.6, NA)
-#' pA[, , 5] <- c(3, NA, 3, NA)
-#' pA[, , 6] <- c(NA, NA, NA, NA)
-#' pA[, , 7] <- c(NA, NA, 1, NA)
-#' pA[, , 8] <- c(2, NA, 2, NA)
-#' 
-#' # Position priors for Phi
-#' pP <- matrix(data = 0, nrow = ((nlags * ncol(pA)) + 1), ncol = ncol(pA))
-#' pP[1:nrow(pA), 1:ncol(pA)] <-
-#'   diag(x = 1, nrow = nrow(pA), ncol = ncol(pA))
-#' 
-#' # Confidence in the priors for Phi
-#' x1 <- 
-#'   matrix(data = NA, nrow = (nrow(y) - nlags), 
-#'          ncol = (ncol(y) * nlags))
-#' for (k in 1:nlags) {
-#'   x1[, (ncol(y) * (k - 1) + 1):(ncol(y) * k)] <-
-#'     y[(nlags - k + 1):(nrow(y) - k),]
-#' }
-#' x1 <- cbind(x1, 1)
-#' colnames(x1) <- 
-#'   c(paste(rep(colnames(y), nlags),
-#'           "_L",
-#'           sort(rep(seq(from = 1, to = nlags, by = 1), times = ncol(y)),
-#'                decreasing = FALSE),
-#'           sep = ""),
-#'     "cons")
-#' y1 <- y[(nlags + 1):nrow(y),]
-#' ee <- matrix(data = NA, nrow = nrow(y1), ncol = ncol(y1))
-#' for (i in 1:ncol(y1)) {
-#'   xx <- cbind(x1[, seq(from = i, to = (ncol(x1) - 1), by = ncol(y1))], 1)
-#'   yy <- matrix(data = y1[, i], ncol = 1)
-#'   phi <- solve(t(xx) %*% xx, t(xx) %*% yy)
-#'   ee[, i] <- yy - (xx %*% phi)
-#' }
-#' somega <- (t(ee) %*% ee) / nrow(ee)
-#' lambda0 <- 0.2
-#' lambda1 <- 1
-#' lambda3 <- 100
-#' v1 <- matrix(data = (1:nlags), nrow = nlags, ncol = 1)
-#' v1 <- v1^((-2) * lambda1)
-#' v2 <- matrix(data = diag(solve(diag(diag(somega)))), ncol = 1)
-#' v3 <- kronecker(v1, v2)
-#' v3 <- (lambda0^2) * rbind(v3, (lambda3^2))
-#' v3 <- 1 / v3
-#' pP_sig <- diag(x = 1, nrow = nrow(v3), ncol = nrow(v3))
-#' diag(pP_sig) <- v3
-#' 
-#' # Confidence in long-run restriction priors
-#' pR_sig <-
-#'   array(data = 0,
-#'         dim = c(((nlags * ncol(y)) + 1),
-#'                 ((nlags * ncol(y)) + 1),
-#'                 ncol(y)))
-#' Ri <-
-#'   cbind(kronecker(matrix(data = 1, nrow = 1, ncol = nlags),
-#'                   matrix(data = c(1, 0), nrow = 1)),
-#'         0)
-#' pR_sig[, , 2] <- (t(Ri) %*% Ri) / 0.1
-#' 
-#' # Confidence in priors for D
-#' kappa1 <- matrix(data = 2, nrow = 1, ncol = ncol(y))
-#' 
-#' # Set graphical parameters
-#' par(cex.axis = 0.8, cex.main = 1, font.main = 1, family = "serif",
-#'     mfrow = c(2, 2), mar = c(2, 2.2, 2, 1), las = 1)
-#' 
-#' # Estimate the parameters of the model
-#' results1 <- 
-#'   BH_SBVAR(y = y, nlags = nlags, pA = pA, pP = pP, pP_sig = pP_sig,
-#'            pR_sig = pR_sig, kappa1 = kappa1, itr = itr, burn = burn,
-#'            thin = thin, acc_irf = acc_irf,
-#'            h1_irf = h1_irf, cri = cri)
-#' 
-#' # Plot impulse responses
-#' varnames <- colnames(USLMData)[2:3]
-#' shocknames <- c("Labor Demand","Labor Supply")
-#' fevd_results <- 
-#'   FEVD_Plots(results = results1, varnames = varnames,
-#'             shocknames = shocknames)
-FEVD_Plots <- function(results, varnames, shocknames = NULL, xlab = NULL, ylab = NULL, rel = TRUE) {
-  
-  #test arguments
-  test <- check_results(results = results, xlab = xlab, ylab = ylab)
-  if (test != "pass") {
-    stop(test)
-  }
-  if ((class(varnames) != "character") || (length(varnames) != dim(results$A)[2])) {
-    stop(paste("varnames: Must be a character vector containing the names of the endogenous variables", sep = ""))
-  }
-  if (is.null(shocknames)) {
-    shocknames <- varnames
-  }
-  if ((class(shocknames) != "character") || (length(shocknames) != dim(results$A)[2])) {
-    stop(paste("shocknames: Must be a character vector containing the names of the shocks", sep = ""))
-  }
-  
-  if (is.null(xlab)) {
-    xlab <- ""
-  }
-  if (is.null(ylab)) {
-    ylab <- ""
-  }
-  
-  if (!isTRUE(rel) & !isFALSE(rel)) {
-    stop("rel: Must be TRUE or FALSE.")
-  }
-  
-  FEVD <- results$FEVD
-  nvar <- dim(results$A)[1]
-  xticks <- floor(dim(FEVD)[1] / 4)
-  y <- results$y
-  ycolnames <- colnames(y)
-  FEVDcolnames <- dimnames(FEVD)[[2]]
-  
-  colors1 <- c("black", "red", "black", "red")
-  lty1 <- c(1, 2, 1, 2)
-  if (rel) {
-    colors1[] <- rep(x = "black", times = length(colors1))
-    lty1[] <- rep(x = 1, times = length(lty1))
-    ind1 <- rep(x = 0, times = length(varnames))
-    for (i in 1:length(varnames)) {
-      ind1[] <- grep(pattern = paste0("Res_", colnames(y)[i]), x = colnames(FEVD))
-      FEVD[, ind1, "50%"] <- FEVD[, ind1, "50%"] * matrix(data = rep(x = (100 / rowSums(FEVD[, ind1, "50%"])), times = ncol(y)), ncol = ncol(y), dimnames = list(NULL, FEVDcolnames[ind1]))
-    }
-    FEVD[, , c(1, 3)] <- FEVD[, , "50%"]
-  }
-  dimnames(FEVD)[[3]] <- rep(x = "50%", times = 3)
-  
-  #store results from fevd responses
-  fevd_results <- vector(mode = "list", length = (nvar * nvar))
-  for (j in 1:nvar) {
-    for (i in 1:nvar) {
-      #fevd responses
-      names(fevd_results)[((nvar * (j - 1)) + i)] <- FEVDcolnames[((nvar * (j - 1)) + i)]
-      fevd_results[[((nvar * (j - 1)) + i)]] <- FEVD[, ((nvar * (j - 1)) + i), ]
-      #fevd response plots
-      mat_ts <- stats::ts(cbind(0, fevd_results[[((nvar * (j - 1)) + i)]]))
-      colnames(mat_ts) <- c("Series1", "Series2", "Series3", "Series4")
-      stats::ts.plot(mat_ts, col = colors1, gpars = list(xlab = xlab, ylab = ylab, xaxs = "i", yaxs = "r", xaxt = "n", lty = lty1))
-      graphics::title(main = paste("Response of ", varnames[i], " to ", shocknames[j], sep = ""), col.main = "black")
-      graphics::axis(side = 1, at = seq(from = 1, to = nrow(mat_ts), by = xticks), labels = seq(from = 0, to = (nrow(mat_ts) - 1),by = xticks))
-    }
-  }
-  return(fevd_results)
-}
-
-#' Plot Historical Decompositions
-#' 
-#' Plot Historical Decompositions.
-#' @author Paul Richardson
-#' @export
-#' @name HD_Plots
-#' @param results List containing the results from running BH_SBVAR().
-#' @param varnames Character vector containing the names of the endogenous variables.
-#' @param shocknames Character vector containing the names of the shocks.
-#' @param xlab Character label for the horizontal axis of historical decomposition plots (default = NULL). Default produces plots without a label for the horizontal axis.
-#' @param ylab Character label for the vertical axis of historical decomposition plots (default = NULL). Default produces plots without a label for the vertical axis.
-#' @param freq Numeric value indicating the frequency of the data.
-#' @param start_date Numeric vector indicating the date of the first observation of the endogenous variables included in the model.
-#' @details Plots historical decompositions and returns a list containing the actual processed data used to create the plots.
-#' @return A list containing historical decompositions.
-#' @examples
-#' # Import data
-#' library(BHSBVAR)
-#' set.seed(123)
-#' data(USLMData)
-#' y0 <- matrix(data = c(USLMData$Wage, USLMData$Employment), ncol = 2)
-#' y <- y0 - (matrix(data = 1, nrow = nrow(y0), ncol = ncol(y0)) %*% 
-#'              diag(x = colMeans(x = y0, na.rm = FALSE, dims = 1)))
-#' colnames(y) <- c("Wage", "Employment")
-#' 
-#' # Set function arguments
-#' nlags <- 8
-#' itr <- 5000
-#' burn <- 0
-#' thin <- 1
-#' acc_irf <- TRUE
-#' h1_irf <- 20
-#' cri <- 0.95
-#' 
-#' # Priors for A
-#' pA <- array(data = NA, dim = c(2, 2, 8))
-#' pA[, , 1] <- c(0, NA, 0, NA)
-#' pA[, , 2] <- c(1, NA, -1, NA)
-#' pA[, , 3] <- c(0.6, 1, -0.6, 1)
-#' pA[, , 4] <- c(0.6, NA, 0.6, NA)
-#' pA[, , 5] <- c(3, NA, 3, NA)
-#' pA[, , 6] <- c(NA, NA, NA, NA)
-#' pA[, , 7] <- c(NA, NA, 1, NA)
-#' pA[, , 8] <- c(2, NA, 2, NA)
-#' 
-#' # Position priors for Phi
-#' pP <- matrix(data = 0, nrow = ((nlags * ncol(pA)) + 1), ncol = ncol(pA))
-#' pP[1:nrow(pA), 1:ncol(pA)] <-
-#'   diag(x = 1, nrow = nrow(pA), ncol = ncol(pA))
-#' 
-#' # Confidence in the priors for Phi
-#' x1 <- 
-#'   matrix(data = NA, nrow = (nrow(y) - nlags), 
-#'          ncol = (ncol(y) * nlags))
-#' for (k in 1:nlags) {
-#'   x1[, (ncol(y) * (k - 1) + 1):(ncol(y) * k)] <-
-#'     y[(nlags - k + 1):(nrow(y) - k),]
-#' }
-#' x1 <- cbind(x1, 1)
-#' colnames(x1) <- 
-#'   c(paste(rep(colnames(y), nlags),
-#'           "_L",
-#'           sort(rep(seq(from = 1, to = nlags, by = 1), times = ncol(y)),
-#'                decreasing = FALSE),
-#'           sep = ""),
-#'     "cons")
-#' y1 <- y[(nlags + 1):nrow(y),]
-#' ee <- matrix(data = NA, nrow = nrow(y1), ncol = ncol(y1))
-#' for (i in 1:ncol(y1)) {
-#'   xx <- cbind(x1[, seq(from = i, to = (ncol(x1) - 1), by = ncol(y1))], 1)
-#'   yy <- matrix(data = y1[, i], ncol = 1)
-#'   phi <- solve(t(xx) %*% xx, t(xx) %*% yy)
-#'   ee[, i] <- yy - (xx %*% phi)
-#' }
-#' somega <- (t(ee) %*% ee) / nrow(ee)
-#' lambda0 <- 0.2
-#' lambda1 <- 1
-#' lambda3 <- 100
-#' v1 <- matrix(data = (1:nlags), nrow = nlags, ncol = 1)
-#' v1 <- v1^((-2) * lambda1)
-#' v2 <- matrix(data = diag(solve(diag(diag(somega)))), ncol = 1)
-#' v3 <- kronecker(v1, v2)
-#' v3 <- (lambda0^2) * rbind(v3, (lambda3^2))
-#' v3 <- 1 / v3
-#' pP_sig <- diag(x = 1, nrow = nrow(v3), ncol = nrow(v3))
-#' diag(pP_sig) <- v3
-#' 
-#' # Confidence in long-run restriction priors
-#' pR_sig <-
-#'   array(data = 0,
-#'         dim = c(((nlags * ncol(y)) + 1),
-#'                 ((nlags * ncol(y)) + 1),
-#'                 ncol(y)))
-#' Ri <-
-#'   cbind(kronecker(matrix(data = 1, nrow = 1, ncol = nlags),
-#'                   matrix(data = c(1, 0), nrow = 1)),
-#'         0)
-#' pR_sig[, , 2] <- (t(Ri) %*% Ri) / 0.1
-#' 
-#' # Confidence in priors for D
-#' kappa1 <- matrix(data = 2, nrow = 1, ncol = ncol(y))
-#' 
-#' # Set graphical parameters
-#' par(cex.axis = 0.8, cex.main = 1, font.main = 1, family = "serif",
-#'     mfrow = c(2, 2), mar = c(2, 2.2, 2, 1), las = 1)
-#' 
-#' # Estimate the parameters of the model
-#' results1 <- 
-#'   BH_SBVAR(y = y, nlags = nlags, pA = pA, pP = pP, pP_sig = pP_sig,
-#'            pR_sig = pR_sig, kappa1 = kappa1, itr = itr, burn = burn,
-#'            thin = thin, acc_irf = acc_irf,
-#'            h1_irf = h1_irf, cri = cri)
-#' 
-#' # Plot historical decompositions
-#' varnames <- colnames(USLMData)[2:3]
-#' shocknames <- c("Labor Demand","Labor Supply")
-#' freq <- 4
-#' start_date <- 
-#'   c(floor(USLMData[(nlags + 1), 1]),
-#'     round(((USLMData[(nlags + 1), 1] %% 1) * freq), digits = 0))
-#' hd_results <- 
-#'   HD_Plots(results  = results1, varnames = varnames,
-#'            shocknames = shocknames,
-#'            freq = freq, start_date = start_date)
-HD_Plots <- function(results, varnames, shocknames = NULL, xlab = NULL, ylab = NULL, freq, start_date) {
-  
-  #test arguments
-  test <- check_results(results = results, xlab = xlab, ylab = ylab)
-  if (test != "pass") {
-    stop(test)
-  }
-  if ((class(varnames) != "character") || (length(varnames) != dim(results$A)[2])) {
-    stop(paste("varnames: Must be a character vector containing the names of the endogenous variables", sep = ""))
-  }
-  if (is.null(shocknames)) {
-    shocknames <- varnames
-  }
-  if ((class(shocknames) != "character") || (length(shocknames) != dim(results$A)[2])) {
-    stop(paste("shocknames: Must be a character vector containing the names of the shocks", sep = ""))
-  }
-  if ((class(freq) != "numeric") || (!is.finite(freq)) || (length(freq) != 1) || ((freq %% 1) != 0) || (freq < 1)) {
-    stop("freq: Must be a finite whole number grater than 0.")
-  }
-  if ((class(start_date) != "numeric") || (any(!is.finite(start_date))) || (length(start_date) != 2) || (any((start_date %% 1) != 0)) || (any(start_date < 0))) {
-    stop("start_date: Must be a numeric vector containing finite whole numbers greater than or equal to 0.")
-  }
-  
-  if (is.null(xlab)) {
-    xlab <- ""
-  }
-  if (is.null(ylab)) {
-    ylab <- ""
-  }
-  
-  y <- results$y
-  HD <- results$HD
-  nvar <- dim(results$A)[1]
-  
-  #store results from histroical decompositions
-  hd_results <- vector(mode = "list", length = (nvar * nvar))
-  for (j in 1:nvar) {
-    for (i in 1:nvar) {
-      #historical decomposition
-      names(hd_results)[((nvar * (j - 1)) + i)] <- dimnames(HD)[[2]][((nvar * (j - 1)) + i)]
-      hd_results[[((nvar * (j - 1)) + i)]] <- HD[, ((nvar * (j - 1)) + i), ]
-      #historical decomposition plots
-      mat_ts <- stats::ts(cbind(0, y[, i], hd_results[[((nvar * (j - 1)) + i)]]), frequency = freq, start = start_date)
-      colnames(mat_ts) <- c("Series1", "Series2", "Series3", "Series4", "Series5")
-      stats::ts.plot(mat_ts, col = c("black", "black", "red", "red", "red"), gpars = list(xlab = xlab, ylab = ylab, xaxs = "i", yaxs = "r", lty = c(1, 1, 2, 1, 2)))
-      graphics::title(main = paste("Contribution of ", shocknames[j], " Shocks on ", varnames[i], sep = ""), col.main = "black")
-    }
-  }
-  return(hd_results)
 }
 
 # Density Plots
@@ -1428,8 +903,8 @@ den_plot <- function(list2, den1, elast, lb, ub, nticks0, A_titles, H_titles, xl
 #' itr <- 5000
 #' burn <- 0
 #' thin <- 1
-#' acc_irf <- TRUE
-#' h1_irf <- 20
+#' acc <- TRUE
+#' h <- 20
 #' cri <- 0.95
 #' 
 #' # Priors for A
@@ -1508,8 +983,7 @@ den_plot <- function(list2, den1, elast, lb, ub, nticks0, A_titles, H_titles, xl
 #' results1 <- 
 #'   BH_SBVAR(y = y, nlags = nlags, pA = pA, pP = pP, pP_sig = pP_sig,
 #'            pR_sig = pR_sig, kappa1 = kappa1, itr = itr, burn = burn,
-#'            thin = thin, acc_irf = acc_irf,
-#'            h1_irf = h1_irf, cri = cri)
+#'            thin = thin, cri = cri)
 #' 
 #' # Plot Posterior and Prior Densities
 #' A_titles <- 

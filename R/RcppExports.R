@@ -51,7 +51,25 @@ log_likelihood_function <- function(A_test, kappa1, y1, omega, zeta_test, somega
 
 #' @useDynLib BHSBVAR, .registration = TRUE
 #' @keywords internal
-MAIN <- function(y1, x1, omega, somega, nlags, pA, pdetA, pH, pP, pP_sig, pR_sig, kappa1, A_start, itr, burn, thin, scale1, h1_irf, acc_irf, ci, varnames, line_plot, acf_plot, rA, rB, rD) {
-    .Call(`_BHSBVAR_MAIN`, y1, x1, omega, somega, nlags, pA, pdetA, pH, pP, pP_sig, pR_sig, kappa1, A_start, itr, burn, thin, scale1, h1_irf, acc_irf, ci, varnames, line_plot, acf_plot, rA, rB, rD)
+hd_estimates <- function(A_chain, B_chain, y1, x1, pA_ncol, nlags, nsli, ci) {
+    .Call(`_BHSBVAR_hd_estimates`, A_chain, B_chain, y1, x1, pA_ncol, nlags, nsli, ci)
+}
+
+#' @useDynLib BHSBVAR, .registration = TRUE
+#' @keywords internal
+irf_estimates <- function(A_chain, B_chain, pA_ncol, nlags, nsli, h1_irf, acc_irf, ci) {
+    .Call(`_BHSBVAR_irf_estimates`, A_chain, B_chain, pA_ncol, nlags, nsli, h1_irf, acc_irf, ci)
+}
+
+#' @useDynLib BHSBVAR, .registration = TRUE
+#' @keywords internal
+fevd_estimates <- function(A_chain, B_chain, D_chain, pA_ncol, nlags, nsli, h1_irf, acc_irf, ci) {
+    .Call(`_BHSBVAR_fevd_estimates`, A_chain, B_chain, D_chain, pA_ncol, nlags, nsli, h1_irf, acc_irf, ci)
+}
+
+#' @useDynLib BHSBVAR, .registration = TRUE
+#' @keywords internal
+MAIN <- function(y1, x1, omega, somega, nlags, pA, pdetA, pH, pP, pP_sig, pR_sig, kappa1, A_start, itr, burn, thin, scale1, ci) {
+    .Call(`_BHSBVAR_MAIN`, y1, x1, omega, somega, nlags, pA, pdetA, pH, pP, pP_sig, pR_sig, kappa1, A_start, itr, burn, thin, scale1, ci)
 }
 

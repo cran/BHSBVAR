@@ -38,8 +38,8 @@ nlags <- 8
 itr <- 5000
 burn <- 0
 thin <- 1
-acc_irf <- TRUE
-h1_irf <- 20
+acc <- TRUE
+h <- 20
 cri <- 0.95
 
 # Priors for A
@@ -118,8 +118,7 @@ par(cex.axis = 0.8, cex.main = 1, font.main = 1, family = "serif",
 results1 <- 
   BH_SBVAR(y = y, nlags = nlags, pA = pA, pP = pP, pP_sig = pP_sig,
            pR_sig = pR_sig, kappa1 = kappa1, itr = itr, burn = burn,
-           thin = thin, acc_irf = acc_irf,
-           h1_irf = h1_irf, cri = cri)
+           thin = thin, cri = cri)
 
 # Plot Posterior and Prior Densities
 A_titles <- 

@@ -3,9 +3,11 @@
 
 
 //[[Rcpp::depends(RcppArmadillo)]]
+//[[Rcpp::plugins(cpp11)]]
+
 #include <RcppArmadillo.h>
 
-//[[Rcpp::plugins(cpp11)]]
+
 
 
 // Non-Central T-Distribution.
@@ -569,31 +571,10 @@ Rcpp::List den_function(const arma::cube& raw, const arma::cube& priors) {
   
 }
 
-// Line Plots.
-void line_plots(const arma::cube& raw, const arma::cube& priors, const Rcpp::StringVector& prior_name, const Rcpp::Function& line_plot) {
-  arma::uword nrow = raw.n_rows, ncol = raw.n_cols;
-  for (arma::uword i = 0; i < nrow; ++i) {
-    for (arma::uword j = 0; j < ncol; ++j) {
-      if (arma::is_finite(priors(i, j, 0))) {
-        line_plot(Rcpp::_["data1"] = raw(arma::span(i), arma::span(j), arma::span::all), Rcpp::_["prior_name"] = prior_name, Rcpp::_["i"] = (i + 1), Rcpp::_["j"] = (j + 1));
-      }
-    }
-  }
-}
-
-// ACF Plots.
-void acf_plots(const arma::cube& raw, const arma::cube& priors, const Rcpp::StringVector& prior_name, const Rcpp::Function& acf_plot) {
-  arma::uword nrow = raw.n_rows, ncol = raw.n_cols;
-  for (arma::uword i = 0; i < nrow; ++i) {
-    for (arma::uword j = 0; j < ncol; ++j) {
-      if (arma::is_finite(priors(i, j, 0))) {
-        acf_plot(Rcpp::_["data1"] = raw(arma::span(i), arma::span(j), arma::span::all), Rcpp::_["prior_name"] = prior_name, Rcpp::_["i"] = (i + 1), Rcpp::_["j"] = (j + 1));
-      }
-    }
-  }
-}
-
 // Estimate Historical Decompositions and Process Raw Results.
+//' @useDynLib BHSBVAR, .registration = TRUE
+//' @keywords internal
+// [[Rcpp::export]]
 arma::cube hd_estimates(const arma::cube& A_chain, const arma::cube& B_chain, const arma::mat& y1, const arma::mat& x1, const arma::uword pA_ncol, const arma::uword nlags, const arma::uword nsli, const double ci) {
   arma::uword nrow = y1.n_rows, ncol = (pA_ncol * pA_ncol);
   
@@ -656,6 +637,9 @@ arma::cube hd_estimates(const arma::cube& A_chain, const arma::cube& B_chain, co
 }
 
 // Estimate Impulse Responses and Process Raw Results.
+//' @useDynLib BHSBVAR, .registration = TRUE
+//' @keywords internal
+// [[Rcpp::export]]
 arma::cube irf_estimates(const arma::cube& A_chain, const arma::cube& B_chain, const arma::uword pA_ncol, const arma::uword nlags, const arma::uword nsli, const arma::uword h1_irf, const bool acc_irf, const double ci) {
   arma::uword nrow = (h1_irf + 1), ncol = (pA_ncol * pA_ncol);
   
@@ -720,6 +704,9 @@ arma::cube irf_estimates(const arma::cube& A_chain, const arma::cube& B_chain, c
 }
 
 // Estimate Forecast Error Variance Decompositions and Process Raw Results.
+//' @useDynLib BHSBVAR, .registration = TRUE
+//' @keywords internal
+// [[Rcpp::export]]
 arma::cube fevd_estimates(const arma::cube& A_chain, const arma::cube& B_chain, const arma::cube& D_chain, const arma::uword pA_ncol, const arma::uword nlags, const arma::uword nsli, const arma::uword h1_irf, const bool acc_irf, const double ci) {
   arma::uword nrow = (h1_irf + 1), ncol = (pA_ncol * pA_ncol);
   
@@ -835,7 +822,7 @@ arma::cube phi_estimates(const arma::cube& A_chain, const arma::cube& B_chain, c
 }
 
 // Estimate H and Process Raw Results.
-Rcpp::List h_estimates(const arma::cube& A_chain, const arma::uword pA_ncol, const arma::uword nsli, const arma::cube& pH, const Rcpp::Function& line_plot, const Rcpp::Function& acf_plot, const double ci) {
+Rcpp::List h_estimates(const arma::cube& A_chain, const arma::uword pA_ncol, const arma::uword nsli, const arma::cube& pH, const double ci) {
   arma::cube H_chain(pA_ncol, pA_ncol, nsli);
   std::fill(H_chain.begin(), H_chain.end(), Rcpp::NumericVector::get_na());
   
@@ -849,15 +836,13 @@ Rcpp::List h_estimates(const arma::cube& A_chain, const arma::uword pA_ncol, con
     
   }
   
-  acf_plots(H_chain, pH, "pH", acf_plot);
-  line_plots(H_chain, pH, "pH", line_plot);
-  
   return Rcpp::List::create(Rcpp::Named("H_den") = den_function(H_chain, pH),
-                            Rcpp::Named("H") = results_function(H_chain, ci));
+                            Rcpp::Named("H") = results_function(H_chain, ci),
+                            Rcpp::Named("H_chain") = H_chain);
 }
 
 // Estimate det(A) and Process Raw Results.
-Rcpp::List deta_estimates(const arma::cube& A_chain, const arma::uword nsli, const arma::cube& pdetA, const Rcpp::Function& line_plot, const Rcpp::Function& acf_plot, const double ci) {
+Rcpp::List deta_estimates(const arma::cube& A_chain, const arma::uword nsli, const arma::cube& pdetA, const double ci) {
   arma::cube detA_chain(1, 1, nsli);
   std::fill(detA_chain.begin(), detA_chain.end(), Rcpp::NumericVector::get_na());
   
@@ -871,18 +856,17 @@ Rcpp::List deta_estimates(const arma::cube& A_chain, const arma::uword nsli, con
     
   }
   
-  acf_plots(detA_chain, pdetA, "pdetA", acf_plot);
-  line_plots(detA_chain, pdetA, "pdetA", line_plot);
-  
   return Rcpp::List::create(Rcpp::Named("detA_den") = den_function(detA_chain, pdetA),
-                            Rcpp::Named("detA") = results_function(detA_chain, ci));
+                            Rcpp::Named("detA") = results_function(detA_chain, ci),
+                            Rcpp::Named("detA_chain") = detA_chain);
 }
 
 // Estimate the Parameters of the BH_SBVAR Model.
 //' @useDynLib BHSBVAR, .registration = TRUE
 //' @keywords internal
 // [[Rcpp::export]]
-Rcpp::List MAIN(const arma::mat& y1, const arma::mat& x1, const arma::mat& omega, const arma::mat& somega, const arma::uword nlags, const arma::cube& pA, const arma::cube& pdetA, const arma::cube& pH, const arma::mat& pP, const arma::mat& pP_sig, const arma::cube& pR_sig, const arma::mat& kappa1, const arma::mat& A_start, const arma::uword itr, const arma::uword burn, const arma::uword thin, const arma::mat& scale1, const arma::uword h1_irf, const bool acc_irf, const double ci, const Rcpp::StringVector& varnames, const Rcpp::Function& line_plot, const Rcpp::Function& acf_plot, const bool& rA, const bool& rB, const bool& rD) {
+Rcpp::List MAIN(const arma::mat& y1, const arma::mat& x1, const arma::mat& omega, const arma::mat& somega, const arma::uword nlags, const arma::cube& pA, const arma::cube& pdetA, const arma::cube& pH, const arma::mat& pP, const arma::mat& pP_sig, const arma::cube& pR_sig, const arma::mat& kappa1, const arma::mat& A_start, const arma::uword itr, const arma::uword burn, const arma::uword thin, const arma::mat& scale1, const double ci) {
+//Rcpp::List MAIN(const arma::mat& y1, const arma::mat& x1, const arma::mat& omega, const arma::mat& somega, const arma::uword nlags, const arma::cube& pA, const arma::cube& pdetA, const arma::cube& pH, const arma::mat& pP, const arma::mat& pP_sig, const arma::cube& pR_sig, const arma::mat& kappa1, const arma::mat& A_start, const arma::uword itr, const arma::uword burn, const arma::uword thin, const arma::mat& scale1, const arma::uword h1_irf, const bool acc_irf, const double ci, const Rcpp::StringVector& varnames, const Rcpp::Function& line_plot, const Rcpp::Function& acf_plot, const bool& rA, const bool& rB, const bool& rD) {
   arma::uword pA_ncol = pA.n_cols, B_nrow = ((y1.n_cols * nlags) + 1);
   double totals = double (itr - burn), totalt = double (thin), y1_nrow = double (y1.n_rows);
   arma::uword nsli = arma::uword (std::floor((totals / totalt)));
@@ -950,24 +934,23 @@ Rcpp::List MAIN(const arma::mat& y1, const arma::mat& x1, const arma::mat& omega
     }
   }
   
-  acf_plots(A_chain, pA, "pA", acf_plot);
-  line_plots(A_chain, pA, "pA", line_plot);
-  
-  Rcpp::List list2 = deta_estimates(A_chain, nsli, pdetA, line_plot, acf_plot, ci);
-  Rcpp::List list3 = h_estimates(A_chain, pA_ncol, nsli, pH, line_plot, acf_plot, ci);
+  Rcpp::List list2 = deta_estimates(A_chain, nsli, pdetA, ci);
+  Rcpp::List list3 = h_estimates(A_chain, pA_ncol, nsli, pH, ci);
   
   Rcpp::List list4(28);
   list4.names() = 
     Rcpp::CharacterVector(
-      {"accept_rate", "y", "x", "pA", "pdetA", "pH", "pP", "pP_sig", "pR", "pR_sig",
-       "tau1", "kappa1", "A_start", "A", "detA", "H", "B", "Phi", "D", "HD", "IRF", "FEVD",
-       "A_den", "detA_den", "H_den", "A_chain", "B_chain", "D_chain"}
+      {"accept_rate", "y", "x", "nlags", "pA", "pdetA", "pH", "pP", "pP_sig", "pR", "pR_sig",
+       "tau1", "kappa1", "A_start", "A", "detA", "H", "B", "Phi", "D",
+       "A_den", "detA_den", "H_den", "A_chain", "B_chain", "D_chain", "detA_chain", "H_chain"}
     );
   
   list4["accept_rate"] = accept_rate;
   
   list4["y"] = y1;
   list4["x"] = x1;
+  
+  list4["nlags"] = nlags;
   
   list4["pA"] = pA;
   list4["pdetA"] = pdetA;
@@ -988,24 +971,16 @@ Rcpp::List MAIN(const arma::mat& y1, const arma::mat& x1, const arma::mat& omega
   list4["Phi"] = phi_estimates(A_chain, B_chain, pA_ncol, nlags, nsli, ci);
   list4["D"] = results_function(D_chain, ci);
   
-  list4["HD"] = hd_estimates(A_chain, B_chain, y1, x1, pA_ncol, nlags, nsli, ci);
-  list4["IRF"] = irf_estimates(A_chain, B_chain, pA_ncol, nlags, nsli, h1_irf, acc_irf, ci);
-  list4["FEVD"] = fevd_estimates(A_chain, B_chain, D_chain, pA_ncol, nlags, nsli, h1_irf, acc_irf, ci);
-  
   list4["A_den"] = den_function(A_chain, pA);
   list4["detA_den"] = list2["detA_den"];
   list4["H_den"] = list3["H_den"];
   
-  if (rA) {
-    list4["A_chain"] = A_chain;
-  }
-  if (rB) {
-    list4["B_chain"] = B_chain;
-  }
-  if (rD) {
-    list4["D_chain"] = D_chain;
-  }
-  
+  list4["A_chain"] = A_chain;
+  list4["B_chain"] = B_chain;
+  list4["D_chain"] = D_chain;
+  list4["detA_chain"] = list2["detA_chain"];
+  list4["H_chain"] = list3["H_chain"];
+
   return list4;
 }
 

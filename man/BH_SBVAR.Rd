@@ -17,13 +17,7 @@ BH_SBVAR(
   itr = 5000,
   burn = 0,
   thin = 1,
-  acc_irf = TRUE,
-  h1_irf = 12,
-  ci = NULL,
-  cri = 0.95,
-  rA = FALSE,
-  rB = FALSE,
-  rD = FALSE
+  cri = 0.95
 )
 }
 \arguments{
@@ -51,19 +45,7 @@ BH_SBVAR(
 
 \item{thin}{Integer specifying the thinning parameter (default = 1). All draws beyond burn are kept when thin = 1. Draw 1, draw 3, etc. beyond burn are kept when thin = 2.}
 
-\item{acc_irf}{Boolean indicating whether accumulated impulse responses are to be returned (default = TRUE).}
-
-\item{h1_irf}{Integer specifying the time horizon for computing impulse responses (default = 12).}
-
-\item{ci}{Numeric value used to determine the upper and lower bound of credibility intervals for the estimates to be returned (default = 0.975). A value of 0.975 will return 95\% credibility intervals. A value of 0.95 will return 90\% credibility intervals. Use the \code{cri} argument instead of the \code{ci} argument.}
-
 \item{cri}{credibility intervals for the estimates to be returned (default = 0.95). A value of 0.95 will return 95\% credibility intervals. A value of 0.90 will return 90\% credibility intervals.}
-
-\item{rA}{Boolean indicating whether raw results for \emph{A} should be returned (default = FALSE).}
-
-\item{rB}{Boolean indicating whether raw results for \emph{B} should be returned (default = FALSE).}
-
-\item{rD}{Boolean indicating whether raw results for \emph{D} should be returned (default = FALSE).}
 }
 \value{
 A list containing the following:
@@ -72,17 +54,17 @@ accept_rate: Acceptance rate of the algorithm.
 
 y and x: Matrices containing the endogenous variables and their lags.
 
+nlags: Numeric value indicating the number of lags included in the model.
+
 pA, pdetA, pH, pP, pP_sig, pR, pR_sig, tau1, and kappa1: Matrices and arrays containing prior information.
 
 A_start: Matrix containing estimates of the parameters in \emph{A} from the optimization routine.
 
 A, detA, H, B, Phi, and D: Arrays containing estimates of the model parameters. The first, second, and third slices of the third dimension are lower, median, and upper bounds of the estimates.
 
-HD, IRF, FEVD: Arrays containing historical decompositions, impulse response functions, and variance decompositions. The first, second, and third slices of the third dimension are lower, median, and upper bounds of the estimates.
-
 A_den, detA_den, and H_den: Lists containing the horizontal and vertical axis coordinates of posterior densities of \emph{A}, \emph{det(A)}, and \emph{H}.
 
-A_chain, B_chain, D_chain: Arrays containing the raw results for \emph{A}, \emph{B}, \emph{D}.
+A_chain, B_chain, D_chain, detA_chain, H_chain: Arrays containing the raw results for \emph{A}, \emph{B}, \emph{D}, \emph{detA}, \emph{H}.
 
 Line and ACF plots of the estimates for \emph{A}, \emph{det(A)}, and \emph{H}.
 }
@@ -107,8 +89,6 @@ nlags <- 8
 itr <- 5000
 burn <- 0
 thin <- 1
-acc_irf <- TRUE
-h1_irf <- 20
 cri <- 0.95
 
 # Priors for A
@@ -187,8 +167,7 @@ par(cex.axis = 0.8, cex.main = 1, font.main = 1, family = "serif",
 results1 <- 
   BH_SBVAR(y = y, nlags = nlags, pA = pA, pP = pP, pP_sig = pP_sig,
            pR_sig = pR_sig, kappa1 = kappa1, itr = itr, burn = burn,
-           thin = thin, acc_irf = acc_irf,
-           h1_irf = h1_irf, cri = cri)
+           thin = thin, cri = cri)
 }
 \references{
 Baumeister, C., & Hamilton, J.D. (2015). Sign restrictions, structural vector autoregressions, and useful prior information. \emph{Econometrica}, 83(5), 1963-1999.
