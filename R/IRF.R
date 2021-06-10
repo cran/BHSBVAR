@@ -3,6 +3,7 @@
 #' Impulse Responses
 #' @author Paul Richardson
 #' @export
+#' @import Rcpp
 #' @name IRF
 #' @param results List containing the results from running BH_SBVAR().
 #' @param h Integer specifying the time horizon for computing impulse responses (default = 12).
@@ -116,9 +117,31 @@
 #'   IRF_Plots(results = irf, varnames = varnames,
 #'             shocknames = shocknames)
 IRF <- function(results, h = 12, acc = TRUE, cri = 0.95) {
+  
+  test <- BH_SBVAR_results_check(results = results)
+  if (test != "pass") {
+    stop(test)
+  }
+  
+  if ((all(!is.numeric(h))) || (length(h) > 1)) {
+    stop("h: Should be a single number.")
+  }
+  if ((h != round(x = h, digits = 0)) | (h < 3)) {
+    stop("h: Should be a positive integer greater than 3.")
+  }
+  if ((all(!is.numeric(cri))) || (length(cri) > 1)) {
+    "cri: Should be a single number."
+  }
+  if ((cri > 1) | (cri < 0.5)) {
+    stop("cri: Should be a positive value between 1 and 0.5.")
+  }
+  if ((!is.logical(acc)) || (is.na(acc))) {
+    stop(paste("acc_irf: Must be logical 'TRUE' or 'FALSE'.", sep = ""))
+  }
+  
   varnames <- colnames(results$y)
   ci <- (1.0 - ((1.0 - cri) / 2.0))
-  pA_ncol <- dim(results$A_chain[, , ])[2]
+  nvar <- dim(results$A_chain[, , ])[2]
   nlags <- results$nlags
   nsli <- dim(results$A_chain[, , ])[3]
   
@@ -126,10 +149,9 @@ IRF <- function(results, h = 12, acc = TRUE, cri = 0.95) {
     stop(paste("acc: Must be logical 'TRUE' or 'FALSE'.", sep = ""))
   }
   
-  irf <- irf_estimates(A_chain = results$A_chain[, , ], 
-                       B_chain = results$B_chain[, , ], 
-                       pA_ncol = pA_ncol, nlags = nlags, nsli = nsli, h1_irf = h, acc_irf = acc, ci = ci)
-  dimnames(irf) <- list(NULL, paste0("Res_", varnames, paste0("_Shk_", varnames[c(sort(x = rep(x = c(1:pA_ncol), times = pA_ncol)))])), paste0(c(((1 - ci) * 100), 50, (ci * 100)),"%"))
+  irf <- irf_estimates(A_chain = results$A_chain[, , ], B_chain = results$B_chain[, , ], nlags = nlags, h = h, acc = acc, ci = ci)
+  
+  dimnames(irf) <- list(NULL, paste0("Res_", varnames, paste0("_Shk_", varnames[c(sort(x = rep(x = c(1:nvar), times = nvar)))])), paste0(c(((1 - ci) * 100), 50, (ci * 100)),"%"))
   
   return(irf)
 }
@@ -255,18 +277,18 @@ IRF <- function(results, h = 12, acc = TRUE, cri = 0.95) {
 IRF_Plots <- function(results, varnames, shocknames = NULL, xlab = NULL, ylab = NULL) {
   
   #test arguments
-  test <- check_results(results = results, xlab = xlab, ylab = ylab)
+  test <- plot_funs_args_check(results = results, xlab = xlab, ylab = ylab)
   if (test != "pass") {
     stop(test)
   }
-  if ((class(varnames) != "character") || (length(varnames) != sqrt(dim(results)[2]))) {
-    stop(paste("varnames: Must be a character vector containing the names of the endogenous variables", sep = ""))
+  if (!is.vector(varnames) || (class(varnames) != "character") || (length(varnames) != sqrt(dim(results)[2]))) {
+    stop(paste("varnames: Must be a character vector containing the names of the endogenous variables.", sep = ""))
   }
   if (is.null(shocknames)) {
     shocknames <- varnames
   }
-  if ((class(shocknames) != "character") || (length(shocknames) != sqrt(dim(results)[2]))) {
-    stop(paste("shocknames: Must be a character vector containing the names of the shocks", sep = ""))
+  if (!is.vector(shocknames) || (class(shocknames) != "character") || (length(shocknames) != sqrt(dim(results)[2]))) {
+    stop(paste("shocknames: Must be a character vector containing the names of the shocks.", sep = ""))
   }
   
   if (is.null(xlab)) {

@@ -120,8 +120,8 @@ BEGIN_RCPP
 END_RCPP
 }
 // hd_estimates
-arma::cube hd_estimates(const arma::cube& A_chain, const arma::cube& B_chain, const arma::mat& y1, const arma::mat& x1, const arma::uword pA_ncol, const arma::uword nlags, const arma::uword nsli, const double ci);
-RcppExport SEXP _BHSBVAR_hd_estimates(SEXP A_chainSEXP, SEXP B_chainSEXP, SEXP y1SEXP, SEXP x1SEXP, SEXP pA_ncolSEXP, SEXP nlagsSEXP, SEXP nsliSEXP, SEXP ciSEXP) {
+arma::cube hd_estimates(const arma::cube& A_chain, const arma::cube& B_chain, const arma::mat& y1, const arma::mat& x1, const arma::uword nlags, const double ci);
+RcppExport SEXP _BHSBVAR_hd_estimates(SEXP A_chainSEXP, SEXP B_chainSEXP, SEXP y1SEXP, SEXP x1SEXP, SEXP nlagsSEXP, SEXP ciSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
@@ -129,48 +129,42 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const arma::cube& >::type B_chain(B_chainSEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type y1(y1SEXP);
     Rcpp::traits::input_parameter< const arma::mat& >::type x1(x1SEXP);
-    Rcpp::traits::input_parameter< const arma::uword >::type pA_ncol(pA_ncolSEXP);
     Rcpp::traits::input_parameter< const arma::uword >::type nlags(nlagsSEXP);
-    Rcpp::traits::input_parameter< const arma::uword >::type nsli(nsliSEXP);
     Rcpp::traits::input_parameter< const double >::type ci(ciSEXP);
-    rcpp_result_gen = Rcpp::wrap(hd_estimates(A_chain, B_chain, y1, x1, pA_ncol, nlags, nsli, ci));
+    rcpp_result_gen = Rcpp::wrap(hd_estimates(A_chain, B_chain, y1, x1, nlags, ci));
     return rcpp_result_gen;
 END_RCPP
 }
 // irf_estimates
-arma::cube irf_estimates(const arma::cube& A_chain, const arma::cube& B_chain, const arma::uword pA_ncol, const arma::uword nlags, const arma::uword nsli, const arma::uword h1_irf, const bool acc_irf, const double ci);
-RcppExport SEXP _BHSBVAR_irf_estimates(SEXP A_chainSEXP, SEXP B_chainSEXP, SEXP pA_ncolSEXP, SEXP nlagsSEXP, SEXP nsliSEXP, SEXP h1_irfSEXP, SEXP acc_irfSEXP, SEXP ciSEXP) {
+arma::cube irf_estimates(const arma::cube& A_chain, const arma::cube& B_chain, const arma::uword nlags, const arma::uword h, const bool acc, const double ci);
+RcppExport SEXP _BHSBVAR_irf_estimates(SEXP A_chainSEXP, SEXP B_chainSEXP, SEXP nlagsSEXP, SEXP hSEXP, SEXP accSEXP, SEXP ciSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const arma::cube& >::type A_chain(A_chainSEXP);
     Rcpp::traits::input_parameter< const arma::cube& >::type B_chain(B_chainSEXP);
-    Rcpp::traits::input_parameter< const arma::uword >::type pA_ncol(pA_ncolSEXP);
     Rcpp::traits::input_parameter< const arma::uword >::type nlags(nlagsSEXP);
-    Rcpp::traits::input_parameter< const arma::uword >::type nsli(nsliSEXP);
-    Rcpp::traits::input_parameter< const arma::uword >::type h1_irf(h1_irfSEXP);
-    Rcpp::traits::input_parameter< const bool >::type acc_irf(acc_irfSEXP);
+    Rcpp::traits::input_parameter< const arma::uword >::type h(hSEXP);
+    Rcpp::traits::input_parameter< const bool >::type acc(accSEXP);
     Rcpp::traits::input_parameter< const double >::type ci(ciSEXP);
-    rcpp_result_gen = Rcpp::wrap(irf_estimates(A_chain, B_chain, pA_ncol, nlags, nsli, h1_irf, acc_irf, ci));
+    rcpp_result_gen = Rcpp::wrap(irf_estimates(A_chain, B_chain, nlags, h, acc, ci));
     return rcpp_result_gen;
 END_RCPP
 }
 // fevd_estimates
-arma::cube fevd_estimates(const arma::cube& A_chain, const arma::cube& B_chain, const arma::cube& D_chain, const arma::uword pA_ncol, const arma::uword nlags, const arma::uword nsli, const arma::uword h1_irf, const bool acc_irf, const double ci);
-RcppExport SEXP _BHSBVAR_fevd_estimates(SEXP A_chainSEXP, SEXP B_chainSEXP, SEXP D_chainSEXP, SEXP pA_ncolSEXP, SEXP nlagsSEXP, SEXP nsliSEXP, SEXP h1_irfSEXP, SEXP acc_irfSEXP, SEXP ciSEXP) {
+arma::cube fevd_estimates(const arma::cube& A_chain, const arma::cube& B_chain, const arma::cube& D_chain, const arma::uword nlags, const arma::uword h, const bool acc, const double ci);
+RcppExport SEXP _BHSBVAR_fevd_estimates(SEXP A_chainSEXP, SEXP B_chainSEXP, SEXP D_chainSEXP, SEXP nlagsSEXP, SEXP hSEXP, SEXP accSEXP, SEXP ciSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< const arma::cube& >::type A_chain(A_chainSEXP);
     Rcpp::traits::input_parameter< const arma::cube& >::type B_chain(B_chainSEXP);
     Rcpp::traits::input_parameter< const arma::cube& >::type D_chain(D_chainSEXP);
-    Rcpp::traits::input_parameter< const arma::uword >::type pA_ncol(pA_ncolSEXP);
     Rcpp::traits::input_parameter< const arma::uword >::type nlags(nlagsSEXP);
-    Rcpp::traits::input_parameter< const arma::uword >::type nsli(nsliSEXP);
-    Rcpp::traits::input_parameter< const arma::uword >::type h1_irf(h1_irfSEXP);
-    Rcpp::traits::input_parameter< const bool >::type acc_irf(acc_irfSEXP);
+    Rcpp::traits::input_parameter< const arma::uword >::type h(hSEXP);
+    Rcpp::traits::input_parameter< const bool >::type acc(accSEXP);
     Rcpp::traits::input_parameter< const double >::type ci(ciSEXP);
-    rcpp_result_gen = Rcpp::wrap(fevd_estimates(A_chain, B_chain, D_chain, pA_ncol, nlags, nsli, h1_irf, acc_irf, ci));
+    rcpp_result_gen = Rcpp::wrap(fevd_estimates(A_chain, B_chain, D_chain, nlags, h, acc, ci));
     return rcpp_result_gen;
 END_RCPP
 }

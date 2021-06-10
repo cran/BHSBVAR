@@ -72,7 +72,7 @@ knitr::opts_chunk$set(fig.path = "fig/", prompt = TRUE)
 
 \centerline{p.richardson.54391@gmail.com}
 
-\centerline{April, 2021}
+\centerline{June, 2021}
 
 \sectiontitle{Acknowledgment}
 
@@ -424,6 +424,8 @@ The first line in \hyperlink{chunk8}{Code Chunk 8} provides the forecast error v
 \hypertarget{chunk9}{Code Chunk 9}
 <<HD_plots, include = TRUE, echo = TRUE, fig.keep = 'all', fig.show = 'hide', fig.align = 'center', fig.asp = 0.4, background = 'NA', highlight = FALSE>>=
 hd <- HD(results = results1, cri = cri)
+varnames <- colnames(USLMData)[2:3]
+shocknames <- c("Labor Demand","Labor Supply")
 freq <- 4
 start_date <- 
   c(floor(USLMData[(nlags + 1), 1]),

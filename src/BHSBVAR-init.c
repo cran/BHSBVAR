@@ -4,10 +4,13 @@
 #include <R_ext/Rdynload.h>
 
 /* FIXME: 
-   Check these declarations against the C/Fortran source code.
-*/
+ Check these declarations against the C/Fortran source code.
+ */
 
 /* .Call calls */
+extern SEXP _BHSBVAR_fevd_estimates(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+extern SEXP _BHSBVAR_hd_estimates(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
+extern SEXP _BHSBVAR_irf_estimates(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 extern SEXP _BHSBVAR_log_likelihood_function(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 extern SEXP _BHSBVAR_MAIN(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 extern SEXP _BHSBVAR_prior_beta(SEXP, SEXP, SEXP);
@@ -17,11 +20,11 @@ extern SEXP _BHSBVAR_prior_t(SEXP, SEXP, SEXP, SEXP);
 extern SEXP _BHSBVAR_prior_t_n(SEXP, SEXP, SEXP, SEXP);
 extern SEXP _BHSBVAR_prior_t_p(SEXP, SEXP, SEXP, SEXP);
 extern SEXP _BHSBVAR_sum_log_prior_densities(SEXP, SEXP, SEXP, SEXP);
-extern SEXP _BHSBVAR_hd_estimates(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
-extern SEXP _BHSBVAR_irf_estimates(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
-extern SEXP _BHSBVAR_fevd_estimates(SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP, SEXP);
 
 static const R_CallMethodDef CallEntries[] = {
+    {"_BHSBVAR_fevd_estimates", (DL_FUNC) &_BHSBVAR_fevd_estimates,  7},
+    {"_BHSBVAR_hd_estimates",   (DL_FUNC) &_BHSBVAR_hd_estimates,    6},
+    {"_BHSBVAR_irf_estimates",  (DL_FUNC) &_BHSBVAR_irf_estimates,   6},
     {"_BHSBVAR_log_likelihood_function", (DL_FUNC) &_BHSBVAR_log_likelihood_function,  6},
     {"_BHSBVAR_MAIN",                    (DL_FUNC) &_BHSBVAR_MAIN,                    18},
     {"_BHSBVAR_prior_beta",              (DL_FUNC) &_BHSBVAR_prior_beta,               3},
@@ -31,9 +34,6 @@ static const R_CallMethodDef CallEntries[] = {
     {"_BHSBVAR_prior_t_n",               (DL_FUNC) &_BHSBVAR_prior_t_n,                4},
     {"_BHSBVAR_prior_t_p",               (DL_FUNC) &_BHSBVAR_prior_t_p,                4},
     {"_BHSBVAR_sum_log_prior_densities", (DL_FUNC) &_BHSBVAR_sum_log_prior_densities,  4},
-    {"_BHSBVAR_hd_estimates",            (DL_FUNC) &_BHSBVAR_hd_estimates,             8},
-    {"_BHSBVAR_irf_estimates",           (DL_FUNC) &_BHSBVAR_irf_estimates,            8},
-    {"_BHSBVAR_fevd_estimates",          (DL_FUNC) &_BHSBVAR_fevd_estimates,           9},
     {NULL, NULL, 0}
 };
 

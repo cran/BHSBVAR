@@ -195,7 +195,7 @@ double post_A_function(const arma::mat& A_test, const arma::cube& pA, const arma
 // Generate Proposal Values for A.
 arma::mat proposal_function(const arma::mat& A_old, const arma::cube& pA, const arma::cube& pdetA, const arma::cube& pH, const arma::mat& scale1) {
   
-  arma::uword nrow = pA.n_rows, ncol = pA.n_cols;
+  const arma::uword nrow = pA.n_rows, ncol = pA.n_cols;
   
   arma::uword nH = 0;
   for (arma::uword i = 0; i < ncol; ++i) {
@@ -327,7 +327,7 @@ arma::mat proposal_function(const arma::mat& A_old, const arma::cube& pA, const 
 
 // Start Random-Walk Metropolis-Hastings Algorithm.
 arma::field<arma::cube> MH(const arma::mat& y1, const arma::mat& x1, const arma::uword nlags, const arma::mat& omega, const arma::mat& somega, const arma::cube& pA, const arma::cube& pdetA, const arma::cube& pH, const arma::mat& pP, const arma::mat& pP_sig, const arma::cube& pR_sig, const arma::mat& kappa1, arma::mat A_old, const arma::uword itr, const arma::uword burn, const arma::mat& scale1) {
-  arma::uword pA_nrow = pA.n_rows, pA_ncol = pA.n_cols;
+  const arma::uword pA_nrow = pA.n_rows, pA_ncol = pA.n_cols;
   
   A_old = proposal_function(A_old, pA, pdetA, pH, scale1);
 
@@ -454,9 +454,9 @@ arma::field<arma::cube> MH(const arma::mat& y1, const arma::mat& x1, const arma:
 
 // Thin Markov Chains.
 arma::cube thin_function(const arma::cube& chain, const arma::uword thin) {
-  arma::uword nrow = chain.n_rows, ncol = chain.n_cols;
-  double totals = double (chain.n_slices), totalt = double (thin);
-  arma::uword nsli = arma::uword (std::floor((totals / totalt)));
+  const arma::uword nrow = chain.n_rows, ncol = chain.n_cols;
+  const double totals = double (chain.n_slices), totalt = double (thin);
+  const arma::uword nsli = arma::uword (std::floor((totals / totalt)));
   arma::cube chain1(nrow, ncol, nsli);
   std::fill(chain1.begin(), chain1.end(), Rcpp::NumericVector::get_na());
   
@@ -469,7 +469,7 @@ arma::cube thin_function(const arma::cube& chain, const arma::uword thin) {
 
 // Process Raw Results.
 arma::cube results_function(const arma::cube& raw, const double ci) {
-  arma::uword nrow = raw.n_rows, ncol = raw.n_cols, nsli = raw.n_slices;
+  const arma::uword nrow = raw.n_rows, ncol = raw.n_cols, nsli = raw.n_slices;
   
   arma::mat temp(nrow, nsli), temp1(nrow, nsli);
   std::fill(temp.begin(), temp.end(), Rcpp::NumericVector::get_na());
@@ -478,9 +478,9 @@ arma::cube results_function(const arma::cube& raw, const double ci) {
   arma::cube results1(nrow, ncol, 3);
   std::fill(results1.begin(), results1.end(), Rcpp::NumericVector::get_na());
   
-  double total = double (nsli);
-  arma::uword lb = arma::uword (std::round(total * (1.0 - ci)));
-  arma::uword ub = arma::uword (std::round((total * ci) - 1.0));
+  const double total = double (nsli);
+  const arma::uword lb = arma::uword (std::round(total * (1.0 - ci)));
+  const arma::uword ub = arma::uword (std::round((total * ci) - 1.0));
   
   for (arma::uword j = 0; j < ncol; ++j) {
     
@@ -499,9 +499,10 @@ arma::cube results_function(const arma::cube& raw, const double ci) {
 // Estimate Density Coordinates.
 Rcpp::List den_function(const arma::cube& raw, const arma::cube& priors) {
   
-  double ll = 0.0, from0 = 0.0, to0 = 0.0, by0 = 0.0, from1 = 0.0, to1 = 0.0, by1 = 0.0, t1 = 0.0, crr_lb = 0.001, nbins_d = 300.0, nbins_d1 = 300.0, nsli_d = double (raw.n_slices);
+  double ll = 0.0, from0 = 0.0, to0 = 0.0, by0 = 0.0, from1 = 0.0, to1 = 0.0, by1 = 0.0, t1 = 0.0;
+  const double crr_lb = 0.001, nbins_d = 300.0, nbins_d1 = 300.0, nsli_d = double (raw.n_slices);
   
-  arma::uword nrow = raw.n_rows, ncol = raw.n_cols, nsli = raw.n_slices, nbins = 300, nbins1 = 300;
+  const arma::uword nrow = raw.n_rows, ncol = raw.n_cols, nsli = raw.n_slices, nbins = 300, nbins1 = 300;
   
   arma::uword raw_fi = 0, raw_ti = 0;
   
@@ -575,54 +576,55 @@ Rcpp::List den_function(const arma::cube& raw, const arma::cube& priors) {
 //' @useDynLib BHSBVAR, .registration = TRUE
 //' @keywords internal
 // [[Rcpp::export]]
-arma::cube hd_estimates(const arma::cube& A_chain, const arma::cube& B_chain, const arma::mat& y1, const arma::mat& x1, const arma::uword pA_ncol, const arma::uword nlags, const arma::uword nsli, const double ci) {
-  arma::uword nrow = y1.n_rows, ncol = (pA_ncol * pA_ncol);
-  
+arma::cube hd_estimates(const arma::cube& A_chain, const arma::cube& B_chain, const arma::mat& y1, const arma::mat& x1, const arma::uword nlags, const double ci) {
+  const arma::uword nvar = A_chain.n_cols, nsli = A_chain.n_slices;
+  const arma::uword nrow = y1.n_rows, ncol = (nvar * nvar);
+
   arma::cube HD_chain(nrow, ncol, nsli);
   std::fill(HD_chain.begin(), HD_chain.end(), Rcpp::NumericVector::get_na());
-  
-  arma::mat HD_draw((nrow + nlags), (pA_ncol * pA_ncol), arma::fill::zeros);
-  arma::mat u1(nrow, pA_ncol), H_draw(pA_ncol, pA_ncol), Phi_draw(((pA_ncol * nlags) + 1), pA_ncol);
+
+  arma::mat HD_draw((nrow + nlags), (nvar * nvar), arma::fill::zeros);
+  arma::mat u1(nrow, nvar), H_draw(nvar, nvar), Phi_draw(((nvar * nlags) + 1), nvar);
   std::fill(u1.begin(), u1.end(), Rcpp::NumericVector::get_na());
   std::fill(H_draw.begin(), H_draw.end(), Rcpp::NumericVector::get_na());
   std::fill(Phi_draw.begin(), Phi_draw.end(), Rcpp::NumericVector::get_na());
-  
+
   const arma::mat y1_temp = arma::reverse(y1);
   const arma::mat x1_temp = arma::reverse(x1);
-  
+
   for (arma::uword t = 0; t < nsli; ++t) {
     //check for interruptions
     if (t % 1024 == 0) {
       Rcpp::checkUserInterrupt();
     }
-    
+
     //historical decomposition (HD_chain, U_chain, H_chain, Phi_chain)
     u1 = (y1_temp * A_chain.slice(t)) - (x1_temp * B_chain.slice(t));
     H_draw = arma::inv(A_chain.slice(t));
     Phi_draw = B_chain.slice(t) * H_draw;
-    for (arma::uword i = 0; i < pA_ncol; ++i) {
-      HD_draw.submat(0, (pA_ncol * i), (nrow - 1), ((pA_ncol * (i + 1)) - 1)) = u1.col(i) * H_draw.row(i);
+    for (arma::uword i = 0; i < nvar; ++i) {
+      HD_draw.submat(0, (nvar * i), (nrow - 1), ((nvar * (i + 1)) - 1)) = u1.col(i) * H_draw.row(i);
       for (arma::uword j = (nrow - 1); j >= 1; --j) {
-        HD_draw.submat((j - 1), (pA_ncol * i), (j - 1), ((pA_ncol * (i + 1)) - 1)) += arma::vectorise(HD_draw.submat(j, (pA_ncol * i), (j + nlags - 1), ((pA_ncol * (i + 1)) - 1)).t()).t() * Phi_draw(arma::span(0, ((pA_ncol * nlags) - 1)), arma::span::all);
+        HD_draw.submat((j - 1), (nvar * i), (j - 1), ((nvar * (i + 1)) - 1)) += arma::vectorise(HD_draw.submat(j, (nvar * i), (j + nlags - 1), ((nvar * (i + 1)) - 1)).t()).t() * Phi_draw(arma::span(0, ((nvar * nlags) - 1)), arma::span::all);
       }
     }
     HD_chain.slice(t) = HD_draw(arma::span(0, (nrow - 1)), arma::span::all);
   }
-  
+
   //process HD_chain
   arma::mat temp(1, nsli), temp1(nrow, nsli);
   std::fill(temp.begin(), temp.end(), Rcpp::NumericVector::get_na());
   std::fill(temp1.begin(), temp1.end(), Rcpp::NumericVector::get_na());
-  
+
   arma::cube HD(nrow, ncol, 3);
   std::fill(HD.begin(), HD.end(), Rcpp::NumericVector::get_na());
-  
-  double total = double (nsli);
-  arma::uword lb = arma::uword (std::round(total * (1.0 - ci)));
-  arma::uword ub = arma::uword (std::round((total * ci) - 1.0));
+
+  const double total = double (nsli);
+  const arma::uword lb = arma::uword (std::round(total * (1.0 - ci)));
+  const arma::uword ub = arma::uword (std::round((total * ci) - 1.0));
 
   for (arma::uword j = 0; j < ncol; ++j) {
-    
+
     for (arma::uword i = 0; i < nrow; ++i) {
       temp = HD_chain.tube(i, j);
       temp1.row(i) = arma::sort(temp, "ascend", 1);
@@ -630,9 +632,9 @@ arma::cube hd_estimates(const arma::cube& A_chain, const arma::cube& B_chain, co
     HD.slice(0).col(j) = arma::reverse(temp1.col(lb));
     HD.slice(1).col(j) = arma::reverse(arma::median(temp1, 1));
     HD.slice(2).col(j) = arma::reverse(temp1.col(ub));
-  
+
   }
-  
+
   return HD;
 }
 
@@ -640,56 +642,57 @@ arma::cube hd_estimates(const arma::cube& A_chain, const arma::cube& B_chain, co
 //' @useDynLib BHSBVAR, .registration = TRUE
 //' @keywords internal
 // [[Rcpp::export]]
-arma::cube irf_estimates(const arma::cube& A_chain, const arma::cube& B_chain, const arma::uword pA_ncol, const arma::uword nlags, const arma::uword nsli, const arma::uword h1_irf, const bool acc_irf, const double ci) {
-  arma::uword nrow = (h1_irf + 1), ncol = (pA_ncol * pA_ncol);
-  
+arma::cube irf_estimates(const arma::cube& A_chain, const arma::cube& B_chain, const arma::uword nlags, const arma::uword h, const bool acc, const double ci) {
+  const arma::uword nvar = A_chain.n_cols, nsli = A_chain.n_slices;
+  const arma::uword nrow = (h + 1), ncol = (nvar * nvar);
+
   arma::cube IRF_chain(nrow, ncol, nsli);
   std::fill(IRF_chain.begin(), IRF_chain.end(), Rcpp::NumericVector::get_na());
-  
-  arma::mat H_draw(pA_ncol, pA_ncol), IRF_draw((h1_irf + nlags), (pA_ncol * pA_ncol)), Phi_draw(((pA_ncol * nlags) + 1), pA_ncol);
+
+  arma::mat H_draw(nvar, nvar), IRF_draw((h + nlags), (nvar * nvar)), Phi_draw(((nvar * nlags) + 1), nvar);
   std::fill(H_draw.begin(), H_draw.end(), Rcpp::NumericVector::get_na());
   std::fill(IRF_draw.begin(), IRF_draw.end(), Rcpp::NumericVector::get_na());
   std::fill(Phi_draw.begin(), Phi_draw.end(), Rcpp::NumericVector::get_na());
-  
+
   for (arma::uword t = 0; t < nsli; ++t) {
     //check for interruptions
     if (t % 1024 == 0) {
       Rcpp::checkUserInterrupt();
     }
-    
+
     //impulse responses (H_chain, IRF_chain, Phi_chain)
     H_draw = arma::inv(A_chain.slice(t));
     Phi_draw = B_chain.slice(t) * H_draw;
     IRF_draw.fill(0.0);
-    for (arma::uword i = 0; i < pA_ncol; ++i) {
-      IRF_draw.submat((nrow - 1), (pA_ncol * i), (nrow - 1), ((pA_ncol * (i + 1)) - 1)) = H_draw.row(i);
+    for (arma::uword i = 0; i < nvar; ++i) {
+      IRF_draw.submat((nrow - 1), (nvar * i), (nrow - 1), ((nvar * (i + 1)) - 1)) = H_draw.row(i);
       for (arma::uword j = (nrow - 1); j >= 1; --j) {
-        IRF_draw.submat((j - 1), (pA_ncol * i), (j - 1), ((pA_ncol * (i + 1)) - 1)) = arma::vectorise(IRF_draw.submat(j, (pA_ncol * i), (j + nlags - 1), ((pA_ncol * (i + 1)) - 1)).t()).t() * Phi_draw(arma::span(0, ((pA_ncol * nlags) - 1)), arma::span::all);
+        IRF_draw.submat((j - 1), (nvar * i), (j - 1), ((nvar * (i + 1)) - 1)) = arma::vectorise(IRF_draw.submat(j, (nvar * i), (j + nlags - 1), ((nvar * (i + 1)) - 1)).t()).t() * Phi_draw(arma::span(0, ((nvar * nlags) - 1)), arma::span::all);
       }
     }
-    if (acc_irf) {
+    if (acc) {
       for (arma::uword j = (nrow - 1); j >= 1; --j) {
         IRF_draw.row((j - 1)) += IRF_draw.row(j);
       }
     }
     IRF_chain.slice(t) = IRF_draw(arma::span(0, (nrow - 1)), arma::span::all);
-    
+
   }
-  
+
   //process IRF_chain
   arma::mat temp(1, nsli), temp1(nrow, nsli);
   std::fill(temp.begin(), temp.end(), Rcpp::NumericVector::get_na());
   std::fill(temp1.begin(), temp1.end(), Rcpp::NumericVector::get_na());
-  
+
   arma::cube IRF(nrow, ncol, 3);
   std::fill(IRF.begin(), IRF.end(), Rcpp::NumericVector::get_na());
-  
-  double total = double (nsli);
-  arma::uword lb = arma::uword (std::round(total * (1.0 - ci)));
-  arma::uword ub = arma::uword (std::round((total * ci) - 1.0));
-  
+
+  const double total = double (nsli);
+  const arma::uword lb = arma::uword (std::round(total * (1.0 - ci)));
+  const arma::uword ub = arma::uword (std::round((total * ci) - 1.0));
+
   for (arma::uword j = 0; j < ncol; ++j) {
-    
+
     for (arma::uword i = 0; i < nrow; ++i) {
       temp = IRF_chain.tube(i, j);
       temp1.row(i) = arma::sort(temp, "ascend", 1);
@@ -697,9 +700,9 @@ arma::cube irf_estimates(const arma::cube& A_chain, const arma::cube& B_chain, c
     IRF.slice(0).col(j) = arma::reverse(temp1.col(lb));
     IRF.slice(1).col(j) = arma::reverse(arma::median(temp1, 1));
     IRF.slice(2).col(j) = arma::reverse(temp1.col(ub));
-    
+
   }
-  
+
   return IRF;
 }
 
@@ -707,65 +710,66 @@ arma::cube irf_estimates(const arma::cube& A_chain, const arma::cube& B_chain, c
 //' @useDynLib BHSBVAR, .registration = TRUE
 //' @keywords internal
 // [[Rcpp::export]]
-arma::cube fevd_estimates(const arma::cube& A_chain, const arma::cube& B_chain, const arma::cube& D_chain, const arma::uword pA_ncol, const arma::uword nlags, const arma::uword nsli, const arma::uword h1_irf, const bool acc_irf, const double ci) {
-  arma::uword nrow = (h1_irf + 1), ncol = (pA_ncol * pA_ncol);
-  
+arma::cube fevd_estimates(const arma::cube& A_chain, const arma::cube& B_chain, const arma::cube& D_chain, const arma::uword nlags, const arma::uword h, const bool acc, const double ci) {
+  const arma::uword nvar = A_chain.n_cols, nsli = A_chain.n_slices;
+  const arma::uword nrow = (h + 1), ncol = (nvar * nvar);
+
   arma::cube FEVD_chain(nrow, ncol, nsli);
   std::fill(FEVD_chain.begin(), FEVD_chain.end(), Rcpp::NumericVector::get_na());
-  
-  arma::mat H_draw(pA_ncol, pA_ncol), FEVD_draw((h1_irf + nlags), (pA_ncol * pA_ncol)), IRF_draw((h1_irf + nlags), (pA_ncol * pA_ncol)), Phi_draw(((pA_ncol * nlags) + 1), pA_ncol);
+
+  arma::mat H_draw(nvar, nvar), FEVD_draw((h + nlags), (nvar * nvar)), IRF_draw((h + nlags), (nvar * nvar)), Phi_draw(((nvar * nlags) + 1), nvar);
   std::fill(H_draw.begin(), H_draw.end(), Rcpp::NumericVector::get_na());
   std::fill(FEVD_draw.begin(), FEVD_draw.end(), Rcpp::NumericVector::get_na());
   std::fill(IRF_draw.begin(), IRF_draw.end(), Rcpp::NumericVector::get_na());
   std::fill(Phi_draw.begin(), Phi_draw.end(), Rcpp::NumericVector::get_na());
-  
+
   for (arma::uword t = 0; t < nsli; ++t) {
     //check for interruptions
     if (t % 1024 == 0) {
       Rcpp::checkUserInterrupt();
     }
-    
+
     //impulse responses (H_chain, IRF_chain, Phi_chain)
     H_draw = arma::inv(A_chain.slice(t));
     Phi_draw = B_chain.slice(t) * H_draw;
     IRF_draw.fill(0.0);
-    for (arma::uword i = 0; i < pA_ncol; ++i) {
-      IRF_draw.submat((nrow - 1), (pA_ncol * i), (nrow - 1), ((pA_ncol * (i + 1)) - 1)) = H_draw.row(i);
+    for (arma::uword i = 0; i < nvar; ++i) {
+      IRF_draw.submat((nrow - 1), (nvar * i), (nrow - 1), ((nvar * (i + 1)) - 1)) = H_draw.row(i);
       for (arma::uword j = (nrow - 1); j >= 1; --j) {
-        IRF_draw.submat((j - 1), (pA_ncol * i), (j - 1), ((pA_ncol * (i + 1)) - 1)) = arma::vectorise(IRF_draw.submat(j, (pA_ncol * i), (j + nlags - 1), ((pA_ncol * (i + 1)) - 1)).t()).t() * Phi_draw(arma::span(0, ((pA_ncol * nlags) - 1)), arma::span::all);
+        IRF_draw.submat((j - 1), (nvar * i), (j - 1), ((nvar * (i + 1)) - 1)) = arma::vectorise(IRF_draw.submat(j, (nvar * i), (j + nlags - 1), ((nvar * (i + 1)) - 1)).t()).t() * Phi_draw(arma::span(0, ((nvar * nlags) - 1)), arma::span::all);
       }
     }
-    if (acc_irf) {
+    if (acc) {
       for (arma::uword j = (nrow - 1); j >= 1; --j) {
         IRF_draw.row((j - 1)) += IRF_draw.row(j);
       }
     }
-    
+
     FEVD_draw.fill(0.0);
-    for (arma::uword i = 0; i < pA_ncol; ++i) {
-      FEVD_draw.submat((nrow - 1), (pA_ncol * i), (nrow - 1), ((pA_ncol * (i + 1)) - 1)) = (D_chain(i, i, t)) * (IRF_draw.submat((nrow - 1), (pA_ncol * i), (nrow - 1), ((pA_ncol * (i + 1)) - 1)) % IRF_draw.submat((nrow - 1), (pA_ncol * i), (nrow - 1), ((pA_ncol * (i + 1)) - 1)));
+    for (arma::uword i = 0; i < nvar; ++i) {
+      FEVD_draw.submat((nrow - 1), (nvar * i), (nrow - 1), ((nvar * (i + 1)) - 1)) = (D_chain(i, i, t)) * (IRF_draw.submat((nrow - 1), (nvar * i), (nrow - 1), ((nvar * (i + 1)) - 1)) % IRF_draw.submat((nrow - 1), (nvar * i), (nrow - 1), ((nvar * (i + 1)) - 1)));
       for (arma::uword j = (nrow - 1); j >= 1; --j) {
-        FEVD_draw.submat((j - 1), (pA_ncol * i), (j - 1), ((pA_ncol * (i + 1)) - 1)) = FEVD_draw.submat(j, (pA_ncol * i), j, ((pA_ncol * (i + 1)) - 1)) + ((D_chain(i, i, t)) * (IRF_draw.submat((j - 1), (pA_ncol * i), (j - 1), ((pA_ncol * (i + 1)) - 1)) % IRF_draw.submat((j - 1), (pA_ncol * i), (j - 1), ((pA_ncol * (i + 1)) - 1))));
+        FEVD_draw.submat((j - 1), (nvar * i), (j - 1), ((nvar * (i + 1)) - 1)) = FEVD_draw.submat(j, (nvar * i), j, ((nvar * (i + 1)) - 1)) + ((D_chain(i, i, t)) * (IRF_draw.submat((j - 1), (nvar * i), (j - 1), ((nvar * (i + 1)) - 1)) % IRF_draw.submat((j - 1), (nvar * i), (j - 1), ((nvar * (i + 1)) - 1))));
       }
     }
-    
+
     FEVD_chain.slice(t) = FEVD_draw(arma::span(0, (nrow - 1)), arma::span::all);
   }
-  
+
   //process FEVD_chain
   arma::mat temp(1, nsli), temp1(nrow, nsli);
   std::fill(temp.begin(), temp.end(), Rcpp::NumericVector::get_na());
   std::fill(temp1.begin(), temp1.end(), Rcpp::NumericVector::get_na());
-  
+
   arma::cube FEVD(nrow, ncol, 3);
   std::fill(FEVD.begin(), FEVD.end(), Rcpp::NumericVector::get_na());
-  
-  double total = double (nsli);
-  arma::uword lb = arma::uword (std::round(total * (1.0 - ci)));
-  arma::uword ub = arma::uword (std::round((total * ci) - 1.0));
-  
+
+  const double total = double (nsli);
+  const arma::uword lb = arma::uword (std::round(total * (1.0 - ci)));
+  const arma::uword ub = arma::uword (std::round((total * ci) - 1.0));
+
   for (arma::uword j = 0; j < ncol; ++j) {
-    
+
     for (arma::uword i = 0; i < nrow; ++i) {
       temp = FEVD_chain.tube(i, j);
       temp1.row(i) = arma::sort(temp, "ascend", 1);
@@ -773,89 +777,94 @@ arma::cube fevd_estimates(const arma::cube& A_chain, const arma::cube& B_chain, 
     FEVD.slice(0).col(j) = arma::reverse(temp1.col(lb));
     FEVD.slice(1).col(j) = arma::reverse(arma::median(temp1, 1));
     FEVD.slice(2).col(j) = arma::reverse(temp1.col(ub));
-    
+
   }
-  
+
   return FEVD;
 }
 
 // Estimate Phi and Process Raw Results.
-arma::cube phi_estimates(const arma::cube& A_chain, const arma::cube& B_chain, const arma::uword pA_ncol, const arma::uword nlags, const arma::uword nsli, const double ci) {
-  arma::uword nrow = ((pA_ncol * nlags) + 1), ncol = pA_ncol;
-  
+arma::cube phi_estimates(const arma::cube& A_chain, const arma::cube& B_chain, const arma::uword nlags, const double ci) {
+  const arma::uword nvar = A_chain.n_cols, nsli = A_chain.n_slices;
+  const arma::uword nrow = ((nvar * nlags) + 1), ncol = nvar;
+
   arma::cube Phi_chain(nrow, ncol, nsli);
   std::fill(Phi_chain.begin(), Phi_chain.end(), Rcpp::NumericVector::get_na());
-  
+
   for (arma::uword t = 0; t < nsli; ++t) {
     //check for interruptions
     if (t % 1024 == 0) {
       Rcpp::checkUserInterrupt();
     }
-    
+
     Phi_chain.slice(t) = B_chain.slice(t) * arma::inv(A_chain.slice(t));
-    
+
   }
-  
+
   //process Phi_chain
   arma::mat temp(nrow, nsli), temp1(nrow, nsli);
   std::fill(temp.begin(), temp.end(), Rcpp::NumericVector::get_na());
   std::fill(temp1.begin(), temp1.end(), Rcpp::NumericVector::get_na());
-  
+
   arma::cube Phi(nrow, ncol, 3);
   std::fill(Phi.begin(), Phi.end(), Rcpp::NumericVector::get_na());
-  
-  double total = double (nsli);
-  arma::uword lb = arma::uword (std::round(total * (1.0 - ci)));
-  arma::uword ub = arma::uword (std::round((total * ci) - 1.0));
+
+  const double total = double (nsli);
+  const arma::uword lb = arma::uword (std::round(total * (1.0 - ci)));
+  const arma::uword ub = arma::uword (std::round((total * ci) - 1.0));
 
   for (arma::uword j = 0; j < ncol; ++j) {
-    
+
     temp = Phi_chain(arma::span::all, arma::span(j), arma::span::all);
     temp1 = arma::sort(temp, "ascend", 1);
     Phi.slice(0).col(j) = temp1.col(lb);
     Phi.slice(1).col(j) = arma::median(temp1, 1);
     Phi.slice(2).col(j) = temp1.col(ub);
-    
+
   }
-  
+
   return Phi;
 }
 
 // Estimate H and Process Raw Results.
-Rcpp::List h_estimates(const arma::cube& A_chain, const arma::uword pA_ncol, const arma::uword nsli, const arma::cube& pH, const double ci) {
-  arma::cube H_chain(pA_ncol, pA_ncol, nsli);
+Rcpp::List h_estimates(const arma::cube& A_chain, const arma::cube& pH, const double ci) {
+  const arma::uword nvar = A_chain.n_cols, nsli = A_chain.n_slices;
+
+  arma::cube H_chain(nvar, nvar, nsli);
   std::fill(H_chain.begin(), H_chain.end(), Rcpp::NumericVector::get_na());
-  
+
   for (arma::uword t = 0; t < nsli; ++t) {
     //check for interruptions
     if (t % 1024 == 0) {
       Rcpp::checkUserInterrupt();
     }
-    
+
     H_chain.slice(t) = arma::inv(A_chain.slice(t));
-    
+
   }
-  
+
   return Rcpp::List::create(Rcpp::Named("H_den") = den_function(H_chain, pH),
                             Rcpp::Named("H") = results_function(H_chain, ci),
                             Rcpp::Named("H_chain") = H_chain);
 }
 
 // Estimate det(A) and Process Raw Results.
-Rcpp::List deta_estimates(const arma::cube& A_chain, const arma::uword nsli, const arma::cube& pdetA, const double ci) {
+Rcpp::List deta_estimates(const arma::cube& A_chain, const arma::cube& pdetA, const double ci) {
+  const arma::uword nsli = A_chain.n_slices;
+
   arma::cube detA_chain(1, 1, nsli);
   std::fill(detA_chain.begin(), detA_chain.end(), Rcpp::NumericVector::get_na());
-  
+
   for (arma::uword t = 0; t < nsli; ++t) {
     //check for interruptions
     if (t % 1024 == 0) {
       Rcpp::checkUserInterrupt();
     }
-    
+
     detA_chain.slice(t) = arma::det(A_chain.slice(t));
-    
+
   }
-  
+
   return Rcpp::List::create(Rcpp::Named("detA_den") = den_function(detA_chain, pdetA),
                             Rcpp::Named("detA") = results_function(detA_chain, ci),
                             Rcpp::Named("detA_chain") = detA_chain);
@@ -866,10 +875,9 @@ Rcpp::List deta_estimates(const arma::cube& A_chain, const arma::uword nsli, con
 //' @keywords internal
 // [[Rcpp::export]]
 Rcpp::List MAIN(const arma::mat& y1, const arma::mat& x1, const arma::mat& omega, const arma::mat& somega, const arma::uword nlags, const arma::cube& pA, const arma::cube& pdetA, const arma::cube& pH, const arma::mat& pP, const arma::mat& pP_sig, const arma::cube& pR_sig, const arma::mat& kappa1, const arma::mat& A_start, const arma::uword itr, const arma::uword burn, const arma::uword thin, const arma::mat& scale1, const double ci) {
-//Rcpp::List MAIN(const arma::mat& y1, const arma::mat& x1, const arma::mat& omega, const arma::mat& somega, const arma::uword nlags, const arma::cube& pA, const arma::cube& pdetA, const arma::cube& pH, const arma::mat& pP, const arma::mat& pP_sig, const arma::cube& pR_sig, const arma::mat& kappa1, const arma::mat& A_start, const arma::uword itr, const arma::uword burn, const arma::uword thin, const arma::mat& scale1, const arma::uword h1_irf, const bool acc_irf, const double ci, const Rcpp::StringVector& varnames, const Rcpp::Function& line_plot, const Rcpp::Function& acf_plot, const bool& rA, const bool& rB, const bool& rD) {
-  arma::uword pA_ncol = pA.n_cols, B_nrow = ((y1.n_cols * nlags) + 1);
-  double totals = double (itr - burn), totalt = double (thin), y1_nrow = double (y1.n_rows);
-  arma::uword nsli = arma::uword (std::floor((totals / totalt)));
+  const arma::uword pA_ncol = pA.n_cols, B_nrow = ((y1.n_cols * nlags) + 1);
+  const double totals = double (itr - burn), totalt = double (thin), y1_nrow = double (y1.n_rows);
+  const arma::uword nsli = arma::uword (std::floor((totals / totalt)));
   //start Metropolis-Hastings algorithm
   arma::field<arma::cube> list1 = MH(y1, x1, nlags, omega, somega, pA, pdetA, pH, pP, pP_sig, pR_sig, kappa1, A_start, itr, burn, scale1);
   double accept_rate = list1(0)(0, 0, 0);
@@ -934,8 +942,8 @@ Rcpp::List MAIN(const arma::mat& y1, const arma::mat& x1, const arma::mat& omega
     }
   }
   
-  Rcpp::List list2 = deta_estimates(A_chain, nsli, pdetA, ci);
-  Rcpp::List list3 = h_estimates(A_chain, pA_ncol, nsli, pH, ci);
+  Rcpp::List list2 = deta_estimates(A_chain, pdetA, ci);
+  Rcpp::List list3 = h_estimates(A_chain, pH, ci);
   
   Rcpp::List list4(28);
   list4.names() = 
@@ -968,7 +976,7 @@ Rcpp::List MAIN(const arma::mat& y1, const arma::mat& x1, const arma::mat& omega
   list4["detA"] = list2["detA"];
   list4["H"] = list3["H"];
   list4["B"] = results_function(B_chain, ci);
-  list4["Phi"] = phi_estimates(A_chain, B_chain, pA_ncol, nlags, nsli, ci);
+  list4["Phi"] = phi_estimates(A_chain, B_chain, nlags, ci);
   list4["D"] = results_function(D_chain, ci);
   
   list4["A_den"] = den_function(A_chain, pA);

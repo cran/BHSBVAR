@@ -145,6 +145,8 @@ fevd_results <-
 ### code chunk number 10: HD_plots
 ###################################################
 hd <- HD(results = results1, cri = cri)
+varnames <- colnames(USLMData)[2:3]
+shocknames <- c("Labor Demand","Labor Supply")
 freq <- 4
 start_date <- 
   c(floor(USLMData[(nlags + 1), 1]),

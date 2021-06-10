@@ -3,6 +3,7 @@
 #' Forecast Error Variance Decompositions
 #' @author Paul Richardson
 #' @export
+#' @import Rcpp
 #' @name FEVD
 #' @param results List containing the results from running BH_SBVAR().
 #' @param h Integer specifying the time horizon for computing impulse responses (default = 12).
@@ -116,21 +117,37 @@
 #'   FEVD_Plots(results = fevd, varnames = varnames,
 #'             shocknames = shocknames)
 FEVD <- function(results, h = 12, acc = TRUE, cri = 0.95) {
-  varnames <- colnames(results$y)
-  ci <- (1.0 - ((1.0 - cri) / 2.0))
-  pA_ncol <- dim(results$A_chain[, , ])[2]
-  nlags <- results$nlags
-  nsli <- dim(results$A_chain[, , ])[3]
   
+  test <- BH_SBVAR_results_check(results = results)
+  if (test != "pass") {
+    stop(test)
+  }
+  
+  if ((all(!is.numeric(h))) || (length(h) > 1)) {
+    stop("h: Should be a single number.")
+  }
+  if ((h != round(x = h, digits = 0)) | (h < 3)) {
+    stop("h: Should be a positive integer greater than 3.")
+  }
+  if ((all(!is.numeric(cri))) || (length(cri) > 1)) {
+    "cri: Should be a single number."
+  }
+  if ((cri > 1) | (cri < 0.5)) {
+    stop("cri: Should be a positive value between 1 and 0.5.")
+  }
   if ((!is.logical(acc)) || (is.na(acc))) {
     stop(paste("acc_irf: Must be logical 'TRUE' or 'FALSE'.", sep = ""))
   }
   
-  fevd <- fevd_estimates(A_chain = results$A_chain[, , ], 
-                         B_chain = results$B_chain[, , ], 
-                         D_chain = results$D_chain[, , ], 
-                         pA_ncol = pA_ncol, nlags = nlags, nsli = nsli, h1_irf = h, acc_irf = acc, ci = ci)
-  dimnames(fevd) <- list(NULL, paste0("Res_", varnames, paste0("_Shk_", varnames[c(sort(x = rep(x = c(1:pA_ncol), times = pA_ncol)))])), paste0(c(((1 - ci) * 100), 50, (ci * 100)),"%"))
+  varnames <- colnames(results$y)
+  ci <- (1.0 - ((1.0 - cri) / 2.0))
+  nvar <- dim(results$A_chain[, , ])[2]
+  nlags <- results$nlags
+  nsli <- dim(results$A_chain[, , ])[3]
+  
+  fevd <- fevd_estimates(A_chain = results$A_chain[, , ], B_chain = results$B_chain[, , ], D_chain = results$D_chain[, , ], nlags = nlags, h = h, acc = acc, ci = ci)
+  
+  dimnames(fevd) <- list(NULL, paste0("Res_", varnames, paste0("_Shk_", varnames[c(sort(x = rep(x = c(1:nvar), times = nvar)))])), paste0(c(((1 - ci) * 100), 50, (ci * 100)),"%"))
   
   return(fevd)
 }
@@ -257,18 +274,18 @@ FEVD <- function(results, h = 12, acc = TRUE, cri = 0.95) {
 FEVD_Plots <- function(results, varnames, shocknames = NULL, xlab = NULL, ylab = NULL, rel = TRUE) {
   
   #test arguments
-  test <- check_results(results = results, xlab = xlab, ylab = ylab)
+  test <- plot_funs_args_check(results = results, xlab = xlab, ylab = ylab)
   if (test != "pass") {
     stop(test)
   }
-  if ((class(varnames) != "character") || (length(varnames) != sqrt(dim(results)[2]))) {
-    stop(paste("varnames: Must be a character vector containing the names of the endogenous variables", sep = ""))
+  if (!is.vector(varnames) || (class(varnames) != "character") || (length(varnames) != sqrt(dim(results)[2]))) {
+    stop(paste("varnames: Must be a character vector containing the names of the endogenous variables.", sep = ""))
   }
   if (is.null(shocknames)) {
     shocknames <- varnames
   }
-  if ((class(shocknames) != "character") || (length(shocknames) != sqrt(dim(results)[2]))) {
-    stop(paste("shocknames: Must be a character vector containing the names of the shocks", sep = ""))
+  if (!is.vector(shocknames) || (class(shocknames) != "character") || (length(shocknames) != sqrt(dim(results)[2]))) {
+    stop(paste("shocknames: Must be a character vector containing the names of the shocks.", sep = ""))
   }
   
   if (is.null(xlab)) {
@@ -292,9 +309,9 @@ FEVD_Plots <- function(results, varnames, shocknames = NULL, xlab = NULL, ylab =
   if (rel) {
     colors1[] <- rep(x = "black", times = length(colors1))
     lty1[] <- rep(x = 1, times = length(lty1))
-    ind1 <- rep(x = 0, times = length(varnames))
-    for (i in 1:length(varnames)) {
-      ind1[] <- grep(pattern = paste0("Res_", varnames[i]), x = colnames(fevd))
+    ind1 <- rep(x = 0, times = sqrt(dim(fevd)[2]))
+    for (i in 1:sqrt(dim(fevd)[2])) {
+      ind1[] <- seq(from = i, to = dim(fevd)[2], by = sqrt(dim(fevd)[2]))
       fevd[, ind1, "50%"] <- fevd[, ind1, "50%"] * matrix(data = rep(x = (100 / rowSums(fevd[, ind1, "50%"])), times = nvar), ncol = nvar, dimnames = list(NULL, fevdcolnames[ind1]))
     }
     fevd[, , c(1, 3)] <- fevd[, , "50%"]

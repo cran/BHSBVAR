@@ -3,6 +3,7 @@
 #' Historical Decompositions
 #' @author Paul Richardson
 #' @export
+#' @import Rcpp
 #' @name HD
 #' @param results List containing the results from running BH_SBVAR().
 #' @param cri credibility intervals for the estimates to be returned (default = 0.95). A value of 0.95 will return 95\% credibility intervals. A value of 0.90 will return 90\% credibility intervals.
@@ -119,20 +120,30 @@
 #'            shocknames = shocknames,
 #'            freq = freq, start_date = start_date)
 HD <- function(results, cri = 0.95) {
+  
+  test <- BH_SBVAR_results_check(results = results)
+  if (test != "pass") {
+    stop(test)
+  }
+  
+  if ((all(!is.numeric(cri))) || (length(cri) > 1)) {
+    "cri: Should be a single number."
+  }
+  if ((cri > 1) | (cri < 0.5)) {
+    stop("cri: Should be a positive value between 1 and 0.5.")
+  }
+  
   varnames <- colnames(results$y)
   ci <- (1.0 - ((1.0 - cri) / 2.0))
-  pA_ncol <- dim(results$A_chain[, , ])[2]
+  nvar <- dim(results$A_chain[, , ])[2]
   nlags <- results$nlags
   nsli <- dim(results$A_chain[, , ])[3]
   
   hd <- list("y" = NULL, "HD" = NULL)
   
-  hd$HD <- hd_estimates(A_chain = results$A_chain,
-                        B_chain = results$B_chain,
-                        y1 = results$y, 
-                        x1 = results$x, 
-                        pA_ncol = pA_ncol, nlags = nlags, nsli = nsli, ci = ci)
-  dimnames(hd$HD) <- list(NULL, paste0("Res_", varnames, paste0("_Shk_", varnames[c(sort(x = rep(x = c(1:pA_ncol), times = pA_ncol)))])), paste0(c(((1 - ci) * 100), 50, (ci * 100)),"%"))
+  hd$HD <- hd_estimates(A_chain = results$A_chain, B_chain = results$B_chain, y1 = results$y, x1 = results$x, nlags = nlags, ci = ci)
+  
+  dimnames(hd$HD) <- list(NULL, paste0("Res_", varnames, paste0("_Shk_", varnames[c(sort(x = rep(x = c(1:nvar), times = nvar)))])), paste0(c(((1 - ci) * 100), 50, (ci * 100)),"%"))
   
   hd$y <- results$y
   
@@ -267,18 +278,18 @@ HD <- function(results, cri = 0.95) {
 HD_Plots <- function(results, varnames, shocknames = NULL, xlab = NULL, ylab = NULL, freq, start_date) {
   
   #test arguments
-  test <- check_results(results = results, xlab = xlab, ylab = ylab)
+  test <- plot_funs_args_check(results = results, xlab = xlab, ylab = ylab)
   if (test != "pass") {
     stop(test)
   }
-  if ((class(varnames) != "character") || (length(varnames) != dim(results$y)[2])) {
-    stop(paste("varnames: Must be a character vector containing the names of the endogenous variables", sep = ""))
+  if (!is.vector(varnames) || (class(varnames) != "character") || (length(varnames) != sqrt(dim(results$HD)[2])) || (length(varnames) != ncol(results$y))) {
+    stop(paste("varnames: Must be a character vector containing the names of the endogenous variables.", sep = ""))
   }
   if (is.null(shocknames)) {
     shocknames <- varnames
   }
-  if ((class(shocknames) != "character") || (length(shocknames) != dim(results$y)[2])) {
-    stop(paste("shocknames: Must be a character vector containing the names of the shocks", sep = ""))
+  if (!is.vector(shocknames) || (class(shocknames) != "character") || (length(shocknames) != sqrt(dim(results$HD)[2])) || (length(shocknames) != ncol(results$y))) {
+    stop(paste("shocknames: Must be a character vector containing the names of the shocks.", sep = ""))
   }
   if ((class(freq) != "numeric") || (!is.finite(freq)) || (length(freq) != 1) || ((freq %% 1) != 0) || (freq < 1)) {
     stop("freq: Must be a finite whole number grater than 0.")

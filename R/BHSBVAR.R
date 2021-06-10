@@ -547,6 +547,7 @@ ACF_Plots <- function(raw_array, priors_array, prior_name) {
 #' Estimates the parameters of a Structural Bayesian Vector Autoregression model with the method developed by Baumeister and Hamilton (2015/2017/2018).
 #' @author Paul Richardson
 #' @export
+#' @import Rcpp
 #' @name BH_SBVAR
 #' @param y \emph{(T x n)} matrix containing the endogenous variables. \emph{T} is the number of observations and \emph{n} is the number of endogenous variables.
 #' @param nlags Integer specifying the lag order.
@@ -823,42 +824,6 @@ BH_SBVAR <- function(y, nlags, pA, pdetA = NULL, pH = NULL, pP = NULL, pP_sig = 
   return(results)
 }
 
-# Check arguments from the IRF_Plots, HD_Plots, Dist_Plots functions.
-#' @keywords internal
-check_results <- function(results, xlab, ylab) {
-  if (is.array(results)) {
-    if (length(results) == 0) {
-      return(paste("results: Must be an array obtained from running IRF(), HD(), or FEVD().", sep = ""))
-    }
-    if ((is.null(results)) || (any(!is.finite(results))) || (dim(results)[1] < 4) || (dim(results)[3] < 3) || ((dim(results)[2] / sqrt(dim(results)[2])) != (sqrt(dim(results)[2])))) {
-      return(paste("results: Results from IRF(), HD(), or FEVD() are not present.", sep = ""))
-    }
-  } else if (is.list(results)) {
-    if (any(names(results) == "HD")) {
-      if (!is.array(results$HD) ||(length(results$HD) == 0)) {
-        return(paste("results: Must be an array obtained from running IRF(), HD(), or FEVD().", sep = ""))
-      }
-      if ((is.null(results$HD)) || (any(!is.finite(results$HD))) || (dim(results$HD)[1] < 4) || (dim(results$HD)[3] < 3) || ((dim(results$HD)[2] / sqrt(dim(results$HD)[2])) != (sqrt(dim(results$HD)[2])))) {
-        return(paste("results: Results from IRF(), HD(), or FEVD() are not present.", sep = ""))
-      }
-    } else {
-      if ((is.null(results$A)) || (!is.array(results$A)) || (any(!is.finite(results$A))) || (dim(results$A)[1] != dim(results$A)[2]) || (dim(results$A)[3] < 3) || (dim(results$A)[2] != ncol(results$y)) || (dim(results$A)[2] < 2)) {
-        return(paste("results: A from BH_SBVAR() is not present.", sep = ""))
-      }
-    }
-  } else {
-    return(paste0("results: Results must be an array or a list containing an array"))
-  }
-  
-  if ((!is.null(xlab)) && ((class(xlab) != "character") || (length(xlab) != 1))) {
-    return(paste("xlab: Must be a character vector containing the label for the horizontal axis.", sep = ""))
-  }
-  if ((!is.null(ylab)) && ((class(ylab) != "character") || (length(ylab) != 1))) {
-    return(paste("ylab: Must be a character vector containing the label for the vertical axis.", sep = ""))
-  }
-  return("pass")
-}
-
 # Density Plots
 #' @keywords internal
 den_plot <- function(list2, den1, elast, lb, ub, nticks0, A_titles, H_titles, xlab, ylab, k, j, i) {
@@ -996,7 +961,7 @@ den_plot <- function(list2, den1, elast, lb, ub, nticks0, A_titles, H_titles, xl
 Dist_Plots <- function(results, A_titles, H_titles = NULL, xlab = NULL, ylab = NULL) {
   
   #test arguments
-  test <- check_results(results = results, xlab = xlab, ylab = ylab)
+  test <- plot_funs_args_check(results = results, xlab = xlab, ylab = ylab)
   if (test != "pass") {
     stop(test)
   }
@@ -1264,5 +1229,79 @@ Dist_Plots <- function(results, A_titles, H_titles = NULL, xlab = NULL, ylab = N
   }
 }
 
+# Check results from BH_SBVAR.
+#' @keywords internal
+BH_SBVAR_results_check <- function(results) {
+  if (!is.list(results)) {
+    return("results: Must be a list.")
+  }
+  if (!is.matrix(results$y)) {
+    return("results: Must be a list containing a matrix 'y'.")
+  }
+  if (!is.array(results$A_chain) | !is.array(results$B_chain) | !is.array(results$D_chain)) {
+    return("results: Must be a list containing an array 'A_chain', 'B_chain', and 'D_chain'.")
+  }
+  if ((length(dim(results$A_chain)) != 3) | (length(dim(results$B_chain)) != 3) | (length(dim(results$D_chain)) != 3)) {
+    return("results: 'A_chain', 'B_chain', and 'D_chain' must have 3 dimensions.")
+  }
+  if ((dim(results$A_chain)[3] != dim(results$B_chain)[3]) | (dim(results$A_chain)[3] != dim(results$D_chain)[3])) {
+    return("results: The number of slices of the third dimension of 'A_chain' must equal the number of slices of the third dimension of 'B_chain' (or 'D_chain').")
+  }
+  if ((ncol(results$y) != ncol(results$A_chain)) | (ncol(results$y) != nrow(results$A_chain))) {
+    return("results: The number of columns and the number of rows of 'A_chain' must be equal to the number of columns in 'y'.")
+  }
+  if ((ncol(results$y) != ncol(results$D_chain)) | (ncol(results$y) != nrow(results$D_chain))) {
+    return("results: The number of columns (or rows) of 'D_chain' must be equal to the number of columns in 'y'.")
+  }
+  if ((ncol(results$y) != ncol(results$D_chain)) | (ncol(results$y) != nrow(results$D_chain))) {
+    return("results: The number of columns (or rows) of 'D_chain' must be equal to the number of columns in 'y'.")
+  }
+  if (all(!is.numeric(results$nlags)) || (length(results$nlags) > 1)) {
+    return("results: 'nlags' should be a single number.")
+  }
+  if ((results$nlags != round(x = results$nlags, digits = 0)) | (results$nlags < 2)) {
+    return("results: 'nlags' should be a positive integer greater than 2.")
+  }
+  if ((ncol(results$y) != ncol(results$B_chain)) || (((results$nlags * ncol(results$y)) + 1) != nrow(results$B_chain))) {
+    return(paste0("results: 'B_chain' should have ", ((results$nlags * ncol(results$y)) + 1), " ((results$nlags * ncol(results$y)) + 1) rows and ", ncol(results$y), " (ncol(results$y)) columns."))
+  }
+  return("pass")
+}
+
+# Check arguments from the IRF_Plots, HD_Plots, Dist_Plots functions.
+#' @keywords internal
+plot_funs_args_check <- function(results, xlab, ylab) {
+  if (is.array(results) && (length(dim(results)) == 3)) {
+    if (length(results) == 0) {
+      return(paste("results: Must be an array obtained from running IRF(), HD(), or FEVD().", sep = ""))
+    }
+    if ((any(!is.finite(results))) || (dim(results)[1] < 4) || (dim(results)[3] != 3) || ((dim(results)[2] / sqrt(dim(results)[2])) != (sqrt(dim(results)[2])))) {
+      return(paste("results: Results from IRF(), or FEVD() are not present.", sep = ""))
+    }
+  } else if (is.list(results)) {
+    if (any(names(results) == "HD")) {
+      if (!is.array(results$HD) || (length(results$HD) == 0)) {
+        return(paste("results: Must be an array obtained from running HD().", sep = ""))
+      }
+      if ((any(!is.finite(results$HD))) || (dim(results$HD)[1] < 4) || (dim(results$HD)[3] != 3) || ((dim(results$HD)[2] / sqrt(dim(results$HD)[2])) != (sqrt(dim(results$HD)[2])))) {
+        return(paste("results: Results from HD() are not present.", sep = ""))
+      }
+    } else {
+      if ((is.null(results$A)) || (!is.array(results$A)) || (any(!is.finite(results$A))) || (dim(results$A)[1] != dim(results$A)[2]) || (dim(results$A)[3] != 3) || (dim(results$A)[2] != ncol(results$y)) || (dim(results$A)[2] < 2)) {
+        return(paste("results: A from BH_SBVAR() is not present.", sep = ""))
+      }
+    }
+  } else {
+    return(paste0("results: Results must be an array or a list containing an array"))
+  }
+  
+  if ((!is.null(xlab)) && ((class(xlab) != "character") || (length(xlab) != 1))) {
+    return(paste("xlab: Must be a character vector containing the label for the horizontal axis.", sep = ""))
+  }
+  if ((!is.null(ylab)) && ((class(ylab) != "character") || (length(ylab) != 1))) {
+    return(paste("ylab: Must be a character vector containing the label for the vertical axis.", sep = ""))
+  }
+  return("pass")
+}
 
 
