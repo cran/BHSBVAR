@@ -9,7 +9,6 @@
 
 
 
-
 // Non-Central T-Distribution.
 //' @useDynLib BHSBVAR, .registration = TRUE
 //' @keywords internal
@@ -233,7 +232,7 @@ arma::mat proposal_function(const arma::mat& A_old, const arma::cube& pA, const 
           
           if (arma::is_finite(pA(j, i, 1))) {
             if (pA(j, i, 0) == 0.0) {
-              while (((pA(j, i, 1) > 0.0) & (A_test(j, i) < 0.0)) || ((pA(j, i, 1) < 0.0) & (A_test(j, i) > 0.0))) {
+              while (((pA(j, i, 1) > 0.0) && (A_test(j, i) < 0.0)) || ((pA(j, i, 1) < 0.0) && (A_test(j, i) > 0.0))) {
                 A_test(j, i) = A_old(j, i) + scale1(aa, aa) * (R::rnorm(0, 1) / std::sqrt(0.5 * (std::pow(R::rnorm(0, 1), 2) + std::pow(R::rnorm(0, 1), 2))));
                 cc += 1;
                 if (cc == 1000) {
@@ -243,7 +242,7 @@ arma::mat proposal_function(const arma::mat& A_old, const arma::cube& pA, const 
               }
             }
             if (pA(j, i, 0) == 2.0){
-              while (((pA(j, i, 1) == 1.0) & (A_test(j, i) < 1.0)) || ((pA(j, i, 1) == -1.0) & (A_test(j, i) > -1.0))) {
+              while (((pA(j, i, 1) == 1.0) && (A_test(j, i) < 1.0)) || ((pA(j, i, 1) == -1.0) && (A_test(j, i) > -1.0))) {
                 A_test(j, i) = A_old(j, i) + scale1(aa, aa) * (R::rnorm(0, 1) / std::sqrt(0.5 * (std::pow(R::rnorm(0, 1), 2) + std::pow(R::rnorm(0, 1), 2))));
                 cc += 1;
                 if (cc == 1000) {
@@ -253,7 +252,7 @@ arma::mat proposal_function(const arma::mat& A_old, const arma::cube& pA, const 
               }
             }
             if (pA(j, i, 0) == 3.0){
-              while (((pA(j, i, 1) == 1.0) & ((A_test(j, i) < 0.0) | (A_test(j, i) > 1.0))) || ((pA(j, i, 1) == -1.0) & ((A_test(j, i) > 0.0) | (A_test(j, i) < -1.0)))) {
+              while (((pA(j, i, 1) == 1.0) && ((A_test(j, i) < 0.0) || (A_test(j, i) > 1.0))) || ((pA(j, i, 1) == -1.0) && ((A_test(j, i) > 0.0) || (A_test(j, i) < -1.0)))) {
                 A_test(j, i) = A_old(j, i) + scale1(aa, aa) * (R::rnorm(0, 1) / std::sqrt(0.5 * (std::pow(R::rnorm(0, 1), 2) + std::pow(R::rnorm(0, 1), 2))));
                 cc += 1;
                 if (cc == 1000) {
@@ -281,17 +280,17 @@ arma::mat proposal_function(const arma::mat& A_old, const arma::cube& pA, const 
         for (arma::uword j = 0; j < nrow; ++j) {
           if ((arma::is_finite(pH(j, i, 0))) && (arma::is_finite(pH(j, i, 1)))) {
             if (pH(j, i, 0) == 0.0) {
-              if (((pH(j, i, 1) > 0.0) & (H_test(j, i) < 0.0)) || ((pH(j, i, 1) < 0.0) & (H_test(j, i) > 0.0))) {
+              if (((pH(j, i, 1) > 0.0) && (H_test(j, i) < 0.0)) || ((pH(j, i, 1) < 0.0) && (H_test(j, i) > 0.0))) {
                 sign_test += 1;
               }
             }
             if (pH(j, i, 0) == 2.0) {
-              if (((pH(j, i, 1) == 1.0) & (H_test(j, i) < 1.0)) || ((pH(j, i, 1) == -1.0) & (H_test(j, i) > -1.0))) {
+              if (((pH(j, i, 1) == 1.0) && (H_test(j, i) < 1.0)) || ((pH(j, i, 1) == -1.0) && (H_test(j, i) > -1.0))) {
                 sign_test += 1;
               }
             }
             if (pH(j, i, 0) == 3.0) {
-              if (((pH(j, i, 1) == 1.0) & ((H_test(j, i) < 0.0) | (H_test(j, i) > 1.0))) || ((pH(j, i, 1) == -1.0) & ((H_test(j, i) > 0.0) | (H_test(j, i) < -1.0)))) {
+              if (((pH(j, i, 1) == 1.0) && ((H_test(j, i) < 0.0) || (H_test(j, i) > 1.0))) || ((pH(j, i, 1) == -1.0) && ((H_test(j, i) > 0.0) || (H_test(j, i) < -1.0)))) {
                 sign_test += 1;
               }
             }
@@ -303,17 +302,17 @@ arma::mat proposal_function(const arma::mat& A_old, const arma::cube& pA, const 
     if ((sign_test == 0) && (arma::is_finite(pdetA(0, 0, 0))) && (arma::is_finite(pdetA(0, 0, 1)))) {
       detA_test = arma::det(A_test);
       if (pdetA(0, 0, 0) == 0.0) {
-        if (((pdetA(0, 0, 1) > 0.0) & (detA_test < 0.0)) || ((pdetA(0, 0, 1) < 0.0) & (detA_test > 0.0))) {
+        if (((pdetA(0, 0, 1) > 0.0) && (detA_test < 0.0)) || ((pdetA(0, 0, 1) < 0.0) && (detA_test > 0.0))) {
           sign_test += 1;
         }
       }
       if (pdetA(0, 0, 0) == 2.0) {
-        if (((pdetA(0, 0, 1) == 1.0) & (detA_test < 1.0)) || ((pdetA(0, 0, 1) == -1.0) & (detA_test > -1.0))) {
+        if (((pdetA(0, 0, 1) == 1.0) && (detA_test < 1.0)) || ((pdetA(0, 0, 1) == -1.0) && (detA_test > -1.0))) {
           sign_test += 1;
         }
       }
       if (pdetA(0, 0, 0) == 3.0) {
-        if (((pdetA(0, 0, 1) == 1.0) & ((detA_test < 0.0) | (detA_test > 1.0))) || ((pdetA(0, 0, 1) == -1.0) & ((detA_test > 0.0) | (detA_test < -1.0)))) {
+        if (((pdetA(0, 0, 1) == 1.0) && ((detA_test < 0.0) || (detA_test > 1.0))) || ((pdetA(0, 0, 1) == -1.0) && ((detA_test > 0.0) || (detA_test < -1.0)))) {
           sign_test += 1;
         }
       }

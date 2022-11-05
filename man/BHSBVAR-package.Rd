@@ -6,7 +6,7 @@
 \alias{BHSBVAR-package}
 \title{BHSBVAR: Structural Bayesian Vector Autoregression Models}
 \description{
-Provides a function for estimating the parameters of Structural Bayesian Vector Autoregression models with the method developed by Baumeister and Hamilton (2015) <doi:10.3982/ECTA12356>, Baumeister and Hamilton (2017) <doi:10.3386/w24167>, and Baumeister and Hamilton (2018) <doi:10.1016/j.jmoneco.2018.06.005>. Functions for plotting impulse responses, historical decompositions, and posterior distributions of model parameters are also provided.
+Provides a function for estimating the parameters of Structural Bayesian Vector Autoregression models with the method developed by Baumeister and Hamilton (2015) \doi{10.3982/ECTA12356}, Baumeister and Hamilton (2017) \doi{10.3386/w24167}, and Baumeister and Hamilton (2018) \doi{10.1016/j.jmoneco.2018.06.005}. Functions for plotting impulse responses, historical decompositions, and posterior distributions of model parameters are also provided.
 }
 \details{
 See vignette.

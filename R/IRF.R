@@ -281,13 +281,13 @@ IRF_Plots <- function(results, varnames, shocknames = NULL, xlab = NULL, ylab = 
   if (test != "pass") {
     stop(test)
   }
-  if (!is.vector(varnames) || (class(varnames) != "character") || (length(varnames) != sqrt(dim(results)[2]))) {
+  if (!is.vector(varnames) || (!is.character(varnames)) || (length(varnames) != sqrt(dim(results)[2]))) {
     stop(paste("varnames: Must be a character vector containing the names of the endogenous variables.", sep = ""))
   }
   if (is.null(shocknames)) {
     shocknames <- varnames
   }
-  if (!is.vector(shocknames) || (class(shocknames) != "character") || (length(shocknames) != sqrt(dim(results)[2]))) {
+  if (!is.vector(shocknames) || (!is.character(shocknames)) || (length(shocknames) != sqrt(dim(results)[2]))) {
     stop(paste("shocknames: Must be a character vector containing the names of the shocks.", sep = ""))
   }
   

@@ -83,7 +83,7 @@ check_integers <- function(list1) {
   #testing inputs that should be integers
   for (i in 1:length(list1)) {
     if (!is.null(list1[[i]])) {
-      if (((class(list1[[i]]) != "numeric") & (class(list1[[i]]) != "integer")) || (!is.finite(list1[[i]]))) {
+      if (((!is.numeric(list1[[i]])) & (!is.integer(list1[[i]]))) || (!is.finite(list1[[i]]))) {
         return(paste(names(list1[i]), ": Must be finite 'numeric' or 'integer'.", sep = ""))
       }
       if (length(list1[[i]]) != 1) {
@@ -120,7 +120,7 @@ check_doubles <- function(list1) {
   #testing inputs that could be doubles
   for (i in 1:length(list1)) {
     if (!is.null(list1[[i]])) {
-      if (((class(list1[[i]]) != "numeric") & (class(list1[[i]]) != "integer")) || (!is.finite(list1[[i]]))) {
+      if (((!is.numeric(list1[[i]])) & (!is.integer(list1[[i]]))) || (!is.finite(list1[[i]]))) {
         return(paste(names(list1[i]), ": Must be finite 'numeric' or 'integer'.", sep = ""))
       }
       if (length(list1[[i]]) != 1) {
@@ -674,152 +674,159 @@ ACF_Plots <- function(raw_array, priors_array, prior_name) {
 #'            thin = thin, cri = cri)
 BH_SBVAR <- function(y, nlags, pA, pdetA = NULL, pH = NULL, pP = NULL, pP_sig = NULL, pR_sig = NULL, kappa1 = NULL, itr = 5000, burn = 0, thin = 1, cri = 0.95) {
   
-  #construct objects from NULL inputs
-  if (is.null(pdetA)) {
-    pdetA <- array(data = NA_real_, dim = c(1, 1, 6))
-  }
-  if (is.null(pH)) {
-    pH <- array(data = NA_real_, dim = c(ncol(y), ncol(y), 6))
-  }
-  if (is.null(pP) | is.null(pP_sig)) {
-    pP <- matrix(data = 0, nrow = ((nlags * ncol(y)) + 1), ncol = ncol(y))
-    pP_sig <- matrix(data = 0, nrow = ((nlags * ncol(y)) + 1), ncol = ((nlags * ncol(y)) + 1))
-  }
-  if (is.null(pR_sig)) {
-    pR_sig <- array(data = 0, dim = c(((nlags * ncol(y)) + 1), ((nlags * ncol(y)) + 1), ncol(y)))
-  }
-  if (is.null(kappa1)) {
-    kappa1 <- matrix(data = 0, nrow = 1, ncol = ncol(y))
-  }
-  
-  #check BH_SBVAR function arguments
-  test <- arguments_check(y = y, nlags = nlags, pA = pA, pdetA = pdetA, pH = pH, pP = pP, pP_sig = pP_sig, pR_sig = pR_sig, kappa1 = kappa1, itr = itr, burn = burn, thin = thin, cri = cri)
-  if (test != "pass") {
-    stop(test)
-  }
-  
-  ci <- (1.0 - ((1.0 - cri) / 2.0))
-  
-  #create proposal scale matrix
-  scale_ar <-  diag(x = c(pA[, , 8])[which(!is.na(c(pA[, , 1])))], nrow = length(which(!is.na(c(pA[, , 1])))), ncol = length(which(!is.na(c(pA[, , 1])))))
-  
-  #trim pA
-  pA <- pA[, , 1:7]
-  
-  #check for variable names
-  if (is.null(colnames(y))) {
-    colnames(y) <- paste("y", 1:ncol(y), sep = "")
-  } else {
-    colnames(y) <- make.names(names = colnames(y), unique = TRUE)
-  }
-  rownames(y) <- NULL
-  
-  #get variable names
-  varnames <- colnames(y)
-  
-  #get x and y data matrices
-  list1 <- getXY(data1 = y, nlags = nlags)
-  x1 <- list1$X
-  y1 <- list1$Y
-  
-  #omega
-  omega <- ((t(y1) %*% y1) - (t(y1) %*% x1) %*% solve(t(x1) %*% x1) %*% t(t(y1) %*% x1)) / nrow(y1)
-  
-  #somega
-  ee <- matrix(data = NA_real_, nrow = nrow(y1), ncol = ncol(y1), dimnames = list(rownames(y1), varnames))
-  for (i in 1:ncol(y1)) {
-    xx <- cbind(x1[, seq(from = i, to = (ncol(x1) - 1), by = ncol(y1))], 1)
-    yy <- matrix(data = y1[, i], ncol = 1)
-    phi <- solve((t(xx) %*% xx), (t(xx) %*% yy))
-    ee[, i] <- yy - (xx %*% phi)
-  }
-  somega <- (t(ee) %*% ee) / nrow(ee)
-  
-  #optimization
-  startvalues <- c(pA[, , 3])[which(!is.na(c(pA[, , 1])))]
-  
-  A_optim <- list(par = NULL, value = NULL, counts = NULL, convergence = 1, message = NULL, hessian = diag(x = 1, nrow = length(startvalues), ncol = length(startvalues)))
-  A_optim[c("par", "value", "counts", "convergence", "message")] <- stats::optim(par = startvalues, fn = post_A_optim, pA = pA, pdetA = pdetA, pH = pH, pP = pP, pP_sig = pP_sig, pR_sig = pR_sig, kappa1 = kappa1, y1 = y1, x1 = x1, omega = omega, somega = somega, nlags = nlags, method = "Nelder-Mead", control = list(maxit = 2500))[c("par", "value", "counts", "convergence", "message")]
-  if (A_optim$convergence != 0) {
-    if ((all(!is.null(A_optim$par))) && (all(is.finite(A_optim$par)))) {
-      A_optim[c("par", "value", "counts", "convergence", "message")] <- stats::optim(par = A_optim$par, fn = post_A_optim, pA = pA, pdetA = pdetA, pH = pH, pP = pP, pP_sig = pP_sig, pR_sig = pR_sig, kappa1 = kappa1, y1 = y1, x1 = x1, omega = omega, somega = somega, nlags = nlags, method = "Nelder-Mead", control = list(maxit = 500))[c("par", "value", "counts", "convergence", "message")]
-    } else {
-      stop("Optimization routine convergence was not successful.")
-    }
-  }
-  if (A_optim$convergence != 0) {
-    stop("Optimization routine convergence was not successful.")
-  }
-  A_optim$hessian <- stats::optimHess(par = A_optim$par, fn = post_A_optim, pA = pA, pdetA = pdetA, pH = pH, pP = pP, pP_sig = pP_sig, pR_sig = pR_sig, kappa1 = kappa1, y1 = y1, x1 = x1, omega = omega, somega = somega, nlags = nlags)
-  
-  #optimum values in A
-  A_temp <- c(pA[, , 3])
-  A_temp[which(!is.na(c(pA[, , 1])))] <- A_optim$par
-  A_start <- matrix(data = A_temp, nrow = dim(pA)[1], ncol = dim(pA)[2], dimnames = list(varnames, varnames))
-  
-  #test that optimized starting values are consistent with sign restrictions
-  H_max <- solve(A_start)
-  for (i in 1:nrow(pA)) {
-    for (j in 1:ncol(pA)) {
-      if ((!is.na(pA[i, j, 1])) && ((pA[i, j, 1] == 0) | (pA[i, j, 1] == 2) | (pA[i, j, 1] == 3)) && (!is.na(pA[i, j, 2])) && (A_start[i, j] != 0) && (pA[i, j, 2] != (A_start[i, j] / abs(A_start[i, j])))) {
-        warning("Optimization routine produced values for the elements in A that are not consistent with sign restrictions.", immediate. = TRUE)
+  results <- tryCatch(
+    expr = {
+      #construct objects from NULL inputs
+      if (is.null(pdetA)) {
+        pdetA <- array(data = NA_real_, dim = c(1, 1, 6))
       }
-      if ((!is.na(pH[i, j, 1])) && ((pH[i, j, 1] == 0) | (pH[i, j, 1] == 2) | (pH[i, j, 1] == 3)) && (!is.na(pH[i, j, 2])) && (H_max[i, j] != 0) && (pH[i, j, 2] != (H_max[i, j] / abs(H_max[i, j])))) {
-        warning("Optimization routine produced values for the elements in H that are not consistent with sign restrictions.", immediate. = TRUE)
+      if (is.null(pH)) {
+        pH <- array(data = NA_real_, dim = c(ncol(y), ncol(y), 6))
       }
-    }
-  }
-  if ((!is.na(pdetA[1, 1, 1])) && ((pdetA[1, 1, 1] == 0) | (pdetA[1, 1, 1] == 2) | (pdetA[1, 1, 1] == 3)) && (!is.na(pdetA[1, 1, 2])) && (pdetA[1, 1, 2] != (det(A_start) / abs(det(A_start))))) {
-    warning("Optimization routine produced values for the determinant of A that are not consistent with sign restrictions.", immediate. = TRUE)
-  }
-  
-  #scale
-  H0 <- A_optim$hessian
-  if (min(eigen(solve(H0))[[1]]) > 0) {
-    PH <- t(chol(solve(H0)))
-  } else {
-    PH <- diag(x = 1, nrow = nrow(H0))
-  }
-  scale1 <- PH * scale_ar
-  
-  #Metropolis-Hastings Algorithm
-  results <- MAIN(y1 = y1, x1 = x1, omega = omega, somega = somega, nlags = nlags, pA = pA, pdetA = pdetA, pH = pH, pP = pP, pP_sig = pP_sig, pR_sig = pR_sig, kappa1 = kappa1, A_start = A_start, itr = itr, burn = burn, thin = thin, scale1 = scale1, ci = ci)
-  
-  dimnames(results$y) <- dimnames(y1)
-  dimnames(results$x) <- dimnames(x1)
-  
-  dimnames(results$pA) <- list(varnames, paste0(varnames, "_Eq"), c("Dist", "Sign", "Posn", "Dist_Arg1", "Dist_Arg2", "Dist_Arg3", "LR"))
-  dimnames(results$pdetA) <- list("detA", "detA", c("Dist", "Sign", "Posn", "Dist_Arg1", "Dist_Arg2", "Dist_Arg3"))
-  dimnames(results$pH) <- list(varnames, paste0(varnames, "_Eq"), c("Dist", "Sign", "Posn", "Dist_Arg1", "Dist_Arg2", "Dist_Arg3"))
-  
-  dimnames(results$pP) <- list(colnames(x1), paste0(varnames, "_Eq"))
-  dimnames(results$pP_sig) <- list(colnames(x1), colnames(x1))
-  
-  dimnames(results$pR) <- list(colnames(x1), paste0(varnames, "_Eq"), paste0(varnames, "_Eq"))
-  dimnames(results$pR_sig) <- list(colnames(x1), colnames(x1), paste0(varnames, "_Eq"))
-  
-  dimnames(results$tau1) <- list(varnames, varnames)
-  dimnames(results$kappa1) <- list(varnames, varnames)
-  
-  dimnames(results$A_start) <- list(varnames, paste0(varnames, "_Eq"))
-  
-  dimnames(results$A) <- list(varnames, paste0(varnames, "_Eq"), paste0(c(((1 - ci) * 100), 50, (ci * 100)),"%"))
-  dimnames(results$detA) <- list("detA", "detA", paste0(c(((1 - ci) * 100), 50, (ci * 100)),"%"))
-  dimnames(results$H) <- list(varnames, paste0(varnames, "_Eq"), paste0(c(((1 - ci) * 100), 50, (ci * 100)),"%"))
-  
-  dimnames(results$B) <- list(colnames(x1), paste0(colnames(y1), "_Eq"), paste0(c(((1 - ci) * 100), 50, (ci * 100)),"%"))
-  dimnames(results$Phi) <- list(colnames(x1), paste0(colnames(y1), "_Eq"), paste0(c(((1 - ci) * 100), 50, (ci * 100)),"%"))
-  dimnames(results$D) <- list(varnames, paste0(varnames, "_Eq"), paste0(c(((1 - ci) * 100), 50, (ci * 100)),"%"))
-  
-  dimnames(results$A_den$hori) <- list(varnames, paste0(varnames, "_Eq"), NULL)
-  dimnames(results$A_den$vert) <- list(varnames, paste0(varnames, "_Eq"), NULL)
-  dimnames(results$detA_den$hori) <- list("detA", "detA", NULL)
-  dimnames(results$detA_den$vert) <- list("detA", "detA", NULL)
-  dimnames(results$H_den$hori) <- list(varnames, paste0(varnames, "_Eq"), NULL)
-  dimnames(results$H_den$vert) <- list(varnames, paste0(varnames, "_Eq"), NULL)
-  
-  Line_Plots(raw_array = results$A_chain, priors_array = results$pA, prior_name = "pA")
-  ACF_Plots(raw_array = results$A_chain, priors_array = results$pA, prior_name = "pA")
+      if (is.null(pP) | is.null(pP_sig)) {
+        pP <- matrix(data = 0, nrow = ((nlags * ncol(y)) + 1), ncol = ncol(y))
+        pP_sig <- matrix(data = 0, nrow = ((nlags * ncol(y)) + 1), ncol = ((nlags * ncol(y)) + 1))
+      }
+      if (is.null(pR_sig)) {
+        pR_sig <- array(data = 0, dim = c(((nlags * ncol(y)) + 1), ((nlags * ncol(y)) + 1), ncol(y)))
+      }
+      if (is.null(kappa1)) {
+        kappa1 <- matrix(data = 0, nrow = 1, ncol = ncol(y))
+      }
+      
+      #check BH_SBVAR function arguments
+      test <- arguments_check(y = y, nlags = nlags, pA = pA, pdetA = pdetA, pH = pH, pP = pP, pP_sig = pP_sig, pR_sig = pR_sig, kappa1 = kappa1, itr = itr, burn = burn, thin = thin, cri = cri)
+      if (test != "pass") {
+        stop(test)
+      }
+      
+      ci <- (1.0 - ((1.0 - cri) / 2.0))
+      
+      #create proposal scale matrix
+      scale_ar <-  diag(x = c(pA[, , 8])[which(!is.na(c(pA[, , 1])))], nrow = length(which(!is.na(c(pA[, , 1])))), ncol = length(which(!is.na(c(pA[, , 1])))))
+      
+      #trim pA
+      pA <- pA[, , 1:7]
+      
+      #check for variable names
+      if (is.null(colnames(y))) {
+        colnames(y) <- paste("y", 1:ncol(y), sep = "")
+      } else {
+        colnames(y) <- make.names(names = colnames(y), unique = TRUE)
+      }
+      rownames(y) <- NULL
+      
+      #get variable names
+      varnames <- colnames(y)
+      
+      #get x and y data matrices
+      list1 <- getXY(data1 = y, nlags = nlags)
+      x1 <- list1$X
+      y1 <- list1$Y
+      
+      #omega
+      omega <- ((t(y1) %*% y1) - (t(y1) %*% x1) %*% solve(t(x1) %*% x1) %*% t(t(y1) %*% x1)) / nrow(y1)
+      
+      #somega
+      ee <- matrix(data = NA_real_, nrow = nrow(y1), ncol = ncol(y1), dimnames = list(rownames(y1), varnames))
+      for (i in 1:ncol(y1)) {
+        xx <- cbind(x1[, seq(from = i, to = (ncol(x1) - 1), by = ncol(y1))], 1)
+        yy <- matrix(data = y1[, i], ncol = 1)
+        phi <- solve((t(xx) %*% xx), (t(xx) %*% yy))
+        ee[, i] <- yy - (xx %*% phi)
+      }
+      somega <- (t(ee) %*% ee) / nrow(ee)
+      
+      #optimization
+      startvalues <- c(pA[, , 3])[which(!is.na(c(pA[, , 1])))]
+      
+      A_optim <- list(par = NULL, value = NULL, counts = NULL, convergence = 1, message = NULL, hessian = diag(x = 1, nrow = length(startvalues), ncol = length(startvalues)))
+      A_optim[c("par", "value", "counts", "convergence", "message")] <- stats::optim(par = startvalues, fn = post_A_optim, pA = pA, pdetA = pdetA, pH = pH, pP = pP, pP_sig = pP_sig, pR_sig = pR_sig, kappa1 = kappa1, y1 = y1, x1 = x1, omega = omega, somega = somega, nlags = nlags, method = "Nelder-Mead", control = list(maxit = 2500))[c("par", "value", "counts", "convergence", "message")]
+      if (A_optim$convergence != 0) {
+        if ((all(!is.null(A_optim$par))) && (all(is.finite(A_optim$par)))) {
+          A_optim[c("par", "value", "counts", "convergence", "message")] <- stats::optim(par = A_optim$par, fn = post_A_optim, pA = pA, pdetA = pdetA, pH = pH, pP = pP, pP_sig = pP_sig, pR_sig = pR_sig, kappa1 = kappa1, y1 = y1, x1 = x1, omega = omega, somega = somega, nlags = nlags, method = "Nelder-Mead", control = list(maxit = 500))[c("par", "value", "counts", "convergence", "message")]
+        } else {
+          stop("Optimization routine convergence was not successful.")
+        }
+      }
+      if (A_optim$convergence != 0) {
+        stop("Optimization routine convergence was not successful.")
+      }
+      A_optim$hessian <- stats::optimHess(par = A_optim$par, fn = post_A_optim, pA = pA, pdetA = pdetA, pH = pH, pP = pP, pP_sig = pP_sig, pR_sig = pR_sig, kappa1 = kappa1, y1 = y1, x1 = x1, omega = omega, somega = somega, nlags = nlags)
+      
+      #optimum values in A
+      A_temp <- c(pA[, , 3])
+      A_temp[which(!is.na(c(pA[, , 1])))] <- A_optim$par
+      A_start <- matrix(data = A_temp, nrow = dim(pA)[1], ncol = dim(pA)[2], dimnames = list(varnames, varnames))
+      
+      #test that optimized starting values are consistent with sign restrictions
+      H_max <- solve(A_start)
+      for (i in 1:nrow(pA)) {
+        for (j in 1:ncol(pA)) {
+          if ((!is.na(pA[i, j, 1])) && ((pA[i, j, 1] == 0) | (pA[i, j, 1] == 2) | (pA[i, j, 1] == 3)) && (!is.na(pA[i, j, 2])) && (A_start[i, j] != 0) && (pA[i, j, 2] != (A_start[i, j] / abs(A_start[i, j])))) {
+            warning("Optimization routine produced values for the elements in A that are not consistent with sign restrictions.", immediate. = TRUE)
+          }
+          if ((!is.na(pH[i, j, 1])) && ((pH[i, j, 1] == 0) | (pH[i, j, 1] == 2) | (pH[i, j, 1] == 3)) && (!is.na(pH[i, j, 2])) && (H_max[i, j] != 0) && (pH[i, j, 2] != (H_max[i, j] / abs(H_max[i, j])))) {
+            warning("Optimization routine produced values for the elements in H that are not consistent with sign restrictions.", immediate. = TRUE)
+          }
+        }
+      }
+      if ((!is.na(pdetA[1, 1, 1])) && ((pdetA[1, 1, 1] == 0) | (pdetA[1, 1, 1] == 2) | (pdetA[1, 1, 1] == 3)) && (!is.na(pdetA[1, 1, 2])) && (pdetA[1, 1, 2] != (det(A_start) / abs(det(A_start))))) {
+        warning("Optimization routine produced values for the determinant of A that are not consistent with sign restrictions.", immediate. = TRUE)
+      }
+      
+      #scale
+      H0 <- A_optim$hessian
+      if (min(eigen(solve(H0))[[1]]) > 0) {
+        PH <- t(chol(solve(H0)))
+      } else {
+        PH <- diag(x = 1, nrow = nrow(H0))
+      }
+      scale1 <- PH * scale_ar
+      
+      #Metropolis-Hastings Algorithm
+      results <- MAIN(y1 = y1, x1 = x1, omega = omega, somega = somega, nlags = nlags, pA = pA, pdetA = pdetA, pH = pH, pP = pP, pP_sig = pP_sig, pR_sig = pR_sig, kappa1 = kappa1, A_start = A_start, itr = itr, burn = burn, thin = thin, scale1 = scale1, ci = ci)
+      
+      dimnames(results$y) <- dimnames(y1)
+      dimnames(results$x) <- dimnames(x1)
+      
+      dimnames(results$pA) <- list(varnames, paste0(varnames, "_Eq"), c("Dist", "Sign", "Posn", "Dist_Arg1", "Dist_Arg2", "Dist_Arg3", "LR"))
+      dimnames(results$pdetA) <- list("detA", "detA", c("Dist", "Sign", "Posn", "Dist_Arg1", "Dist_Arg2", "Dist_Arg3"))
+      dimnames(results$pH) <- list(varnames, paste0(varnames, "_Eq"), c("Dist", "Sign", "Posn", "Dist_Arg1", "Dist_Arg2", "Dist_Arg3"))
+      
+      dimnames(results$pP) <- list(colnames(x1), paste0(varnames, "_Eq"))
+      dimnames(results$pP_sig) <- list(colnames(x1), colnames(x1))
+      
+      dimnames(results$pR) <- list(colnames(x1), paste0(varnames, "_Eq"), paste0(varnames, "_Eq"))
+      dimnames(results$pR_sig) <- list(colnames(x1), colnames(x1), paste0(varnames, "_Eq"))
+      
+      dimnames(results$tau1) <- list(varnames, varnames)
+      dimnames(results$kappa1) <- list(varnames, varnames)
+      
+      dimnames(results$A_start) <- list(varnames, paste0(varnames, "_Eq"))
+      
+      dimnames(results$A) <- list(varnames, paste0(varnames, "_Eq"), paste0(c(((1 - ci) * 100), 50, (ci * 100)),"%"))
+      dimnames(results$detA) <- list("detA", "detA", paste0(c(((1 - ci) * 100), 50, (ci * 100)),"%"))
+      dimnames(results$H) <- list(varnames, paste0(varnames, "_Eq"), paste0(c(((1 - ci) * 100), 50, (ci * 100)),"%"))
+      
+      dimnames(results$B) <- list(colnames(x1), paste0(colnames(y1), "_Eq"), paste0(c(((1 - ci) * 100), 50, (ci * 100)),"%"))
+      dimnames(results$Phi) <- list(colnames(x1), paste0(colnames(y1), "_Eq"), paste0(c(((1 - ci) * 100), 50, (ci * 100)),"%"))
+      dimnames(results$D) <- list(varnames, paste0(varnames, "_Eq"), paste0(c(((1 - ci) * 100), 50, (ci * 100)),"%"))
+      
+      dimnames(results$A_den$hori) <- list(varnames, paste0(varnames, "_Eq"), NULL)
+      dimnames(results$A_den$vert) <- list(varnames, paste0(varnames, "_Eq"), NULL)
+      dimnames(results$detA_den$hori) <- list("detA", "detA", NULL)
+      dimnames(results$detA_den$vert) <- list("detA", "detA", NULL)
+      dimnames(results$H_den$hori) <- list(varnames, paste0(varnames, "_Eq"), NULL)
+      dimnames(results$H_den$vert) <- list(varnames, paste0(varnames, "_Eq"), NULL)
+      
+      Line_Plots(raw_array = results$A_chain, priors_array = results$pA, prior_name = "pA")
+      ACF_Plots(raw_array = results$A_chain, priors_array = results$pA, prior_name = "pA")
+      
+      return(results)
+    },
+    error = function(e) {e}
+  )
   
   return(results)
 }
@@ -1295,10 +1302,10 @@ plot_funs_args_check <- function(results, xlab, ylab) {
     return(paste0("results: Results must be an array or a list containing an array"))
   }
   
-  if ((!is.null(xlab)) && ((class(xlab) != "character") || (length(xlab) != 1))) {
+  if ((!is.null(xlab)) && ((!is.character(xlab)) || (length(xlab) != 1))) {
     return(paste("xlab: Must be a character vector containing the label for the horizontal axis.", sep = ""))
   }
-  if ((!is.null(ylab)) && ((class(ylab) != "character") || (length(ylab) != 1))) {
+  if ((!is.null(ylab)) && ((!is.character(ylab)) || (length(ylab) != 1))) {
     return(paste("ylab: Must be a character vector containing the label for the vertical axis.", sep = ""))
   }
   return("pass")

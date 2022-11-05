@@ -282,19 +282,19 @@ HD_Plots <- function(results, varnames, shocknames = NULL, xlab = NULL, ylab = N
   if (test != "pass") {
     stop(test)
   }
-  if (!is.vector(varnames) || (class(varnames) != "character") || (length(varnames) != sqrt(dim(results$HD)[2])) || (length(varnames) != ncol(results$y))) {
+  if (!is.vector(varnames) || (!is.character(varnames)) || (length(varnames) != sqrt(dim(results$HD)[2])) || (length(varnames) != ncol(results$y))) {
     stop(paste("varnames: Must be a character vector containing the names of the endogenous variables.", sep = ""))
   }
   if (is.null(shocknames)) {
     shocknames <- varnames
   }
-  if (!is.vector(shocknames) || (class(shocknames) != "character") || (length(shocknames) != sqrt(dim(results$HD)[2])) || (length(shocknames) != ncol(results$y))) {
+  if (!is.vector(shocknames) || (!is.character(shocknames)) || (length(shocknames) != sqrt(dim(results$HD)[2])) || (length(shocknames) != ncol(results$y))) {
     stop(paste("shocknames: Must be a character vector containing the names of the shocks.", sep = ""))
   }
-  if ((class(freq) != "numeric") || (!is.finite(freq)) || (length(freq) != 1) || ((freq %% 1) != 0) || (freq < 1)) {
+  if ((!is.numeric(freq)) || (!is.finite(freq)) || (length(freq) != 1) || ((freq %% 1) != 0) || (freq < 1)) {
     stop("freq: Must be a finite whole number grater than 0.")
   }
-  if ((class(start_date) != "numeric") || (any(!is.finite(start_date))) || (length(start_date) != 2) || (any((start_date %% 1) != 0)) || (any(start_date < 0))) {
+  if ((!is.numeric(start_date)) || (any(!is.finite(start_date))) || (length(start_date) != 2) || (any((start_date %% 1) != 0)) || (any(start_date < 0))) {
     stop("start_date: Must be a numeric vector containing finite whole numbers greater than or equal to 0.")
   }
   

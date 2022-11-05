@@ -6,6 +6,11 @@
 
 using namespace Rcpp;
 
+#ifdef RCPP_USE_GLOBAL_ROSTREAM
+Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
+Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
+#endif
+
 // prior_nonc_t
 double prior_nonc_t(const double a1, const double p1, const double sigma1, const double nu, const double lam1);
 RcppExport SEXP _BHSBVAR_prior_nonc_t(SEXP a1SEXP, SEXP p1SEXP, SEXP sigma1SEXP, SEXP nuSEXP, SEXP lam1SEXP) {
