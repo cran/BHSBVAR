@@ -54,6 +54,7 @@ urlcolor=blue
 \itemsep=0pt
 \partopsep=0pt
 }
+\fi
 
 <<Setup, include=FALSE, echo=FALSE>>=
 knitr::opts_knit$set(self.contained = TRUE, concordance = TRUE)
