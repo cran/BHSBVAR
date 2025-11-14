@@ -23,3 +23,7 @@ Dr. Christiane Baumeister's website \href{https://sites.google.com/site/cjsbaume
 
 Dr. James D. Hamilton's website \href{https://econweb.ucsd.edu/~jhamilton/}{https://econweb.ucsd.edu/~jhamilton/}.
 }
+\author{
+\strong{Maintainer}: Paul Richardson \email{p.richardson.54391@gmail.com}
+
+}

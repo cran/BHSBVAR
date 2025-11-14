@@ -1,13 +1,6 @@
+#include "RcppArmadillo.h"
 
-
-
-
-//[[Rcpp::depends(RcppArmadillo)]]
-
-
-#include <RcppArmadillo.h>
-
-
+// [[Rcpp::depends(RcppArmadillo)]]
 
 // Non-Central T-Distribution.
 //' @useDynLib BHSBVAR, .registration = TRUE
@@ -83,7 +76,7 @@ double sum_log_prior_densities(const arma::mat& A_test, const arma::cube& pA, co
   //compute sum of log priors
   for (arma::uword i = 0; i < nrow; ++i) {
     for (arma::uword j = 0; j < ncol; ++j) {
-      if (arma::is_finite(pA(i, j, 0))) {
+      if (std::isfinite(pA(i, j, 0))) {
         // if pA(i, j, 0) == 0, symmetric t-distribution
         if (pA(i, j, 0) == 0) {
           // if pA(i, j, 1) == 1,  positive sign restrictions
@@ -108,7 +101,7 @@ double sum_log_prior_densities(const arma::mat& A_test, const arma::cube& pA, co
           sum_log_priors += std::log(prior_beta((pA(i, j, 1) * A_test(i, j)), pA(i, j, 3), pA(i, j, 4)));
         }        
       }
-      if (arma::is_finite(pH(i, j, 0))) {
+      if (std::isfinite(pH(i, j, 0))) {
         // if pH(i, j, 0) == 0, symmetric t-distribution
         if (pH(i, j, 0) == 0) {
           // if pH(i, j, 1) == 1,  positive sign restrictions
@@ -135,7 +128,7 @@ double sum_log_prior_densities(const arma::mat& A_test, const arma::cube& pA, co
       }
     }
   }
-  if (arma::is_finite(pdetA(0, 0, 0))) {
+  if (std::isfinite(pdetA(0, 0, 0))) {
     // if pdetA(0, 0, 0) == 0, symmetric t-distribution
     if (pdetA(0, 0, 0) == 0) {
       // if pdetA(0, 0, 0) == 1,  positive sign restrictions
@@ -199,7 +192,7 @@ arma::mat proposal_function(const arma::mat& A_old, const arma::cube& pA, const 
   arma::uword nH = 0;
   for (arma::uword i = 0; i < ncol; ++i) {
     for (arma::uword j = 0; j < nrow; ++j) {
-      if ((arma::is_finite(pH(j, i, 0))) && (pH(j, i, 0) == 0.0) && (arma::is_finite(pH(j, i, 1)))) {
+      if ((std::isfinite(pH(j, i, 0))) && (pH(j, i, 0) == 0.0) && (std::isfinite(pH(j, i, 1)))) {
         nH += 1;
       }
     }
@@ -226,11 +219,11 @@ arma::mat proposal_function(const arma::mat& A_old, const arma::cube& pA, const 
     
     for (arma::uword i = 0; i < ncol; ++i) {
       for (arma::uword j = 0; j < nrow; ++j) {
-        if (arma::is_finite(pA(j, i, 0))) {
+        if (std::isfinite(pA(j, i, 0))) {
           
           A_test(j, i) = A_old(j, i) + scale1(aa, aa) * (R::rnorm(0, 1) / std::sqrt(0.5 * (std::pow(R::rnorm(0, 1), 2) + std::pow(R::rnorm(0, 1), 2))));
           
-          if (arma::is_finite(pA(j, i, 1))) {
+          if (std::isfinite(pA(j, i, 1))) {
             if (pA(j, i, 0) == 0.0) {
               while (((pA(j, i, 1) > 0.0) && (A_test(j, i) < 0.0)) || ((pA(j, i, 1) < 0.0) && (A_test(j, i) > 0.0))) {
                 A_test(j, i) = A_old(j, i) + scale1(aa, aa) * (R::rnorm(0, 1) / std::sqrt(0.5 * (std::pow(R::rnorm(0, 1), 2) + std::pow(R::rnorm(0, 1), 2))));
@@ -278,7 +271,7 @@ arma::mat proposal_function(const arma::mat& A_old, const arma::cube& pA, const 
       H_test = arma::inv(A_test);
       for (arma::uword i = 0; i < ncol; ++i) {
         for (arma::uword j = 0; j < nrow; ++j) {
-          if ((arma::is_finite(pH(j, i, 0))) && (arma::is_finite(pH(j, i, 1)))) {
+          if ((std::isfinite(pH(j, i, 0))) && (std::isfinite(pH(j, i, 1)))) {
             if (pH(j, i, 0) == 0.0) {
               if (((pH(j, i, 1) > 0.0) && (H_test(j, i) < 0.0)) || ((pH(j, i, 1) < 0.0) && (H_test(j, i) > 0.0))) {
                 sign_test += 1;
@@ -299,7 +292,7 @@ arma::mat proposal_function(const arma::mat& A_old, const arma::cube& pA, const 
       }
     }
     
-    if ((sign_test == 0) && (arma::is_finite(pdetA(0, 0, 0))) && (arma::is_finite(pdetA(0, 0, 1)))) {
+    if ((sign_test == 0) && (std::isfinite(pdetA(0, 0, 0))) && (std::isfinite(pdetA(0, 0, 1)))) {
       detA_test = arma::det(A_test);
       if (pdetA(0, 0, 0) == 0.0) {
         if (((pdetA(0, 0, 1) > 0.0) && (detA_test < 0.0)) || ((pdetA(0, 0, 1) < 0.0) && (detA_test > 0.0))) {
@@ -365,7 +358,7 @@ arma::field<arma::cube> MH(const arma::mat& y1, const arma::mat& x1, const arma:
         zeta_old(i, i) = arma::as_scalar(arma::trans(A_old.col(i)) * temp4 * A_old.col(i));
       } else {
         for (arma::uword j = 0; j < pA_nrow; ++j) {
-          if (arma::is_finite(pA(j, i, 6))) {
+          if (std::isfinite(pA(j, i, 6))) {
             pR(j, i, i) = A_old(j, i);
           }
         }
@@ -399,7 +392,7 @@ arma::field<arma::cube> MH(const arma::mat& y1, const arma::mat& x1, const arma:
           zeta_test(i, i) = arma::as_scalar(arma::trans(A_test.col(i)) * temp4 * A_test.col(i));
         } else {
           for (arma::uword j = 0; j < pA_nrow; ++j) {
-            if (arma::is_finite(pA(j, i, 6))) {
+            if (std::isfinite(pA(j, i, 6))) {
               pR(j, i, i) = A_test(j, i);
             }
           }
@@ -518,7 +511,7 @@ Rcpp::List den_function(const arma::cube& raw, const arma::cube& priors) {
   
   for (arma::uword i = 0; i < nrow; ++i) {
     for (arma::uword j = 0; j < ncol; ++j) {
-      if (arma::is_finite(priors(i, j, 0))) {
+      if (std::isfinite(priors(i, j, 0))) {
         t1 = raw(i, j, 0);
         t2(arma::span::all) = arma::vectorise(raw(arma::span(i), arma::span(j), arma::span::all));
         if (arma::any(t2 != t1)) {
@@ -935,7 +928,7 @@ Rcpp::List MAIN(const arma::mat& y1, const arma::mat& x1, const arma::mat& omega
   arma::cube pR(((pA_ncol * nlags) + 1), pA_ncol, pA_ncol, arma::fill::zeros);
   for (arma::uword i = 0; i < pA_ncol; ++i) {
     for (arma::uword j = 0; j < pA_ncol; ++j) {
-      if (arma::is_finite(pA(j, i, 6))) {
+      if (std::isfinite(pA(j, i, 6))) {
         pR(j, i, i) = pA(j, i, 2);
       }
     }

@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+
+<meta charset="utf-8" />
+<meta name="generator" content="pandoc" />
+<meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
+
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+
+<meta name="author" content="Paul Richardson" />
+
+<meta name="date" content="2025-11-13" />
+
+<title>BHSBVAR</title>
+
+<style type="text/css">detaiks.chunk-details > summary.chunk-summary {
+text-align: right;
+}
+details.chunk-details[open] > summary.chunk-summary::after {
+content: "Hide";
+}
+details.chunk-details[open] > summary.chunk-summary > span.chunk-summary-text {
+display: none;
+}
+</style>
+
+<style type="text/css">
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+span.underline{text-decoration: underline;}
+div.column{display: inline-block; vertical-align: top; width: 50%;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+</style>
+
+
+
+
+
+
+<style type="text/css">
+
+div.csl-bib-body { }
+div.csl-entry {
+clear: both;
+margin-bottom: 0em;
+}
+.hanging div.csl-entry {
+margin-left:2em;
+text-indent:-2em;
+}
+div.csl-left-margin {
+min-width:2em;
+float:left;
+}
+div.csl-right-inline {
+margin-left:2em;
+padding-left:1em;
+}
+div.csl-indent {
+margin-left: 2em;
+}
+</style>
+
+<style type="text/css">body {
+background-color: #fff;
+margin: 1em auto;
+max-width: 700px;
+overflow: visible;
+padding-left: 2em;
+padding-right: 2em;
+font-family: "Open Sans", "Helvetica Neue", Helvetica, Arial, sans-serif;
+font-size: 14px;
+line-height: 1.35;
+}
+#TOC {
+clear: both;
+margin: 0 0 10px 10px;
+padding: 4px;
+width: 400px;
+border: 1px solid #CCCCCC;
+border-radius: 5px;
+background-color: #f6f6f6;
+font-size: 13px;
+line-height: 1.3;
+}
+#TOC .toctitle {
+font-weight: bold;
+font-size: 15px;
+margin-left: 5px;
+}
+#TOC ul {
+padding-left: 40px;
+margin-left: -1.5em;
+margin-top: 5px;
+margin-bottom: 5px;
+}
+#TOC ul ul {
+margin-left: -2em;
+}
+#TOC li {
+line-height: 16px;
+}
+table {
+margin: 1em auto;
+border-width: 1px;
+border-color: #DDDDDD;
+border-style: outset;
+border-collapse: collapse;
+}
+table th {
+border-width: 2px;
+padding: 5px;
+border-style: inset;
+}
+table td {
+border-width: 1px;
+border-style: inset;
+line-height: 18px;
+padding: 5px 5px;
+}
+table, table th, table td {
+border-left-style: none;
+border-right-style: none;
+}
+table thead, table tr.even {
+background-color: #f7f7f7;
+}
+p {
+margin: 0.5em 0;
+}
+blockquote {
+background-color: #f6f6f6;
+padding: 0.25em 0.75em;
+}
+hr {
+border-style: solid;
+border: none;
+border-top: 1px solid #777;
+margin: 28px 0;
+}
+dl {
+margin-left: 0;
+}
+dl dd {
+margin-bottom: 13px;
+margin-left: 13px;
+}
+dl dt {
+font-weight: bold;
+}
+ul {
+margin-top: 0;
+}
+ul li {
+list-style: circle outside;
+}
+ul ul {
+margin-bottom: 0;
+}
+pre, code {
+background-color: #f7f7f7;
+border-radius: 3px;
+color: #333;
+white-space: pre-wrap; 
+}
+pre {
+border-radius: 3px;
+margin: 5px 0px 10px 0px;
+padding: 10px;
+}
+pre:not([class]) {
+background-color: #f7f7f7;
+}
+code {
+font-family: Consolas, Monaco, 'Courier New', monospace;
+font-size: 85%;
+}
+p > code, li > code {
+padding: 2px 0px;
+}
+div.figure {
+text-align: center;
+}
+img {
+background-color: #FFFFFF;
+padding: 2px;
+border: 1px solid #DDDDDD;
+border-radius: 3px;
+border: 1px solid #CCCCCC;
+margin: 0 5px;
+}
+h1 {
+margin-top: 0;
+font-size: 35px;
+line-height: 40px;
+}
+h2 {
+border-bottom: 4px solid #f7f7f7;
+padding-top: 10px;
+padding-bottom: 2px;
+font-size: 145%;
+}
+h3 {
+border-bottom: 2px solid #f7f7f7;
+padding-top: 10px;
+font-size: 120%;
+}
+h4 {
+border-bottom: 1px solid #f7f7f7;
+margin-left: 8px;
+font-size: 105%;
+}
+h5, h6 {
+border-bottom: 1px solid #ccc;
+font-size: 105%;
+}
+a {
+color: #0033dd;
+text-decoration: none;
+}
+a:hover {
+color: #6666ff; }
+a:visited {
+color: #800080; }
+a:visited:hover {
+color: #BB00BB; }
+a[href^="http:"] {
+text-decoration: underline; }
+a[href^="https:"] {
+text-decoration: underline; }
+
+code > span.kw { color: #555; font-weight: bold; } 
+code > span.dt { color: #902000; } 
+code > span.dv { color: #40a070; } 
+code > span.bn { color: #d14; } 
+code > span.fl { color: #d14; } 
+code > span.ch { color: #d14; } 
+code > span.st { color: #d14; } 
+code > span.co { color: #888888; font-style: italic; } 
+code > span.ot { color: #007020; } 
+code > span.al { color: #ff0000; font-weight: bold; } 
+code > span.fu { color: #900; font-weight: bold; } 
+code > span.er { color: #a61717; background-color: #e3d2d2; } 
+</style>
+
+
+
+
+</head>
+
+<body>
+
+
+
+
+<h1 class="title toc-ignore">BHSBVAR</h1>
+<h4 class="author">Paul Richardson</h4>
+<h4 class="date">November 13, 2025</h4>
+
+
+
+<div id="acknowledgement" class="section level2" number="1">
+<h2><span class="header-section-number">1</span> ACKNOWLEDGEMENT</h2>
+<p>The BHSBVAR package is based on the MATLAB programs created by <a href="https://sites.google.com/site/cjsbaumeister/">Baumeister</a> and <a href="https://econweb.ucsd.edu/~jhamilton/">Hamilton</a> <span class="citation">(<a href="#ref-BH2015">Baumeister and Hamilton 2015</a>, <a href="#ref-BH2017">2017</a>, <a href="#ref-BH2018">2018</a>)</span>. I thank them for sharing their MATLAB programs online.</p>
+</div>
+<div id="introduction" class="section level2" number="2">
+<h2><span class="header-section-number">2</span> INTRODUCTION</h2>
+<p>Identifying structural innovations from Structural Vector Autoregression (SVAR) models requires the researcher to make assumptions about the structural parameters in the model. Recursively identifying structural innovations with the Cholesky decomposition of the residual covariance matrix requires the researcher to assume a recursive order of the endogenous variables in the model and exclusion or information lag restrictions for structural parameters. Identifying structural innovations with sign restrictions prevents researchers from having to make zero restrictions for structural parameters but it does implicitly require researchers to assume a prior distribution for structural parameters they may not agree with. The method developed by <span class="citation">(<a href="#ref-BH2015">Baumeister and Hamilton 2015</a>, <a href="#ref-BH2017">2017</a>, <a href="#ref-BH2018">2018</a>)</span> for estimating the parameters of a Structural Bayesian Vector Autoregression (SBVAR) model is an alternative method that allows the researcher to explicitly include prior information about the parameters of the model. Their method does not require the researcher to assume a recursive order of the endogenous variables in the model or a prior distribution about structural parameters the researcher does not agree with. For detailed information about their method see <span class="citation">(<a href="#ref-BH2015">Baumeister and Hamilton 2015</a>, <a href="#ref-BH2017">2017</a>, <a href="#ref-BH2018">2018</a>)</span>.</p>
+</div>
+<div id="model" class="section level2" number="3">
+<h2><span class="header-section-number">3</span> MODEL</h2>
+<p>Let <span class="math inline">\(Y\)</span> be an <span class="math inline">\((n \times T)\)</span> matrix of endogenous variables. <span class="math inline">\(X\)</span> is a <span class="math inline">\((k \times T)\)</span> matrix containing <span class="math inline">\(L\)</span> lags of the endogenous variables and a constant. <span class="math inline">\(A\)</span> is an <span class="math inline">\((n \times n)\)</span> matrix containing the short-run elasticities or the structural relationships between the endogenous variables in <span class="math inline">\(Y\)</span> from an SVAR model. <span class="math inline">\(B\)</span> is an <span class="math inline">\((n \times k)\)</span> matrix containing lagged structural coefficients. <span class="math inline">\(U\)</span> is an <span class="math inline">\((n \times T)\)</span> matrix of structural innovations. <span class="math inline">\(D\)</span> is an <span class="math inline">\((n \times n)\)</span> diagonal covariance matrix of the innovations from the structural model. <span class="math inline">\(n\)</span> is the number of endogenous variables or equations. <span class="math inline">\(T\)</span> is the number of observations and <span class="math inline">\(k = n L + 1\)</span>.</p>
+<p>Structural Vector Autoregression Model:</p>
+<ol style="list-style-type: decimal">
+<li><p><span class="math inline">\(A Y = B X + U\)</span>                 <span class="math inline">\(U \sim N(0,D)\)</span></p></li>
+<li><p><span class="math inline">\(B = A \Phi\)</span></p></li>
+<li><p><span class="math inline">\(U = A \epsilon\)</span></p></li>
+<li><p><span class="math inline">\(D = \frac{U U^{\top}}{T} = A \Omega A^{\top}\)</span></p></li>
+</ol>
+<p><span class="math inline">\(\Phi\)</span> is an <span class="math inline">\((n \times k)\)</span> matrix containing the lagged coefficients from the reduced form Vector Autoregression (VAR) model. <span class="math inline">\(\epsilon\)</span> is an <span class="math inline">\((n \times T)\)</span> matrix of the VAR model residuals. <span class="math inline">\(\Omega\)</span> is an <span class="math inline">\((n \times n)\)</span> symmetric covariance matrix of the residuals from the VAR model.</p>
+<p>Reduced Form Vector Autoregression Model:</p>
+<ol start="5" style="list-style-type: decimal">
+<li><p><span class="math inline">\(Y = \Phi X + \epsilon\)</span>}                 <span class="math inline">\(\epsilon \sim N(0,\Omega)\)</span></p></li>
+<li><p><span class="math inline">\(\Phi = (Y X^{\top}) (X X^{\top})^{-1}\)</span></p></li>
+<li><p><span class="math inline">\(\epsilon = Y - \Phi X\)</span></p></li>
+<li><p><span class="math inline">\(\Omega = \frac{\epsilon \epsilon^{\top}}{T}\)</span></p></li>
+</ol>
+<p>Let <span class="math inline">\(y_{i}\)</span> be a <span class="math inline">\((1 \times T)\)</span> matrix containing a single endogenous variable from <span class="math inline">\(Y\)</span> for <span class="math inline">\(i = 1, 2, ..., n\)</span>. Let <span class="math inline">\(x_{i}\)</span> be an <span class="math inline">\(((L+1) \times T)\)</span> matrix of <span class="math inline">\(L\)</span> lags of <span class="math inline">\(y_{i}\)</span> and a constant for <span class="math inline">\(i = 1, 2, ..., n\)</span>. <span class="math inline">\(\phi_{i}\)</span> is a <span class="math inline">\((1 \times (L+1))\)</span> matrix containing the lagged coefficients from the reduced form univariate Autoregression (AR) model for <span class="math inline">\(i = 1, 2, ..., n\)</span>. <span class="math inline">\(e_{i}\)</span> is a <span class="math inline">\((1 \times T)\)</span> matrix of the residuals from the univariate AR model for <span class="math inline">\(i = 1, 2, ..., n\)</span>. <span class="math inline">\(e\)</span> is an <span class="math inline">\((n \times T)\)</span> matrix of residuals from the univariate AR models. <span class="math inline">\(\Sigma\)</span> is an <span class="math inline">\((n \times n)\)</span> symmetric covariance matrix of the residuals from the univariate AR models. <span class="math inline">\(\Sigma_{i}\)</span> is the <span class="math inline">\((i,i)\)</span> element of <span class="math inline">\(\Sigma\)</span> for <span class="math inline">\(i = 1, 2, ..., n\)</span>.</p>
+<p>Reduced Form Univariate Autoregression Model:</p>
+<ol start="9" style="list-style-type: decimal">
+<li><p><span class="math inline">\(y_{i} = \phi_{i} x_{i} + e_{i}\)</span>                 <span class="math inline">\(e_{i} \sim N(0,\Sigma_{i})\)</span></p></li>
+<li><p><span class="math inline">\(\phi_{i} = (y_{i} x_{i}^{\top}) (x_{i} x_{i}^{\top})^{-1}\)</span></p></li>
+<li><p><span class="math inline">\(e_{i} = y_{i} - \phi_{i} x_{i}\)</span></p></li>
+<li><p><span class="math inline">\(\Sigma = \frac{e e^{\top}}{T}\)</span></p></li>
+</ol>
+<p>Let <span class="math inline">\(P\)</span> be an <span class="math inline">\((n \times k)\)</span> matrix containing the prior position values for the reduced form lagged coefficient matrix, <span class="math inline">\(\Phi\)</span>. <span class="math inline">\(M^{-1}\)</span> is a <span class="math inline">\((k \times k)\)</span> symmetric matrix indicating confidence in <span class="math inline">\(P\)</span>. <span class="math inline">\(R\)</span> is an <span class="math inline">\((n \times k)\)</span> matrix containing the prior position values for long-run restrictions on the lagged structural coefficient matrix <span class="math inline">\(B\)</span>. <span class="math inline">\(R_{i,*}\)</span> is row <span class="math inline">\(i\)</span> of R. <span class="math inline">\(V_{i}^{-1}\)</span> is a <span class="math inline">\((k \times k)\)</span> symmetric matrix indicating confidence in <span class="math inline">\(R\)</span>, one matrix for each equation <span class="math inline">\(i = 1, 2, ..., n\)</span>. <span class="math inline">\(\beta_{i}\)</span> is a <span class="math inline">\((1 \times k)\)</span> lagged structural coefficient matrix, one matrix for each equation <span class="math inline">\(i = 1, 2, ..., n\)</span>. <span class="math inline">\(B_{i,*}\)</span> is row <span class="math inline">\(i\)</span> of the lagged structural coefficients matrix <span class="math inline">\(B\)</span> for <span class="math inline">\(i = 1, 2, ..., n\)</span>. <span class="math inline">\(Z\)</span> is an <span class="math inline">\((n \times n)\)</span> diagonal matrix. <span class="math inline">\(Z_{i}\)</span> is the <span class="math inline">\((i,i)\)</span> element of the diagonal matrix <span class="math inline">\(Z\)</span> for <span class="math inline">\(i = 1, 2, ..., n\)</span>. <span class="math inline">\(diag(A \Sigma A^{\top})\)</span> is an <span class="math inline">\((n \times n)\)</span> diagonal matrix whose main diagonal elements are the main diagonal elements from the matrix <span class="math inline">\(A \Sigma A^{\top}\)</span>. <span class="math inline">\(\kappa\)</span> is an <span class="math inline">\((n \times n)\)</span> diagonal matrix whose elements along the main diagonal represent confidence in the priors for the structural variances in <span class="math inline">\(D\)</span>. <span class="math inline">\(\kappa_{i}\)</span> and <span class="math inline">\(\tau_{i}\)</span> refers to element <span class="math inline">\((i,i)\)</span> of <span class="math inline">\(\kappa\)</span> and <span class="math inline">\(\tau\)</span>, respectively for <span class="math inline">\(i = 1, 2, ..., n\)</span>. The prior for <span class="math inline">\(D_{i} \sim \frac{1}{\Gamma(\kappa_{i},\tau_{i})}\)</span> where <span class="math inline">\(D_{i}\)</span> refers to element <span class="math inline">\((i,i)\)</span> of <span class="math inline">\(D\)</span> for <span class="math inline">\(i = 1, 2, ..., n\)</span>.</p>
+<p>Structural Bayesian Vector Autoregression Model:</p>
+<ol start="13" style="list-style-type: decimal">
+<li><p><span class="math inline">\(A Y = B X + U\)</span>                 <span class="math inline">\(U \sim N(0,D)\)</span></p></li>
+<li><p><span class="math inline">\(\beta_{i} = (A_{i,*} (Y X^{\top} + P M^{-1}) + R_{i,*} V_{i}^{-1}) (X X^{\top} + M^{-1} + V_{i}^{-1})^{-1}\)</span></p></li>
+<li><p><span class="math inline">\(B_{i,*} = \beta_{i}\)</span></p></li>
+<li><p><span class="math inline">\(Z_{i} = (A_{i,*} (Y Y^{\top} + P M^{-1} P^{\top}) A_{i,*}^{\top} + R_{i,*} V_{i}^{-1} R_{i,*}^{\top}) - [(A_{i,*} (Y X^{\top} + P M^{-1}) + R_{i,*} V_{i}^{-1})\)</span></p></li>
+</ol>
+<p>                                <span class="math inline">\((X X^{\top} + M^{-1} + V_{i}^{-1})^{-1} (A_{i,*} (Y X^{\top} + P M^{-1}) + R_{i,*} V_{i}^{-1})^{\top}]\)</span></p>
+<ol start="17" style="list-style-type: decimal">
+<li><p><span class="math inline">\(\tau = \kappa diag(A \Sigma A^{\top})\)</span></p></li>
+<li><p><span class="math inline">\(\tau^{*} = \tau + \frac{1}{2} Z\)</span></p></li>
+</ol>
+<p><span class="citation">(<a href="#ref-BH2015">Baumeister and Hamilton 2015</a>, <a href="#ref-BH2017">2017</a>, <a href="#ref-BH2018">2018</a>)</span> developed an algorithm that estimates the parameters of an SVAR model using Bayesian methods (SBVAR). Their algorithm applies a random-walk Metropolis-Hastings algorithm to seek elasticity values for <span class="math inline">\(A\)</span>, considering prior information, that diagonalizes the covariance matrix of the reduced form errors. For detailed information about their algorithm see <span class="citation">(<a href="#ref-BH2015">Baumeister and Hamilton 2015</a>, <a href="#ref-BH2017">2017</a>, <a href="#ref-BH2018">2018</a>)</span>.</p>
+<p>Posterior Distribution:</p>
+<ol start="19" style="list-style-type: decimal">
+<li><span class="math inline">\(p(A|Y) \propto p(A) [det(A \Omega A^{\top})]^\frac{T}{2} \prod\limits_{i = 1}^{n} (\tau_{i})^{\kappa_{i}} (\frac{2}{T} \tau_{i}^{*})^{-(\kappa_{i} + \frac{T}{2})}\)</span></li>
+</ol>
+<p><span class="math inline">\(p(A|Y)\)</span> is the posterior density of <span class="math inline">\(A|Y\)</span>. The products of <span class="math inline">\(p(det(A))\)</span> and/or <span class="math inline">\(p(H)\)</span> are multiplied by <span class="math inline">\(p(A|Y)\)</span> when priors are chosen for <span class="math inline">\(det(A)\)</span> and/or <span class="math inline">\(H\)</span> (<span class="math inline">\(A^{-1}\)</span>), respectively. <span class="math inline">\(p(A)\)</span>, <span class="math inline">\(p(det(A))\)</span>, and <span class="math inline">\(p(H)\)</span> are products of the prior densities for <span class="math inline">\(A\)</span>, <span class="math inline">\(det(A)\)</span>, and <span class="math inline">\(H\)</span> (<span class="math inline">\(A^{-1}\)</span>), respectively. <span class="math inline">\(det(A)\)</span> and <span class="math inline">\(det(A \Omega A^{\top})\)</span> are the determinants of the matrices <span class="math inline">\(A\)</span> and <span class="math inline">\(A \Omega A^{\top}\)</span>, respectively.</p>
+<p>Algorithm:</p>
+<p>Step 1)</p>
+<p>Generate draws for <span class="math inline">\(A|Y\)</span> (<span class="math inline">\(\tilde{A}^{(c+1)}\)</span>). <span class="math inline">\(\tilde{A}^{(c)}\)</span> are the starting values for <span class="math inline">\(A\)</span> when <span class="math inline">\(c = 1\)</span>. Compute <span class="math inline">\(p(\tilde{A}^{(c)}|Y)\)</span> and <span class="math inline">\(p(\tilde{A}^{(c+1)}|Y)\)</span>. If <span class="math inline">\(p(\tilde{A}^{(c+1)}|Y) &lt; p(\tilde{A}^{(c)}|Y)\)</span> set <span class="math inline">\(\tilde{A}^{(c+1)} = \tilde{A}^{(c)}\)</span> with probability <span class="math inline">\(1 - \frac{p(\tilde{A}^{(c+1)}|Y)}{p(\tilde{A}^{(c)}|Y)}\)</span>.</p>
+<p>Step 2)</p>
+<p>Generate draws for <span class="math inline">\(D|A,Y\)</span> (<span class="math inline">\(\tilde{D}^{(c+1)}\)</span>). <span class="math inline">\(\tilde{D_{i}}^{(c+1)} \sim \frac{1}{\Gamma(\kappa_{i} + \frac{T}{2}, \tilde{\tau_{i}}^{*^{(c+1)}})}\)</span>. <span class="math inline">\(\tilde{D_{i}}^{(c+1)}\)</span>, <span class="math inline">\(\kappa_{i}\)</span>, and <span class="math inline">\(\tilde{\tau_{i}}^{*^{(c+1)}}\)</span> refers to element <span class="math inline">\((i,i)\)</span> of <span class="math inline">\(\tilde{D}^{(c+1)}\)</span>, <span class="math inline">\(\kappa\)</span>, and <span class="math inline">\(\tilde{\tau}^{*^{(c+1)}}\)</span>, respectively for <span class="math inline">\(i = 1, 2, ..., n\)</span>. <span class="math inline">\(\tilde{\tau}^{*^{(c+1)}}\)</span> are estimates of <span class="math inline">\(\tau^{*}\)</span>, replacing <span class="math inline">\(A\)</span> with <span class="math inline">\(\tilde{A}^{(c+1)}\)</span>.</p>
+<p>Step 3)</p>
+<p>Generate draws for <span class="math inline">\(B|D,A,Y\)</span> (<span class="math inline">\(\tilde{B}^{(c+1)}\)</span>). <span class="math inline">\(\tilde{B}_{i,*}^{(c+1)} = \hat{\beta}_{i}^{(c+1)}\)</span> for <span class="math inline">\(i = 1, 2, ..., n\)</span>. <span class="math inline">\(\hat{\beta}_{i}^{(c+1)} \sim N(\tilde{\beta}_{i}^{(c+1)}\)</span>, <span class="math inline">\(\tilde{\Psi}_{i}^{(c+1)})\)</span> for <span class="math inline">\(i = 1, 2, ..., n\)</span>. <span class="math inline">\(\tilde{\beta}_{i}^{(c+1)}\)</span> are estimates of <span class="math inline">\(\beta_{i}\)</span>, replacing <span class="math inline">\(A\)</span> with <span class="math inline">\(\tilde{A}^{(c+1)}\)</span> for <span class="math inline">\(i = 1, 2, ..., n\)</span>. <span class="math inline">\(\tilde{\Psi}_{i}^{(c+1)} = \tilde{D}^{(c+1)} (X X^{\top} + M^{-1} + V_{i}^{-1})^{-1}\)</span> for <span class="math inline">\(i = 1, 2, ..., n\)</span>.</p>
+<p>Step 4)</p>
+<p>Increase <span class="math inline">\(c\)</span> by 1 and repeat Steps 1-4 for <span class="math inline">\(c = 1, 2, ..., C\)</span>. <span class="math inline">\(C\)</span> is the total number of iterations.</p>
+</div>
+<div id="example" class="section level2" number="4">
+<h2><span class="header-section-number">4</span> EXAMPLE</h2>
+<p>The BHSBVAR package provides a function for estimating the parameters of SBVAR models and several functions for plotting results. The <code>BH_SBVAR()</code> function estimates the parameters of an SBVAR model with the method developed by <span class="citation">(<a href="#ref-BH2015">Baumeister and Hamilton 2015</a>, <a href="#ref-BH2017">2017</a>, <a href="#ref-BH2018">2018</a>)</span>. The <code>IRF_Plots()</code> function creates plots of impulse responses. The <code>FEVD_Plots()</code> function creates plots of forecast error variance decompositions. The <code>HD_Plots()</code> function creates plots of historical decompositions. The <code>Dist_Plots()</code> function creates posterior density plots of the model parameters in <span class="math inline">\(A\)</span>, <span class="math inline">\(det(A)\)</span>, and <span class="math inline">\(H\)</span> overlaid with prior densities to illustrate the difference between posterior and prior distributions. The following example illustrates how these functions can be applied to reproduce the results from <span class="citation">(<a href="#ref-BH2015">Baumeister and Hamilton 2015</a>)</span>.</p>
+<div id="chunk1">
+
+</div>
+<pre class="text"><code>rm(list = ls())
+library(BHSBVAR)
+set.seed(123)
+data(USLMData)
+y0 &lt;- matrix(data = c(USLMData$Wage, USLMData$Employment), ncol = 2)
+y &lt;- y0 - (matrix(data = 1, nrow = nrow(y0), ncol = ncol(y0)) %*% 
+             diag(x = colMeans(x = y0, na.rm = FALSE, dims = 1)))
+colnames(y) &lt;- c(&quot;Wage&quot;, &quot;Employment&quot;)</code></pre>
+<p>The first line from <a href="#chunk1">Code Chunk 1</a> clears the workspace. The second line loads the BHSBVAR package namespace. The third line sets the seed for random number generation. The fourth line imports the data used in this example. The fifth through seventh line creates a matrix (<code>y</code>) containing quarter over quarter percent change of U.S. real wage and employment data used by <span class="citation">(<a href="#ref-BH2015">Baumeister and Hamilton 2015</a>)</span>.</p>
+<div id="chunk2">
+
+</div>
+<pre class="text"><code>nlags &lt;- 8
+itr &lt;- 200000
+burn &lt;- 0
+thin &lt;- 20
+acc &lt;- TRUE
+h &lt;- 20
+cri &lt;- 0.95</code></pre>
+<p><code>nlags</code> from <a href="#chunk2">Code Chunk 2</a> sets the lag length used in the SBVAR model. <code>itr</code> sets the number of iterations for the algorithm. <code>burn</code> is the number of draws to throw out at the beginning of the algorithm. <span class="math inline">\(thin\)</span> sets the thinning parameter which will thin the Markov chains. <code>acc</code> indicates whether accumulated impulse responses are to be computed and returned. <code>h</code> indicates the time horizon for computing impulse responses. <code>cri</code> indicates the credibility intervals to be returned. A <code>cri</code> value of 0.95 will return 95% credibility intervals.</p>
+<div id="chunk3">
+
+</div>
+<pre class="text"><code>pA &lt;- array(data = NA, dim = c(ncol(y), ncol(y), 8))
+pA[, , 1] &lt;- c(0, NA, 0, NA)
+pA[, , 2] &lt;- c(1, NA, -1, NA)
+pA[, , 3] &lt;- c(0.6, 1, -0.6, 1)
+pA[, , 4] &lt;- c(0.6, NA, 0.6, NA)
+pA[, , 5] &lt;- c(3, NA, 3, NA)
+pA[, , 6] &lt;- c(NA, NA, NA, NA)
+pA[, , 7] &lt;- c(NA, NA, 1, NA)
+pA[, , 8] &lt;- c(2, NA, 2, NA)</code></pre>
+<p>The lines from <a href="#chunk3">Code Chunk 3</a> create an array containing all the information needed to set priors for each element in <span class="math inline">\(A\)</span>. Each column contains the prior information for the parameters in each equation. The third dimension of <code>pA</code> should always have a length of . The first slice of the third dimension of <code>pA</code> indicates the prior distribution (NA - no prior, 0 - symmetric t-distribution, 1 - non-central t-distribution, 2 - inverted beta distribution, 3 - beta distribution). The second slice indicates sign restrictions (NA - no restriction, 1 - positive restriction, -1 - negative restriction). The third slice indicates the position of the prior. The fourth slice indicates the scale or confidence in the prior for t-distributions and shape1 (<span class="math inline">\(\alpha\)</span>) parameter for inverted beta and beta distributions. The fifth slice indicates the degrees of freedom for t-distributions and shape2 (<span class="math inline">\(\beta\)</span>) parameter for the inverted beta and beta distributions. The sixth slice indicates skew for non-central t-distributions. The seventh slice indicates priors for long-run restrictions (NA - no long-run restriction, 1 - long-run restriction). The eighth slice indicates the random-walk proposal scale parameters which adjust the algorithm’s acceptance rate and the ability of the algorithm to adequately cover the model’s parameter space. For information about priors for <span class="math inline">\(A\)</span> see <span class="citation">(<a href="#ref-BH2015">Baumeister and Hamilton 2015</a>, <a href="#ref-BH2017">2017</a>, <a href="#ref-BH2018">2018</a>)</span>. The functions used to compute the density of the prior distributions for <span class="math inline">\(A\)</span>, <span class="math inline">\(det(A)\)</span>, and <span class="math inline">\(H (A^{-1})\)</span> are listed in the <a href="#appendix">Appendix</a>.</p>
+<div id="chunk4">
+
+</div>
+<pre class="text"><code>pP &lt;- matrix(data = 0, nrow = ((nlags * ncol(pA)) + 1), ncol = ncol(pA))
+pP[1:nrow(pA), 1:ncol(pA)] &lt;-
+  diag(x = 1, nrow = nrow(pA), ncol = ncol(pA))
+x1 &lt;- 
+  matrix(data = NA, nrow = (nrow(y) - nlags), 
+         ncol = (ncol(y) * nlags))
+for (k in 1:nlags) {
+  x1[, (ncol(y) * (k - 1) + 1):(ncol(y) * k)] &lt;-
+    y[(nlags - k + 1):(nrow(y) - k),]
+}
+x1 &lt;- cbind(x1, 1)
+colnames(x1) &lt;- 
+  c(paste(rep(colnames(y), nlags),
+          &quot;_L&quot;,
+          sort(rep(seq(from = 1, to = nlags, by = 1), times = ncol(y)),
+               decreasing = FALSE),
+          sep = &quot;&quot;),
+    &quot;cons&quot;)
+y1 &lt;- y[(nlags + 1):nrow(y),]
+ee &lt;- matrix(data = NA, nrow = nrow(y1), ncol = ncol(y1))
+for (i in 1:ncol(y1)) {
+  xx &lt;- cbind(x1[, seq(from = i, to = (ncol(x1) - 1), by = ncol(y1))], 1)
+  yy &lt;- matrix(data = y1[, i], ncol = 1)
+  phi &lt;- solve(t(xx) %*% xx, t(xx) %*% yy)
+  ee[, i] &lt;- yy - (xx %*% phi)
+}
+somega &lt;- (t(ee) %*% ee) / nrow(ee)
+lambda0 &lt;- 0.2
+lambda1 &lt;- 1
+lambda3 &lt;- 100
+v1 &lt;- matrix(data = (1:nlags), nrow = nlags, ncol = 1)
+v1 &lt;- v1^((-2) * lambda1)
+v2 &lt;- matrix(data = diag(solve(diag(diag(somega)))), ncol = 1)
+v3 &lt;- kronecker(v1, v2)
+v3 &lt;- (lambda0^2) * rbind(v3, (lambda3^2))
+v3 &lt;- 1 / v3
+pP_sig &lt;- diag(x = c(v3), nrow = nrow(v3), ncol = nrow(v3))</code></pre>
+<p>The lines from <a href="#chunk4">Code Chunk 4</a> create matrices containing prior position (<code>pP</code>) and scale or confidence (<code>pP_sig</code>) information for the reduced form lagged coefficient matrix <span class="math inline">\(\Phi\)</span>. <code>pP</code> and <code>pP_sig</code> correspond to the <span class="math inline">\(P\)</span> and <span class="math inline">\(M^{-1}\)</span> matrices from Equation 14, respectively. Variance estimates from univariate Autoregression models, <code>lambda0</code>, <code>lambda1</code>, and <code>lambda3</code> are used to construct <code>pP_sig</code> in this example. <code>lambda0</code> controls the overall confidence in the priors, <code>lambda1</code> controls the confidence in higher order lags, and <code>lambda3</code> controls the confidence in the constant term. For information about priors for <span class="math inline">\(\Phi\)</span> and <span class="math inline">\(B\)</span> see <span class="citation">(<a href="#ref-BH2015">Baumeister and Hamilton 2015</a>, <a href="#ref-BH2017">2017</a>, <a href="#ref-BH2018">2018</a>; <a href="#ref-DLS1984">Doan, Litterman, and Sims 1984</a>; <a href="#ref-Doan2018">Doan</a>; <a href="#ref-Litterman1986">Litterman 1986</a>; <a href="#ref-SZ1998">Sims and Zha 1998</a>)</span>.</p>
+<div id="chunk5">
+
+</div>
+<pre class="text"><code>pR_sig &lt;-
+  array(data = 0,
+        dim = c(((nlags * ncol(y)) + 1),
+                ((nlags * ncol(y)) + 1),
+                ncol(y)))
+Ri &lt;-
+  cbind(kronecker(matrix(data = 1, nrow = 1, ncol = nlags),
+                  matrix(data = c(1, 0), nrow = 1)),
+        0)
+pR_sig[, , 2] &lt;- (t(Ri) %*% Ri) / 0.1
+kappa1 &lt;- matrix(data = 2, nrow = 1, ncol = ncol(y))</code></pre>
+<p>The lines from <a href="#chunk5">Code Chunk 5</a> create an array (<code>pR_sig</code>) containing values indicating confidence in the priors for the long-run restrictions. <code>pR_sig</code> corresponds to the <span class="math inline">\(V_{i}^{-1}\)</span> matrix from Equation 14. The matrix <code>R</code> from Equation 14 will be created automatically by the <code>BH_SBVAR()</code> function. The length of the third dimension of <code>pR_sig</code> is equal to the number of endogenous variables or the number of equations in the model. The first slice of the third dimension contains all zeros since there are no long-run restrictions in the first equation of the SBVAR model for this example. The second slice contains values indicating the confidence in the prior for the long-run restriction assigned to the lagged parameters in the second equation of the SBVAR model for this example. For information about long-run restrictions see <span class="citation">(<a href="#ref-BH2015">Baumeister and Hamilton 2015</a>, <a href="#ref-BH2018">2018</a>; <a href="#ref-BQ1989">Blanchard and Quah 1989</a>)</span>. <code>kappa1</code> is a <span class="math inline">\((1 \times n)\)</span> matrix whose values correspond to the elements along the main diagonal of <span class="math inline">\(\kappa\)</span> from Equation 17 and indicates the confidence in prior information about the structural variances in <span class="math inline">\(D\)</span>. Additional information required to set priors for <span class="math inline">\(D\)</span> (<span class="math inline">\(\tau\)</span>) will be created automatically by the <code>BH_SBVAR()</code> function following <span class="citation">(<a href="#ref-BH2015">Baumeister and Hamilton 2015</a>, <a href="#ref-BH2017">2017</a>, <a href="#ref-BH2018">2018</a>)</span>.</p>
+<div id="chunk6">
+
+</div>
+<pre class="text"><code>par(cex.axis = 0.8, cex.main = 1, font.main = 1, family = &quot;serif&quot;,
+    mfrow = c(2, 2), mar = c(2, 2.2, 2, 1), las = 1)
+results1 &lt;- 
+  BH_SBVAR(y = y, nlags = nlags, pA = pA, pP = pP, pP_sig = pP_sig,
+           pR_sig = pR_sig, kappa1 = kappa1, itr = itr,
+           burn = burn, thin = thin, cri = cri)</code></pre>
+<div class="figure" style="text-align: center"><span style="display:block;" id="fig:model"></span>
+<img role="img" aria-label="Line and Autocorrelation Diagnostic Plots of the Posterior Estimates" src="data:image/png;base64,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" alt="Line and Autocorrelation Diagnostic Plots of the Posterior Estimates" />
+<p class="caption">
+Figure 1: Line and Autocorrelation Diagnostic Plots of the Posterior Estimates
+</p>
+</div>
+<p>The first line in <a href="#chunk6">Code Chunk 6</a> sets the parameters used to display plots that will be created by the <code>BH_SBVAR()</code> function. The <code>BH_SBVAR()</code> function allows the user to include prior information for <span class="math inline">\(A\)</span>, <span class="math inline">\(det(A)\)</span>, <span class="math inline">\(H\)</span> (<span class="math inline">\(A^{-1}\)</span>), <span class="math inline">\(\Phi\)</span>, and <span class="math inline">\(D\)</span> directly when estimating the parameters of an SBVAR model. The <span class="math inline">\(pdetA\)</span> and <span class="math inline">\(pH\)</span> arguments are arrays containing prior information for <span class="math inline">\(det(A)\)</span> and the elements of <span class="math inline">\(H\)</span> but are not included in this example. The <code>BH_SBVAR()</code> function returns a list that includes the acceptance rate (<code>accept_rate</code>) of the algorithm, a matrix containing the endogenous variables (<code>y</code>), a matrix containing lags of the endogenous variables (<code>x</code>), a numeric value indicating the number of lags, and the prior information provided directly or indirectly to the function (<code>pA</code>, <code>pdetA</code>, <code>pH</code>, <code>pP</code>, <code>pP_sig</code>, <code>pR_sig</code>, <code>tau1</code>, and <code>kappa1</code>). A matrix containing the starting values of the model parameters in <code>A</code> from an optimization routine is returned (<code>A_start</code>). Arrays containing estimates of the model parameters are returned (<code>A</code>, <code>detA</code>, <code>H</code>, <code>B</code>, <code>Phi</code>). The first, second, and third slices of the third dimension of these arrays are lower, median, and upper bounds of the estimates, respectively. Lists containing horizontal and vertical axis coordinates of posterior densities, for the estimates of the parameters in <code>A</code>, <code>det(A)</code>, and <code>H</code> with priors, are returned (<code>A_den</code>, <code>detA_den</code>, and <code>H_den</code>). Raw estimates of the elements of <span class="math inline">\(A\)</span>, <span class="math inline">\(B\)</span>, <span class="math inline">\(D\)</span>, <span class="math inline">\(detA\)</span>, and <span class="math inline">\(H\)</span> are returned (<code>A_chain</code>, <code>B_chain</code>, <code>D_chain</code>, <code>detA_chain</code>, <code>H_chain</code>). In addition, line and autocorrelation plots of the Markov chains of <span class="math inline">\(A\)</span> are returned for diagnostic purposes. The line and autocorrelation plots provide an indication of how well the algorithm covers the model’s parameter space. The line plots in Figure <a href="#fig:model">1</a> display the Markov chains of the estimates from the algorithm with the estimate values shown on the vertical axis and the iteration number shown on the horizontal axis. The autocorrelation plots in Figure <a href="#fig:model">1</a> displays the autocorrelation of the Markov chains of the estimates from the algorithm with the correlation estimates on the vertical axis and the lag length shown on the horizontal axis.</p>
+<p>The titles of the plots in Figure <a href="#fig:model">1</a> indicate the element of the coefficient matrix that is plotted. The plots of the estimated parameters in <code>A</code> are automatically multiplied by -1 to illustrate elasticity values and/or isolate the dependent variable for each equation. These elements correspond to those found in the results from running the <code>BH_SBVAR()</code> function and the transpose of those from the mathematical representation from Equation 13. In other words, each column of the coefficient matrix arrays in the resulting list object from running the <code>BH_SBVAR()</code> function contain coefficient estimates for each equation. However, each row of the coefficient matrices from the mathematical representation described in Equation 13 represent the parameters of each equation.</p>
+<div id="chunk7">
+
+</div>
+<pre class="text"><code>irf &lt;- IRF(results = results1, h = h, acc = acc, cri = cri)
+varnames &lt;- colnames(USLMData)[2:3]
+shocknames &lt;- c(&quot;Labor Demand&quot;,&quot;Labor Supply&quot;)
+par(cex.axis = 0.8, cex.main = 1, font.main = 1, family = &quot;serif&quot;,
+    mfrow = c(2, 2), mar = c(2, 2.2, 2, 1), las = 1)
+irf_results &lt;- 
+  IRF_Plots(results = irf, varnames = varnames,
+            shocknames = shocknames)</code></pre>
+<div class="figure" style="text-align: center"><span style="display:block;" id="fig:irf-plots"></span>
+<img role="img" aria-label="Impulse Responses" src="data:image/png;base64,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" alt="Impulse Responses" />
+<p class="caption">
+Figure 2: Impulse Responses
+</p>
+</div>
+<p>Figure <a href="#fig:irf-plots">2</a> Note: Horizontal axis indicates time periods following an initial shock. Vertical axis indicates percent change. Black solid lines indicate the posterior median. Red dashed lines indicate credibility intervals.</p>
+<p>The first line in <a href="#chunk7">Code Chunk 7</a> provides the impulse response estimates. Lines two and three in <a href="#chunk7">Code Chunk 7</a> store the names of endogenous variables and structural shocks. The <code>\verb$</code>IRF_Plots()<code>function creates plots of impulse responses. This function can be used to display the response of the endogenous variables following a structural shock. The</code>results<code>argument is a list object containing the unaltered results from the</code>BH_SBVAR()<code>function. The</code>varnames<code>and</code>shocknames<code>argument are character vectors containing the variable names and shock names, respectively. The</code>xlab<code>and</code>ylab` arguments are not included in this example, but they allow the user to include labels for the horizontal and vertical axes, respectively. Figure <a href="#fig:irf-plots">2</a> displays the cumulative response of U.S. real wage growth and employment growth to U.S. labor demand and supply shocks. The units along the horizontal axis in the plots from Figure <a href="#fig:irf-plots">2</a> represent time periods following an initial shock. The units along the vertical axis in the plots from Figure <a href="#fig:irf-plots">2</a> represent percent change following an initial shock since the endogenous variables included in the model are mean centered quarter over quarter percent change of U.S. real wage and employment. In addition, this function returns a list containing the data used to produce the plots in Figure <a href="#fig:irf-plots">2</a>.</p>
+<div id="chunk8">
+
+</div>
+<pre class="text"><code>fevd &lt;- FEVD(results = results1, h = h, acc = acc, cri = cri)
+varnames &lt;- colnames(USLMData)[2:3]
+shocknames &lt;- c(&quot;Labor Demand&quot;,&quot;Labor Supply&quot;)
+par(cex.axis = 0.8, cex.main = 1, font.main = 1, family = &quot;serif&quot;,
+    mfrow = c(2, 2), mar = c(2, 2.2, 2, 1), las = 1)
+fevd_results &lt;- 
+  FEVD_Plots(results = fevd, varnames = varnames,
+            shocknames = shocknames)</code></pre>
+<div class="figure" style="text-align: center"><span style="display:block;" id="fig:fevd-plots"></span>
+<img role="img" aria-label="Forecast Error Variance Decompositions" src="data:image/png;base64,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" alt="Forecast Error Variance Decompositions" />
+<p class="caption">
+Figure 3: Forecast Error Variance Decompositions
+</p>
+</div>
+<p>Figure <a href="#fig:fevd-plots">3</a> Note: Horizontal axis indicates time periods following an initial shock. Vertical axis indicates forecast error variance explained by the structural shock as a percent of total forecast error variance.</p>
+<p>The first line in <a href="#chunk8">Code Chunk 8</a> provides the forecast error variance decomposition estimates. The <code>FEVD_Plots()</code> function from <a href="#chunk8">Code Chunk 8</a> creates plots of forecast error variance decompositions. This function can be used to display the forecast error variance that is explained by the structural shocks. The <code>results</code>, <code>varnames</code>, <code>shocknames</code>, <code>xlab</code>, <code>ylab</code> arguments for the <code>FEVD_Plots()</code> function are the same as those from the <code>IRF_Plots()</code> function. The <code>rel</code> argument is used to display forecast error variance explained by shocks as a percent of total forecast error variance. The units along the horizontal axis in the plots from Figure <a href="#fig:fevd-plots">3</a> represent time periods following an initial shock. The units along the vertical axis in the plots from Figure <a href="#fig:fevd-plots">3</a> represent forecast error variance explained by the structural shock as a percent of total forecast error variance since <code>rel = TRUE</code>. This function returns a list containing the data used to produce the plots in Figure <a href="#fig:fevd-plots">3</a>.</p>
+<div id="chunk9">
+
+</div>
+<pre class="text"><code>hd &lt;- HD(results = results1, cri = cri)
+varnames &lt;- colnames(USLMData)[2:3]
+shocknames &lt;- c(&quot;Labor Demand&quot;,&quot;Labor Supply&quot;)
+freq &lt;- 4
+start_date &lt;- 
+  c(floor(USLMData[(nlags + 1), 1]),
+    (floor(((USLMData[(nlags + 1), 1] %% 1) * freq)) + 1))
+par(cex.axis = 0.8, cex.main = 1, font.main = 1, family = &quot;serif&quot;,
+    mfrow = c(2, 2), mar = c(2, 2.2, 2, 1), las = 1)
+hd_results &lt;- 
+  HD_Plots(results  = hd, varnames = varnames,
+           shocknames = shocknames,
+           freq = freq, start_date = start_date)</code></pre>
+<div class="figure" style="text-align: center"><span style="display:block;" id="fig:hd-plots"></span>
+<img role="img" aria-label="Historical Decompositions" src="data:image/png;base64,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" alt="Historical Decompositions" />
+<p class="caption">
+Figure 4: Historical Decompositions
+</p>
+</div>
+<p>Figure <a href="#fig:hd-plots">4</a> Note: Horizontal axis indicates percent change. Vertical axis indicates actual dates. Black solid lines are mean centered endogenous variables. Red solid lines indicate the posterior median. Red dashed lines indicate credibility intervals.</p>
+<p>The first line in <a href="#chunk9">Code Chunk 9</a> provides the historical decomposition estimates. The <code>HD_Plots()</code> function from <a href="#chunk9">Code Chunk 9</a> creates plots of historical decompositions. This function can be used to display the cumulative effect of specific shocks on an endogenous variable at any given time period. The <code>results</code>, <code>varnames</code>, <code>shocknames</code>, <code>xlab</code>, <code>ylab</code> arguments for the <code>HD_Plots()</code> function are the same as those from the <code>IRF_Plots()</code> function. Figure <a href="#fig:hd-plots">4</a> displays the historical decompositions. The units along the horizontal axis in the plots from Figure <a href="#fig:hd-plots">4</a>, produced by the <code>HD_Plots</code> function, represent actual time periods. The units along the horizontal axis of each plot are created with the <code>freq</code> and <code>start_date</code> arguments. The <code>freq</code> argument is set to since the endogenous variables are measured at a quarterly frequency in this example. The <code>start_date</code> argument represents the date of the first observation which is Q in this example so <code>start_date &lt;- c(\Sexpr{start_date[1]}, \Sexpr{start_date[2]})</code>. The units along the vertical axis in the plots from Figure <a href="#fig:hd-plots">4</a> represent percent change since the endogenous variables included in the model are mean centered quarter over quarter percent change of U.S. real wage and employment. This function also returns a list of the data used to produce the plots in Figure <a href="#fig:hd-plots">4</a>.</p>
+<div id="chunk10">
+
+</div>
+<pre class="text"><code>A_titles &lt;- 
+  matrix(data = NA_character_, nrow = dim(pA)[1], ncol = dim(pA)[2])
+A_titles[1, 1] &lt;- &quot;Wage Elasticity of Labor Demand&quot;
+A_titles[1, 2] &lt;- &quot;Wage Elasticity of Labor Supply&quot;
+par(cex.axis = 0.8, cex.main = 1, font.main = 1, family = &quot;serif&quot;,
+    mfrow = c(1, 2), mar = c(2, 2.2, 2, 1), las = 1)
+Dist_Plots(results = results1, A_titles = A_titles)</code></pre>
+<div class="figure" style="text-align: center"><span style="display:block;" id="fig:dist-plots"></span>
+<img role="img" aria-label="Posterior and Prior Distribution Plots" src="data:image/png;base64,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" alt="Posterior and Prior Distribution Plots" />
+<p class="caption">
+Figure 5: Posterior and Prior Distribution Plots
+</p>
+</div>
+<p>Figure <a href="#fig:dist-plots">5</a> Note: Horizontal axis indicates percent change. Vertical axis indicates density. Blue solid regions indicate posterior density evaluated at values along the horizontal axis. Red solid lines indicate prior density evaluated at values along the horizontal axis.</p>
+<p>The <code>Dist_Plots()</code> function from <a href="#chunk10">Code Chunk 10</a> creates posterior density plots for the estimates for the parameters in <span class="math inline">\(A\)</span>, <span class="math inline">\(H\)</span>, and <span class="math inline">\(det(A)\)</span>. Prior densities are also plotted to illustrate the differences between posterior and prior distributions. The <code>results</code>, <code>xlab</code>, and <code>ylab</code> arguments for the <code>Dist_Plots()</code> function are the same as those from the <code>IRF_Plots()</code> and <code>HD_Plots()</code> functions. <code>A_titles</code> and <code>H_titles</code> arguments are matrices that contain the titles of the plots. The elements of the <code>A_titles</code> and <code>H_titles</code> matrices correspond to the elements of the first and second dimensions of the <code>A</code> and <code>H</code> arrays from the results of the <code>BH_SBVAR()</code> function. The posterior and prior density plots for the estimates of the parameters in <code>A</code> are multiplied by -1 to illustrate elasticity values and/or the value of the coefficient if the dependent variable for each equation were isolated.</p>
+<div id="appendix">
+
+</div>
+</div>
+<div id="appendix" class="section level2" number="5">
+<h2><span class="header-section-number">5</span> APPENDIX</h2>
+<p>List of functions used to compute the density of the prior distributions at some proposal value:</p>
+<p>a1: is the proposal value.</p>
+<p>p1: is the prior position parameter.</p>
+<p>sigma1: is the prior confidence in the position parameter, c1.</p>
+<p>nu: is the degrees of freedom.</p>
+<p>lam1: is the non-centrality or skew parameter.</p>
+<p>sh1: is the shape1 <span class="math inline">\((\alpha)\)</span> parameter.</p>
+<p>sh2: is the shape2 <span class="math inline">\((\beta)\)</span> parameter.</p>
+<p>Student t-distribution:</p>
+<pre class="text"><code>density &lt;-
+  dt(x = ((a1 - p1) / sigma1), df = nu, ncp = 0, log = FALSE) / sigma1</code></pre>
+<p>Non-central Student t-distribution:</p>
+<pre class="text"><code>density &lt;-
+  dt(x = ((a1 - p1) / sigma1), df = nu, ncp = lam1, log = FALSE) / sigma1</code></pre>
+<p>Student t-distribution truncated to be positive:</p>
+<pre class="text"><code>density &lt;-
+  dt(x = ((a1 - p1) / sigma1), df = nu, ncp = 0, log = FALSE) / 
+  (sigma1 * 
+     (1 - pt(q = ((-p1) / sigma1), df = nu, ncp = 0, lower.tail = TRUE, 
+             log.p = FALSE)))</code></pre>
+<p>Student t-distribution truncated to be negative:</p>
+<pre class="text"><code>density &lt;- dt(x = ((a1 - p1) / sigma1), df = nu, ncp = 0, log = FALSE) / 
+  (sigma1 * pt(q = ((-p1) / sigma1), df = nu, ncp = 0, lower.tail = TRUE, 
+               log.p = FALSE))</code></pre>
+<p>Inverted Beta-distribution (multiply a1 by sign restriction):</p>
+<pre class="text"><code>density &lt;- 0
+if (a1 &gt;= 1) {
+  density &lt;- exp(
+    ((sh2 - 1) * log((a1 - 1))) + 
+      (((-1) * (sh2 + sh1)) * log((1 + (a1 - 1)))) - 
+      log(beta(sh2, sh1))
+    )
+}</code></pre>
+<p>Beta-distribution (multiply a1 by sign restriction):</p>
+<pre class="text"><code>density &lt;- dbeta(x = a1, shape1 = sh1, shape2 = sh2, ncp = 0, log = FALSE)</code></pre>
+</div>
+<div id="references" class="section level2" number="6">
+<h2><span class="header-section-number">6</span> REFERENCES</h2>
+<!-- concordance:BHSBVAR.knit.md:BHSBVAR.Rmd:1 20 1 1 9 112 1 1 0 13 1 1 0 15 1 1 0 43 1 1 0 17 1 1 0 13 1 6 0 16 1 %
+6 0 16 1 6 0 21 1 6 0 15 1 6 0 31 1 1 0 7 1 1 0 10 1 1 0 8 1 1 0 13 1 1 %
+0 6 1 1 0 13 1 -->
+<div id="refs" class="references csl-bib-body hanging-indent" entry-spacing="0">
+<div id="ref-BH2015" class="csl-entry">
+Baumeister, C., and J. D. Hamilton. 2015. <span>“Sign Restrictions, Structural Vector Autoregressions, and Useful Prior Information.”</span> <em>Econometrica</em> 83 (5): 1963–99.
+</div>
+<div id="ref-BH2017" class="csl-entry">
+———. 2017. <span>“Structural Interpretation of Vector Autoregressions with Incomplete Identification: Revisiting the Role of Oil Supply and Demand Shocks.”</span> <em>National Bureau of Economic Research</em>, no. w24167.
+</div>
+<div id="ref-BH2018" class="csl-entry">
+———. 2018. <span>“Inference in Structural Vector Autoregressions When the Identifying Assumptions Are Not Fully Believed: Re-Evaluating the Role of Monetary Policy in Economic Fluctuations.”</span> <em>Journal of Monetary Economics</em> 100: 48–65.
+</div>
+<div id="ref-BQ1989" class="csl-entry">
+Blanchard, O. J., and D. Quah. 1989. <span>“The Dynamic Effects of Aggregate Demand and Supply Disturbances.”</span> <em>The American Economic Review</em> 79 (4): 655–73.
+</div>
+<div id="ref-Doan2018" class="csl-entry">
+Doan, T. <span>“RATS User’s Guide, Version 10.”</span> <em>Https://Www.estima.com</em>.
+</div>
+<div id="ref-DLS1984" class="csl-entry">
+Doan, T., R. B. Litterman, and C. Sims. 1984. <span>“Forecasting and Conditional Projection Using Realistic Prior Distributions.”</span> <em>Econometric Reviews</em> 3 (1): 1–100.
+</div>
+<div id="ref-Litterman1986" class="csl-entry">
+Litterman, R. B. 1986. <span>“Forecasting with Bayesian Vector Autoregressions: Five Years of Experience.”</span> <em>Journal of Business &amp; Economic Statistics</em> 4 (1): 25–38.
+</div>
+<div id="ref-SZ1998" class="csl-entry">
+Sims, C. A., and T. Zha. 1998. <span>“Bayesian Methods for Dynamic Multivariate Models.”</span> <em>International Economic Review</em> 39 (4): 949–68.
+</div>
+</div>
+</div>
+
+
+
+<!-- code folding -->
+
+
+<!-- dynamically load mathjax for compatibility with self-contained -->
+<script>
+  (function () {
+    var script = document.createElement("script");
+    script.type = "text/javascript";
+    script.src  = "https://mathjax.rstudio.com/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML";
+    document.getElementsByTagName("head")[0].appendChild(script);
+  })();
+</script>
+
+</body>
+</html>

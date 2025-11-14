@@ -1,0 +1,398 @@
+---
+title: BHSBVAR
+author: Paul Richardson
+date: November 13, 2025
+output: 
+  bookdown::html_document2:
+    base_format: rmarkdown::html_vignette
+    number_sections: true
+    fig_caption: true
+    code_folding: show
+    mathjax: default
+    self_contained: true
+bibliography: references.bib
+link-citations: true
+vignette: >
+  %\VignetteIndexEntry{BHSBVAR}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r Setup, include=TRUE, echo=FALSE}
+knitr::opts_knit$set(
+  concordance = TRUE
+  )
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+
+## ACKNOWLEDGEMENT
+
+The BHSBVAR package is based on the MATLAB programs created by [Baumeister](https://sites.google.com/site/cjsbaumeister/) and [Hamilton](https://econweb.ucsd.edu/~jhamilton/) [@BH2015; @BH2017; @BH2018]. I thank them for sharing their MATLAB programs online.
+
+## INTRODUCTION
+
+Identifying structural innovations from Structural Vector Autoregression (SVAR) models requires the researcher to make assumptions about the structural parameters in the model. Recursively identifying structural innovations with the Cholesky decomposition of the residual covariance matrix requires the researcher to assume a recursive order of the endogenous variables in the model and exclusion or information lag restrictions for structural parameters. Identifying structural innovations with sign restrictions prevents researchers from having to make zero restrictions for structural parameters but it does implicitly require researchers to assume a prior distribution for structural parameters they may not agree with. The method developed by [@BH2015; @BH2017; @BH2018] for estimating the parameters of a Structural Bayesian Vector Autoregression (SBVAR) model is an alternative method that allows the researcher to explicitly include prior information about the parameters of the model. Their method does not require the researcher to assume a recursive order of the endogenous variables in the model or a prior distribution about structural parameters the researcher does not agree with. For detailed information about their method see [@BH2015; @BH2017; @BH2018].
+
+## MODEL
+
+Let $Y$ be an $(n \times T)$ matrix of endogenous variables. $X$ is a $(k \times T)$ matrix containing $L$ lags of the endogenous variables and a constant. $A$ is an $(n \times n)$ matrix containing the short-run elasticities or the structural relationships between the endogenous variables in $Y$ from an SVAR model. $B$ is an $(n \times k)$ matrix containing lagged structural coefficients. $U$ is an $(n \times T)$ matrix of structural innovations. $D$ is an $(n \times n)$ diagonal covariance matrix of the innovations from the structural model. $n$ is the number of endogenous variables or equations. $T$ is the number of observations and $k = n L + 1$. 
+
+Structural Vector Autoregression Model:
+
+1) $A Y = B X + U$ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; $U \sim N(0,D)$
+
+2) $B = A \Phi$
+
+3) $U = A \epsilon$
+
+4) $D = \frac{U U^{\top}}{T} = A \Omega A^{\top}$
+
+$\Phi$ is an $(n \times k)$ matrix containing the lagged coefficients from the reduced form Vector Autoregression (VAR) model. $\epsilon$ is an $(n \times T)$ matrix of the VAR model residuals. $\Omega$ is an $(n \times n)$ symmetric covariance matrix of the residuals from the VAR model.
+
+Reduced Form Vector Autoregression Model:
+
+5) $Y = \Phi X + \epsilon$} &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; $\epsilon \sim N(0,\Omega)$
+
+6) $\Phi = (Y X^{\top}) (X X^{\top})^{-1}$
+
+7) $\epsilon = Y - \Phi X$
+
+8) $\Omega = \frac{\epsilon \epsilon^{\top}}{T}$
+
+Let $y_{i}$ be a $(1 \times T)$ matrix containing a single endogenous variable from $Y$ for $i = 1, 2, ..., n$. Let $x_{i}$ be an $((L+1) \times T)$ matrix of $L$ lags of $y_{i}$ and a constant for $i = 1, 2, ..., n$. $\phi_{i}$ is a $(1 \times (L+1))$ matrix containing the lagged coefficients from the reduced form univariate Autoregression (AR) model for $i = 1, 2, ..., n$. $e_{i}$ is a $(1 \times T)$ matrix of the residuals from the univariate AR model for $i = 1, 2, ..., n$. $e$ is an $(n \times T)$ matrix of residuals from the univariate AR models. $\Sigma$ is an $(n \times n)$ symmetric covariance matrix of the residuals from the univariate AR models. $\Sigma_{i}$ is the $(i,i)$ element of $\Sigma$ for $i = 1, 2, ..., n$.
+
+Reduced Form Univariate Autoregression Model:
+
+9) $y_{i} = \phi_{i} x_{i} + e_{i}$ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; $e_{i} \sim N(0,\Sigma_{i})$
+
+10) $\phi_{i} = (y_{i} x_{i}^{\top}) (x_{i} x_{i}^{\top})^{-1}$
+
+11) $e_{i} = y_{i} - \phi_{i} x_{i}$
+
+12) $\Sigma = \frac{e e^{\top}}{T}$
+
+Let $P$ be an $(n \times k)$ matrix containing the prior position values for the reduced form lagged coefficient matrix, $\Phi$. $M^{-1}$ is a $(k \times k)$ symmetric matrix indicating confidence in $P$. $R$ is an $(n \times k)$ matrix containing the prior position values for long-run restrictions on the lagged structural coefficient matrix $B$. $R_{i,*}$ is row $i$ of R. $V_{i}^{-1}$ is a $(k \times k)$ symmetric matrix indicating confidence in $R$, one matrix for each equation $i = 1, 2, ..., n$. $\beta_{i}$ is a $(1 \times k)$ lagged structural coefficient matrix, one matrix for each equation $i = 1, 2, ..., n$. $B_{i,*}$ is row $i$ of the lagged structural coefficients matrix $B$ for $i = 1, 2, ..., n$. $Z$ is an $(n \times n)$ diagonal matrix. $Z_{i}$ is the $(i,i)$ element of the diagonal matrix $Z$ for $i = 1, 2, ..., n$. $diag(A \Sigma A^{\top})$ is an $(n \times n)$ diagonal matrix whose main diagonal elements are the main diagonal elements from the matrix $A \Sigma A^{\top}$. $\kappa$ is an $(n \times n)$ diagonal matrix whose elements along the main diagonal represent confidence in the priors for the structural variances in $D$. $\kappa_{i}$ and $\tau_{i}$ refers to element $(i,i)$ of $\kappa$ and $\tau$, respectively for $i = 1, 2, ..., n$. The prior for $D_{i} \sim \frac{1}{\Gamma(\kappa_{i},\tau_{i})}$ where $D_{i}$ refers to element $(i,i)$ of $D$ for $i = 1, 2, ..., n$.
+
+Structural Bayesian Vector Autoregression Model:
+
+13) $A Y = B X + U$ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; $U \sim N(0,D)$
+
+14) $\beta_{i} = (A_{i,*} (Y X^{\top} + P M^{-1}) + R_{i,*} V_{i}^{-1}) (X X^{\top} + M^{-1} + V_{i}^{-1})^{-1}$
+
+15) $B_{i,*} = \beta_{i}$
+
+16) $Z_{i} = (A_{i,*} (Y Y^{\top} + P M^{-1} P^{\top}) A_{i,*}^{\top} + R_{i,*} V_{i}^{-1} R_{i,*}^{\top}) - [(A_{i,*} (Y X^{\top} + P M^{-1}) + R_{i,*} V_{i}^{-1})$
+
+&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; $(X X^{\top} + M^{-1} + V_{i}^{-1})^{-1} (A_{i,*} (Y X^{\top} + P M^{-1}) + R_{i,*} V_{i}^{-1})^{\top}]$
+
+17) $\tau = \kappa diag(A \Sigma A^{\top})$
+
+18) $\tau^{*} = \tau + \frac{1}{2} Z$
+
+[@BH2015; @BH2017; @BH2018] developed an algorithm that estimates the parameters of an SVAR model using Bayesian methods (SBVAR). Their algorithm applies a random-walk Metropolis-Hastings algorithm to seek elasticity values for $A$, considering prior information, that diagonalizes the covariance matrix of the reduced form errors. For detailed information about their algorithm see [@BH2015; @BH2017; @BH2018].
+
+Posterior Distribution:
+
+19) $p(A|Y) \propto p(A) [det(A \Omega A^{\top})]^\frac{T}{2} \prod\limits_{i = 1}^{n} (\tau_{i})^{\kappa_{i}} (\frac{2}{T} \tau_{i}^{*})^{-(\kappa_{i} + \frac{T}{2})}$
+
+
+$p(A|Y)$ is the posterior density of $A|Y$. The products of $p(det(A))$ and/or $p(H)$ are multiplied by $p(A|Y)$ when priors are chosen for $det(A)$ and/or $H$ ($A^{-1}$), respectively. $p(A)$, $p(det(A))$, and $p(H)$ are products of the prior densities for $A$, $det(A)$, and $H$ ($A^{-1}$), respectively. $det(A)$ and $det(A \Omega A^{\top})$ are the determinants of the matrices $A$ and $A \Omega A^{\top}$, respectively.
+
+Algorithm:
+
+Step 1)
+
+Generate draws for $A|Y$ ($\tilde{A}^{(c+1)}$). $\tilde{A}^{(c)}$ are the starting values for $A$ when $c = 1$. Compute $p(\tilde{A}^{(c)}|Y)$ and $p(\tilde{A}^{(c+1)}|Y)$. If $p(\tilde{A}^{(c+1)}|Y) < p(\tilde{A}^{(c)}|Y)$ set $\tilde{A}^{(c+1)} = \tilde{A}^{(c)}$ with probability $1 - \frac{p(\tilde{A}^{(c+1)}|Y)}{p(\tilde{A}^{(c)}|Y)}$.
+
+Step 2)
+
+Generate draws for $D|A,Y$ ($\tilde{D}^{(c+1)}$). $\tilde{D_{i}}^{(c+1)} \sim \frac{1}{\Gamma(\kappa_{i} + \frac{T}{2}, \tilde{\tau_{i}}^{*^{(c+1)}})}$. $\tilde{D_{i}}^{(c+1)}$, $\kappa_{i}$, and $\tilde{\tau_{i}}^{*^{(c+1)}}$ refers to element $(i,i)$ of $\tilde{D}^{(c+1)}$, $\kappa$, and $\tilde{\tau}^{*^{(c+1)}}$, respectively for $i = 1, 2, ..., n$. $\tilde{\tau}^{*^{(c+1)}}$ are estimates of $\tau^{*}$, replacing $A$ with $\tilde{A}^{(c+1)}$.
+
+Step 3)
+
+Generate draws for $B|D,A,Y$ ($\tilde{B}^{(c+1)}$). $\tilde{B}_{i,*}^{(c+1)} = \hat{\beta}_{i}^{(c+1)}$ for $i = 1, 2, ..., n$. $\hat{\beta}_{i}^{(c+1)} \sim N(\tilde{\beta}_{i}^{(c+1)}$, $\tilde{\Psi}_{i}^{(c+1)})$ for $i = 1, 2, ..., n$. $\tilde{\beta}_{i}^{(c+1)}$ are estimates of $\beta_{i}$, replacing $A$ with $\tilde{A}^{(c+1)}$ for $i = 1, 2, ..., n$. $\tilde{\Psi}_{i}^{(c+1)} = \tilde{D}^{(c+1)} (X X^{\top} + M^{-1} + V_{i}^{-1})^{-1}$ for $i = 1, 2, ..., n$.
+
+Step 4)
+
+Increase $c$ by 1 and repeat Steps 1-4 for $c = 1, 2, ..., C$. $C$ is the total number of iterations.
+
+
+
+
+
+## EXAMPLE
+
+The BHSBVAR package provides a function for estimating the parameters of SBVAR models and several functions for plotting results. The `BH_SBVAR()` function estimates the parameters of an SBVAR model with the method developed by [@BH2015; @BH2017; @BH2018]. The `IRF_Plots()` function creates plots of impulse responses. The `FEVD_Plots()` function creates plots of forecast error variance decompositions. The `HD_Plots()` function creates plots of historical decompositions. The `Dist_Plots()` function creates posterior density plots of the model parameters in $A$, $det(A)$, and $H$ overlaid with prior densities to illustrate the difference between posterior and prior distributions. The following example illustrates how these functions can be applied to reproduce the results from [@BH2015].
+
+<div id="chunk1"></div>
+```{r Data, include=TRUE, echo=TRUE, background='NA', highlight=FALSE}
+rm(list = ls())
+library(BHSBVAR)
+set.seed(123)
+data(USLMData)
+y0 <- matrix(data = c(USLMData$Wage, USLMData$Employment), ncol = 2)
+y <- y0 - (matrix(data = 1, nrow = nrow(y0), ncol = ncol(y0)) %*% 
+             diag(x = colMeans(x = y0, na.rm = FALSE, dims = 1)))
+colnames(y) <- c("Wage", "Employment")
+```
+
+The first line from [Code Chunk 1](#chunk1) clears the workspace. The second line loads the BHSBVAR package namespace. The third line sets the seed for random number generation. The fourth line imports the data used in this example. The fifth through seventh line creates a matrix (`y`) containing quarter over quarter percent change of U.S. real wage and employment data used by [@BH2015].
+
+<div id="chunk2"></div>
+```{r Inputs, include = TRUE, echo = TRUE, background = 'NA', highlight = FALSE}
+nlags <- 8
+itr <- 200000
+burn <- 0
+thin <- 20
+acc <- TRUE
+h <- 20
+cri <- 0.95
+```
+
+`nlags` from [Code Chunk 2](#chunk2) sets the lag length used in the SBVAR model. `itr` sets the number of iterations for the algorithm. `burn` is the number of draws to throw out at the beginning of the algorithm. $thin$ sets the thinning parameter which will thin the Markov chains. `acc` indicates whether accumulated impulse responses are to be computed and returned. `h` indicates the time horizon for computing impulse responses. `cri` indicates the credibility intervals to be returned. A `cri` value of 0.95 will return 95\% credibility intervals.
+
+<div id="chunk3"></div>
+```{r pA, include = TRUE, echo = TRUE, background = 'NA', highlight = FALSE}
+pA <- array(data = NA, dim = c(ncol(y), ncol(y), 8))
+pA[, , 1] <- c(0, NA, 0, NA)
+pA[, , 2] <- c(1, NA, -1, NA)
+pA[, , 3] <- c(0.6, 1, -0.6, 1)
+pA[, , 4] <- c(0.6, NA, 0.6, NA)
+pA[, , 5] <- c(3, NA, 3, NA)
+pA[, , 6] <- c(NA, NA, NA, NA)
+pA[, , 7] <- c(NA, NA, 1, NA)
+pA[, , 8] <- c(2, NA, 2, NA)
+```
+
+The lines from [Code Chunk 3](#chunk3) create an array containing all the information needed to set priors for each element in $A$. Each column contains the prior information for the parameters in each equation. The third dimension of `pA` should always have a length of \Sexpr{dim(pA)[3]}. The first slice of the third dimension of `pA` indicates the prior distribution (NA - no prior, 0 - symmetric t-distribution, 1 - non-central t-distribution, 2 - inverted beta distribution, 3 - beta distribution). The second slice indicates sign restrictions (NA - no restriction, 1 - positive restriction, -1 - negative restriction). The third slice indicates the position of the prior. The fourth slice indicates the scale or confidence in the prior for t-distributions and shape1 ($\alpha$) parameter for inverted beta and beta distributions. The fifth slice indicates the degrees of freedom for t-distributions and shape2 ($\beta$) parameter for the inverted beta and beta distributions. The sixth slice indicates skew for non-central t-distributions. The seventh slice indicates priors for long-run restrictions (NA - no long-run restriction, 1 - long-run restriction). The eighth slice indicates the random-walk proposal scale parameters which adjust the algorithm's acceptance rate and the ability of the algorithm to adequately cover the model's parameter space. For information about priors for $A$ see [@BH2015; @BH2017; @BH2018]. The functions used to compute the density of the prior distributions for $A$, $det(A)$, and $H (A^{-1})$ are listed in the [Appendix](#appendix).
+
+<div id="chunk4"></div>
+```{r pP_pP_sig, include = TRUE, echo = TRUE, background = 'NA', highlight = FALSE}
+pP <- matrix(data = 0, nrow = ((nlags * ncol(pA)) + 1), ncol = ncol(pA))
+pP[1:nrow(pA), 1:ncol(pA)] <-
+  diag(x = 1, nrow = nrow(pA), ncol = ncol(pA))
+x1 <- 
+  matrix(data = NA, nrow = (nrow(y) - nlags), 
+         ncol = (ncol(y) * nlags))
+for (k in 1:nlags) {
+  x1[, (ncol(y) * (k - 1) + 1):(ncol(y) * k)] <-
+    y[(nlags - k + 1):(nrow(y) - k),]
+}
+x1 <- cbind(x1, 1)
+colnames(x1) <- 
+  c(paste(rep(colnames(y), nlags),
+          "_L",
+          sort(rep(seq(from = 1, to = nlags, by = 1), times = ncol(y)),
+               decreasing = FALSE),
+          sep = ""),
+    "cons")
+y1 <- y[(nlags + 1):nrow(y),]
+ee <- matrix(data = NA, nrow = nrow(y1), ncol = ncol(y1))
+for (i in 1:ncol(y1)) {
+  xx <- cbind(x1[, seq(from = i, to = (ncol(x1) - 1), by = ncol(y1))], 1)
+  yy <- matrix(data = y1[, i], ncol = 1)
+  phi <- solve(t(xx) %*% xx, t(xx) %*% yy)
+  ee[, i] <- yy - (xx %*% phi)
+}
+somega <- (t(ee) %*% ee) / nrow(ee)
+lambda0 <- 0.2
+lambda1 <- 1
+lambda3 <- 100
+v1 <- matrix(data = (1:nlags), nrow = nlags, ncol = 1)
+v1 <- v1^((-2) * lambda1)
+v2 <- matrix(data = diag(solve(diag(diag(somega)))), ncol = 1)
+v3 <- kronecker(v1, v2)
+v3 <- (lambda0^2) * rbind(v3, (lambda3^2))
+v3 <- 1 / v3
+pP_sig <- diag(x = c(v3), nrow = nrow(v3), ncol = nrow(v3))
+```
+
+The lines from [Code Chunk 4](#chunk4) create matrices containing prior position (`pP`) and scale or confidence (`pP_sig`) information for the reduced form lagged coefficient matrix $\Phi$. `pP` and `pP_sig` correspond to the $P$ and $M^{-1}$ matrices from Equation 14, respectively. Variance estimates from univariate Autoregression models, `lambda0`, `lambda1`, and `lambda3` are used to construct `pP_sig` in this example. `lambda0` controls the overall confidence in the priors, `lambda1` controls the confidence in higher order lags, and `lambda3` controls the confidence in the constant term. For information about priors for $\Phi$ and $B$ see [@BH2015; @BH2017; @BH2018; @DLS1984; @Doan2018; @Litterman1986; @SZ1998].
+
+<div id="chunk5"></div>
+```{r pR_pR_sig_kappa1, include = TRUE, echo = TRUE, background = 'NA', highlight = FALSE}
+pR_sig <-
+  array(data = 0,
+        dim = c(((nlags * ncol(y)) + 1),
+                ((nlags * ncol(y)) + 1),
+                ncol(y)))
+Ri <-
+  cbind(kronecker(matrix(data = 1, nrow = 1, ncol = nlags),
+                  matrix(data = c(1, 0), nrow = 1)),
+        0)
+pR_sig[, , 2] <- (t(Ri) %*% Ri) / 0.1
+kappa1 <- matrix(data = 2, nrow = 1, ncol = ncol(y))
+```
+
+
+The lines from [Code Chunk 5](#chunk5) create an array (`pR_sig`) containing values indicating confidence in the priors for the long-run restrictions. `pR_sig` corresponds to the $V_{i}^{-1}$ matrix from Equation 14. The matrix `R` from Equation 14 will be created automatically by the `BH_SBVAR()` function. The length of the third dimension of `pR_sig` is equal to the number of endogenous variables or the number of equations in the model. The first slice of the third dimension contains all zeros since there are no long-run restrictions in the first equation of the SBVAR model for this example. The second slice contains values indicating the confidence in the prior for the long-run restriction assigned to the lagged parameters in the second equation of the SBVAR model for this example. For information about long-run restrictions see [@BH2015; @BH2018; @BQ1989]. `kappa1` is a $(1 \times n)$ matrix whose values correspond to the elements along the main diagonal of $\kappa$ from Equation 17 and indicates the confidence in prior information about the structural variances in $D$. Additional information required to set priors for $D$ ($\tau$) will be created automatically by the `BH_SBVAR()` function following [@BH2015; @BH2017; @BH2018].
+
+<div id="chunk6"></div>
+```{r model, include=TRUE, echo=TRUE, fig.keep='all', fig.show='asis', fig.width=7, fig.align='center', fig.asp=0.4, background='NA', highlight=FALSE, fig.cap="Line and Autocorrelation Diagnostic Plots of the Posterior Estimates"}
+par(cex.axis = 0.8, cex.main = 1, font.main = 1, family = "serif",
+    mfrow = c(2, 2), mar = c(2, 2.2, 2, 1), las = 1)
+results1 <- 
+  BH_SBVAR(y = y, nlags = nlags, pA = pA, pP = pP, pP_sig = pP_sig,
+           pR_sig = pR_sig, kappa1 = kappa1, itr = itr,
+           burn = burn, thin = thin, cri = cri)
+```
+
+The first line in [Code Chunk 6](#chunk6) sets the parameters used to display plots that will be created by the `BH_SBVAR()` function. The `BH_SBVAR()` function allows the user to include prior information for $A$, $det(A)$, $H$ ($A^{-1}$), $\Phi$, and $D$ directly when estimating the parameters of an SBVAR model. The $pdetA$ and $pH$ arguments are arrays containing prior information for $det(A)$ and the elements of $H$ but are not included in this example. The `BH_SBVAR()` function returns a list that includes the acceptance rate (`accept_rate`) of the algorithm, a matrix containing the endogenous variables (`y`), a matrix containing lags of the endogenous variables (`x`), a numeric value indicating the number of lags, and the prior information provided directly or indirectly to the function (`pA`, `pdetA`, `pH`, `pP`, `pP_sig`, `pR_sig`, `tau1`, and `kappa1`). A matrix containing the starting values of the model parameters in `A` from an optimization routine is returned (`A_start`). Arrays containing estimates of the model parameters are returned (`A`, `detA`, `H`, `B`, `Phi`). The first, second, and third slices of the third dimension of these arrays are lower, median, and upper bounds of the estimates, respectively. Lists containing horizontal and vertical axis coordinates of posterior densities, for the estimates of the parameters in `A`, `det(A)`, and `H` with priors, are returned (`A_den`, `detA_den`, and `H_den`). Raw estimates of the elements of $A$, $B$, $D$, $detA$, and $H$ are returned (`A_chain`, `B_chain`, `D_chain`, `detA_chain`, `H_chain`). In addition, line and autocorrelation plots of the Markov chains of $A$ are returned for diagnostic purposes. The line and autocorrelation plots provide an indication of how well the algorithm covers the model's parameter space. The line plots in Figure \@ref(fig:model) display the Markov chains of the estimates from the algorithm with the estimate values shown on the vertical axis and the iteration number shown on the horizontal axis. The autocorrelation plots in Figure \@ref(fig:model) displays the autocorrelation of the Markov chains of the estimates from the algorithm with the correlation estimates on the vertical axis and the lag length shown on the horizontal axis.
+
+The titles of the plots in Figure \@ref(fig:model) indicate the element of the coefficient matrix that is plotted. The plots of the estimated parameters in `A` are automatically multiplied by -1 to illustrate elasticity values and/or isolate the dependent variable for each equation. These elements correspond to those found in the results from running the `BH_SBVAR()` function and the transpose of those from the mathematical representation from Equation 13. In other words, each column of the coefficient matrix arrays in the resulting list object from running the `BH_SBVAR()` function contain coefficient estimates for each equation. However, each row of the coefficient matrices from the mathematical representation described in Equation 13 represent the parameters of each equation.
+
+<div id="chunk7"></div>
+```{r irf-plots, include=TRUE, echo=TRUE, fig.keep='all', fig.show='asis', fig.width=7, fig.align='center', fig.asp=0.4, background='NA', highlight=FALSE, fig.cap="Impulse Responses"}
+irf <- IRF(results = results1, h = h, acc = acc, cri = cri)
+varnames <- colnames(USLMData)[2:3]
+shocknames <- c("Labor Demand","Labor Supply")
+par(cex.axis = 0.8, cex.main = 1, font.main = 1, family = "serif",
+    mfrow = c(2, 2), mar = c(2, 2.2, 2, 1), las = 1)
+irf_results <- 
+  IRF_Plots(results = irf, varnames = varnames,
+            shocknames = shocknames)
+```
+
+Figure \@ref(fig:irf-plots) Note: Horizontal axis indicates time periods following an initial shock. Vertical axis indicates percent change. Black solid lines indicate the posterior median. Red dashed lines indicate credibility intervals.
+
+The first line in [Code Chunk 7](#chunk7) provides the impulse response estimates. Lines two and three in [Code Chunk 7](#chunk7) store the names of endogenous variables and structural shocks. The `\verb$`IRF_Plots()` function creates plots of impulse responses. This function can be used to display the response of the endogenous variables following a structural shock. The `results` argument is a list object containing the unaltered results from the `BH_SBVAR()` function. The `varnames` and `shocknames` argument are character vectors containing the variable names and shock names, respectively. The `xlab` and `ylab` arguments are not included in this example, but they allow the user to include labels for the horizontal and vertical axes, respectively. Figure \@ref(fig:irf-plots) displays the cumulative response of U.S. real wage growth and employment growth to U.S. labor demand and supply shocks. The units along the horizontal axis in the plots from Figure \@ref(fig:irf-plots) represent time periods following an initial shock. The units along the vertical axis in the plots from Figure \@ref(fig:irf-plots) represent percent change following an initial shock since the endogenous variables included in the model are mean centered quarter over quarter percent change of U.S. real wage and employment. In addition, this function returns a list containing the data used to produce the plots in Figure \@ref(fig:irf-plots).
+
+<div id="chunk8"></div>
+```{r fevd-plots, include=TRUE, echo=TRUE, fig.keep='all', fig.show='asis', fig.width=7, fig.align='center', fig.asp=0.4, background='NA', highlight=FALSE, fig.cap="Forecast Error Variance Decompositions"}
+fevd <- FEVD(results = results1, h = h, acc = acc, cri = cri)
+varnames <- colnames(USLMData)[2:3]
+shocknames <- c("Labor Demand","Labor Supply")
+par(cex.axis = 0.8, cex.main = 1, font.main = 1, family = "serif",
+    mfrow = c(2, 2), mar = c(2, 2.2, 2, 1), las = 1)
+fevd_results <- 
+  FEVD_Plots(results = fevd, varnames = varnames,
+            shocknames = shocknames)
+```
+
+Figure \@ref(fig:fevd-plots) Note: Horizontal axis indicates time periods following an initial shock. Vertical axis indicates forecast error variance explained by the structural shock as a percent of total forecast error variance.
+
+The first line in [Code Chunk 8](#chunk8) provides the forecast error variance decomposition estimates. The `FEVD_Plots()` function from [Code Chunk 8](#chunk8) creates plots of forecast error variance decompositions. This function can be used to display the forecast error variance that is explained by the structural shocks. The `results`, `varnames`, `shocknames`, `xlab`, `ylab` arguments for the `FEVD_Plots()` function are the same as those from the `IRF_Plots()` function. The `rel` argument is used to display forecast error variance explained by shocks as a percent of total forecast error variance. The units along the horizontal axis in the plots from Figure \@ref(fig:fevd-plots) represent time periods following an initial shock. The units along the vertical axis in the plots from Figure \@ref(fig:fevd-plots) represent forecast error variance explained by the structural shock as a percent of total forecast error variance since `rel = TRUE`. This function returns a list containing the data used to produce the plots in Figure \@ref(fig:fevd-plots).
+
+<div id="chunk9"></div>
+```{r hd-plots, include=TRUE, echo=TRUE, fig.keep='all', fig.show='asis', fig.width=7, fig.align='center', fig.asp=0.4, background='NA', highlight=FALSE, fig.cap="Historical Decompositions"}
+hd <- HD(results = results1, cri = cri)
+varnames <- colnames(USLMData)[2:3]
+shocknames <- c("Labor Demand","Labor Supply")
+freq <- 4
+start_date <- 
+  c(floor(USLMData[(nlags + 1), 1]),
+    (floor(((USLMData[(nlags + 1), 1] %% 1) * freq)) + 1))
+par(cex.axis = 0.8, cex.main = 1, font.main = 1, family = "serif",
+    mfrow = c(2, 2), mar = c(2, 2.2, 2, 1), las = 1)
+hd_results <- 
+  HD_Plots(results  = hd, varnames = varnames,
+           shocknames = shocknames,
+           freq = freq, start_date = start_date)
+```
+
+Figure \@ref(fig:hd-plots) Note: Horizontal axis indicates percent change. Vertical axis indicates actual dates. Black solid lines are mean centered endogenous variables. Red solid lines indicate the posterior median. Red dashed lines indicate credibility intervals.
+
+The first line in [Code Chunk 9](#chunk9) provides the historical decomposition estimates. The `HD_Plots()` function from [Code Chunk 9](#chunk9) creates plots of historical decompositions. This function can be used to display the cumulative effect of specific shocks on an endogenous variable at any given time period. The `results`, `varnames`, `shocknames`, `xlab`, `ylab` arguments for the `HD_Plots()` function are the same as those from the `IRF_Plots()` function. Figure \@ref(fig:hd-plots) displays the historical decompositions. The units along the horizontal axis in the plots from Figure \@ref(fig:hd-plots), produced by the `HD_Plots` function, represent actual time periods. The units along the horizontal axis of each plot are created with the `freq` and `start_date` arguments. The `freq` argument is set to \Sexpr{freq} since the endogenous variables are measured at a quarterly frequency in this example. The `start_date` argument represents the date of the first observation which is Q\Sexpr{start_date[2]} \Sexpr{start_date[1]} in this example so `start_date <- c(\Sexpr{start_date[1]}, \Sexpr{start_date[2]})`. The units along the vertical axis in the plots from Figure \@ref(fig:hd-plots) represent percent change since the endogenous variables included in the model are mean centered quarter over quarter percent change of U.S. real wage and employment. This function also returns a list of the data used to produce the plots in Figure \@ref(fig:hd-plots).
+
+<div id="chunk10"></div>
+```{r dist-plots, include=TRUE, echo=TRUE, fig.keep='all', fig.show='asis', fig.width=7, fig.align='center', fig.asp=0.4, background='NA', highlight=FALSE, fig.cap="Posterior and Prior Distribution Plots"}
+A_titles <- 
+  matrix(data = NA_character_, nrow = dim(pA)[1], ncol = dim(pA)[2])
+A_titles[1, 1] <- "Wage Elasticity of Labor Demand"
+A_titles[1, 2] <- "Wage Elasticity of Labor Supply"
+par(cex.axis = 0.8, cex.main = 1, font.main = 1, family = "serif",
+    mfrow = c(1, 2), mar = c(2, 2.2, 2, 1), las = 1)
+Dist_Plots(results = results1, A_titles = A_titles)
+```
+
+Figure \@ref(fig:dist-plots) Note: Horizontal axis indicates percent change. Vertical axis indicates density. Blue solid regions indicate posterior density evaluated at values along the horizontal axis. Red solid lines indicate prior density evaluated at values along the horizontal axis.
+
+The `Dist_Plots()` function from [Code Chunk 10](#chunk10) creates posterior density plots for the estimates for the parameters in $A$, $H$, and $det(A)$. Prior densities are also plotted to illustrate the differences between posterior and prior distributions. The `results`, `xlab`, and `ylab` arguments for the `Dist_Plots()` function are the same as those from the `IRF_Plots()` and `HD_Plots()` functions. `A_titles` and `H_titles` arguments are matrices that contain the titles of the plots. The elements of the `A_titles` and `H_titles` matrices correspond to the elements of the first and second dimensions of the `A` and `H` arrays from the results of the `BH_SBVAR()` function. The posterior and prior density plots for the estimates of the parameters in `A` are multiplied by -1 to illustrate elasticity values and/or the value of the coefficient if the dependent variable for each equation were isolated.
+
+<div id="appendix"></div>
+## APPENDIX
+
+List of functions used to compute the density of the prior distributions at some proposal value:
+
+a1: is the proposal value.
+
+p1: is the prior position parameter.
+
+sigma1: is the prior confidence in the position parameter, c1.
+
+nu: is the degrees of freedom.
+
+lam1: is the non-centrality or skew parameter.
+
+sh1: is the shape1 $(\alpha)$ parameter.
+
+sh2: is the shape2 $(\beta)$ parameter.
+
+\vspace{\baselineskip}
+Student t-distribution:
+
+```{r Density1, eval = FALSE, include = TRUE, echo = TRUE, background = 'NA', highlight = FALSE}
+density <-
+  dt(x = ((a1 - p1) / sigma1), df = nu, ncp = 0, log = FALSE) / sigma1
+```
+
+Non-central Student t-distribution:
+
+```{r Density2, eval = FALSE, include = TRUE, echo = TRUE, background = 'NA', highlight = FALSE}
+density <-
+  dt(x = ((a1 - p1) / sigma1), df = nu, ncp = lam1, log = FALSE) / sigma1
+```
+
+Student t-distribution truncated to be positive:
+
+```{r Density3, eval = FALSE, include = TRUE, echo = TRUE, background = 'NA', highlight = FALSE}
+density <-
+  dt(x = ((a1 - p1) / sigma1), df = nu, ncp = 0, log = FALSE) / 
+  (sigma1 * 
+     (1 - pt(q = ((-p1) / sigma1), df = nu, ncp = 0, lower.tail = TRUE, 
+             log.p = FALSE)))
+```
+
+Student t-distribution truncated to be negative:
+
+```{r Density5, eval = FALSE, include = TRUE, echo = TRUE, background = 'NA', highlight = FALSE}
+density <- dt(x = ((a1 - p1) / sigma1), df = nu, ncp = 0, log = FALSE) / 
+  (sigma1 * pt(q = ((-p1) / sigma1), df = nu, ncp = 0, lower.tail = TRUE, 
+               log.p = FALSE))
+```
+
+Inverted Beta-distribution (multiply a1 by sign restriction):
+
+```{r Density6, eval = FALSE, include = TRUE, echo = TRUE, background = 'NA', highlight = FALSE}
+density <- 0
+if (a1 >= 1) {
+  density <- exp(
+    ((sh2 - 1) * log((a1 - 1))) + 
+      (((-1) * (sh2 + sh1)) * log((1 + (a1 - 1)))) - 
+      log(beta(sh2, sh1))
+    )
+}
+```
+
+Beta-distribution (multiply a1 by sign restriction):
+
+```{r Density4, eval = FALSE, include = TRUE, echo = TRUE, background = 'NA', highlight = FALSE}
+density <- dbeta(x = a1, shape1 = sh1, shape2 = sh2, ncp = 0, log = FALSE)
+```
+
+
+
+
+
+
+
+
+
+## REFERENCES
+
+
+
